@@ -1,0 +1,937 @@
+---
+title: "CMapCorr"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+---
+
+```{r setup, echo=TRUE, message=FALSE, warning=FALSE}
+library(cmapR)
+library(AnnotationDbi)
+library(org.Hs.eg.db)
+library(UpSetR)
+library(ranger)
+library(colorspace)
+
+cmap_file_path <- "~/Data_LINCS/phase1/"
+```
+
+```{r load_data_lvl5, eval=FALSE, include=FALSE, include=FALSE, message=FALSE, warning=FALSE}
+# sample metadata ----
+lvl5_coldata <- read.gctx.meta(
+  file.path(cmap_file_path,"annotated_GSE92742_Broad_LINCS_Level5_COMPZ_n473647x12328.gctx"),
+  dimension="column")
+lvl5_data <- parse.gctx(
+  file.path(cmap_file_path,"annotated_GSE92742_Broad_LINCS_Level5_COMPZ_n473647x12328.gctx"),
+  cid=lvl5_coldata$id[lvl5_coldata$pert_type == "trt_lig"])
+# fixing dose unit discrepancy
+lvl5_data@cdesc$pert_dose_unit[lvl5_data@cdesc$pert_dose_unit == "ng/<fd><fd>L"] <- "ng/uL"
+lvl5_data@cdesc$pert_dose[lvl5_data@cdesc$pert_dose == "0.1" & 
+                              lvl5_data@cdesc$pert_dose_unit == "ng/uL"] <- "100.0"
+lvl5_data@cdesc$pert_dose[lvl5_data@cdesc$pert_dose == "1.0" & 
+                              lvl5_data@cdesc$pert_dose_unit == "ng/uL"] <- "1000.0"
+lvl5_data@cdesc$pert_dose[lvl5_data@cdesc$pert_dose == "3.0" & 
+                              lvl5_data@cdesc$pert_dose_unit == "ng/uL"] <- "3000.0"
+lvl5_data@cdesc$pert_dose[lvl5_data@cdesc$pert_dose == "10.0" & 
+                              lvl5_data@cdesc$pert_dose_unit == "ng/uL"] <- "10000.0"
+lvl5_data@cdesc$pert_dose[lvl5_data@cdesc$pert_dose == "100.0" & 
+                              lvl5_data@cdesc$pert_dose_unit == "ng/uL"] <- "100000.0"
+lvl5_data@cdesc$pert_dose[lvl5_data@cdesc$pert_dose == "300.0" & 
+                              lvl5_data@cdesc$pert_dose_unit == "ng/uL"] <- "300000.0"
+lvl5_data@cdesc$pert_dose_unit[lvl5_data@cdesc$pert_dose_unit == "ng/uL"] <- "ng/mL"
+
+lvl5_data_ctl <- parse.gctx(
+  file.path(cmap_file_path,"annotated_GSE92742_Broad_LINCS_Level5_COMPZ_n473647x12328.gctx"),
+  cid=lvl5_coldata$id[lvl5_coldata$pert_type == "ctl_vehicle" & 
+                        lvl5_coldata$cell_id %in% unique(lvl5_data@cdesc$cell_id)])
+```
+
+```{r load_data_lvl3, message=FALSE, warning=FALSE, include=FALSE}
+lvl3_coldata <- read.table(file.path(cmap_file_path,"GSE92742_Broad_LINCS_inst_info.txt"),
+                           header=T,sep="\t",row.names=1,colClasses="character",quote="\"")
+# always check # of rows matches .txt with `awk -F "\t" 'END {print NR}' filename`
+# and when it doesn't, make sure R isn't quoting out things based on apostrophes.
+temp_geneinfo <- read.table(file.path(cmap_file_path,"GSE92742_Broad_LINCS_gene_info.txt"),
+                            header=T,sep="\t",row.names=1,colClasses="character",quote="\"")
+# Only going to use the landmark genes, because those were actually measured.
+# This reduces the number of features, such that features don't massively outnumber samples.
+
+lvl3_data <- parse.gctx(
+  file.path(cmap_file_path,"GSE92742_Broad_LINCS_Level3_INF_mlr12k_n1319138x12328.gctx"),
+  cid=rownames(lvl3_coldata)[lvl3_coldata$pert_type == "trt_lig"],
+  rid=rownames(temp_geneinfo)[temp_geneinfo$pr_is_lm == "1"])
+temp_id <- lvl3_data@cdesc$id
+lvl3_data@cdesc <- lvl3_coldata[temp_id,]
+# fixing floating-point bullshit
+lvl3_data@cdesc$pert_dose[lvl3_data@cdesc$pert_dose == "0.00999999977648"] <- "0.01"
+lvl3_data@cdesc$pert_dose[lvl3_data@cdesc$pert_dose == "0.029999999329400003"] <- "0.03"
+lvl3_data@cdesc$pert_dose[lvl3_data@cdesc$pert_dose == "0.10000000149"] <- "0.1"
+lvl3_data@cdesc$pert_dose[lvl3_data@cdesc$pert_dose == "0.15000000596"] <- "0.15"
+lvl3_data@cdesc$pert_dose[lvl3_data@cdesc$pert_dose == "0.20000000298"] <- "0.2"
+lvl3_data@cdesc$pert_dose[lvl3_data@cdesc$pert_dose == "0.300000011921"] <- "0.3"
+lvl3_data@cdesc$pert_dose[lvl3_data@cdesc$pert_dose == "1.64999997616"] <- "1.65"
+lvl3_data@cdesc$pert_dose <- sub("\\.?0+$","",lvl3_data@cdesc$pert_dose)
+# fixing dose unit discrepancy
+lvl3_data@cdesc$pert_dose[lvl3_data@cdesc$pert_dose == "0.1" & 
+                              lvl3_data@cdesc$pert_dose_unit == "ng/ul"] <- "100"
+lvl3_data@cdesc$pert_dose[lvl3_data@cdesc$pert_dose == "1" & 
+                              lvl3_data@cdesc$pert_dose_unit == "ng/ul"] <- "1000"
+lvl3_data@cdesc$pert_dose[lvl3_data@cdesc$pert_dose == "3" & 
+                              lvl3_data@cdesc$pert_dose_unit == "ng/ul"] <- "3000"
+lvl3_data@cdesc$pert_dose[lvl3_data@cdesc$pert_dose == "10" & 
+                              lvl3_data@cdesc$pert_dose_unit == "ng/ul"] <- "10000"
+lvl3_data@cdesc$pert_dose[lvl3_data@cdesc$pert_dose == "100" & 
+                              lvl3_data@cdesc$pert_dose_unit == "ng/ul"] <- "100000"
+lvl3_data@cdesc$pert_dose[lvl3_data@cdesc$pert_dose == "300" & 
+                              lvl3_data@cdesc$pert_dose_unit == "ng/ul"] <- "300000"
+lvl3_data@cdesc$pert_dose_unit[lvl3_data@cdesc$pert_dose_unit == "ng/ul"] <- "ng/ml"
+lvl3_data@cdesc$pert_dose_unit[lvl3_data@cdesc$pert_dose_unit == "ng/ml"] <- "ng/mL"
+
+lvl3_data_ctl <- parse.gctx(
+  file.path(cmap_file_path,"GSE92742_Broad_LINCS_Level3_INF_mlr12k_n1319138x12328.gctx"),
+  cid=rownames(lvl3_coldata)[lvl3_coldata$pert_type == "ctl_vehicle" &
+                               lvl3_coldata$cell_id %in% 
+                               unique(lvl3_coldata[rownames(lvl3_data@cdesc),"cell_id"])],
+  rid=rownames(temp_geneinfo)[temp_geneinfo$pr_is_lm == "1"])
+temp_id <- lvl3_data_ctl@cdesc$id
+lvl3_data_ctl@cdesc <- lvl3_coldata[temp_id,]
+# fixing floating-point bullshit
+lvl3_data_ctl@cdesc$pert_dose[lvl3_data_ctl@cdesc$pert_dose == "0.10000000149"] <- "0.1"
+lvl3_data_ctl@cdesc$pert_dose <- sub("\\.?0+$","",lvl3_data_ctl@cdesc$pert_dose)
+
+cell_info <- read.table(file.path(cmap_file_path,"GSE92742_Broad_LINCS_cell_info.txt"),
+                           header=T,sep="\t",row.names=1,colClasses="character",quote="\"")
+
+rm(list=grep("^temp",ls(),value=T))
+```
+
+```{r map_missing_gene_names, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+# comparing gene names to LRdb ----
+load(system.file("LigRecDB_RData/BaderCCIeditedbyBI.RData",package="CCInx"))
+temp_lignames <- unique(lvl3_coldata$pert_iname[lvl3_coldata$pert_type == "trt_lig"])
+temp_lostnames <- data.frame(cmap=temp_lignames[!temp_lignames %in% geneInfo$hgnc_symbol],
+                             ccinx=NA,stringsAsFactors=F)
+rownames(temp_lostnames) <- temp_lostnames$cmap
+temp_lostnames[c("BMP11","BMP13","Gdf7","HF1","IL12",
+                 "IL17E","IL28A","IL29","KNG","NRG1.alpha",
+                 "NRG1.beta","TPO","BNGF","EPG","IFNA",
+                 "IL1","KGF","MCSF","MSP","PDGFBB",
+                 "SCF","TGFa","BFGF","NRG1.ALPHA","NRG1.BETA"),
+               "ccinx"] <- c("GDF11","GDF6","GDF7","CHF","IL12B",
+                             "IL25","IFNL2","IFNL1","KNG1","NRG1",
+                             "NRG1","THPO","NGF","EPGN","IFNA2",
+                             "IL1A","FGF7","CSF1","MST1","PDGF",
+                             "KITLG","TGFA","FGF2","NRG1","NRG1")
+```
+
+
+```{r data_summary, echo=TRUE, message=FALSE, warning=FALSE, fig.height=5, fig.width=8, fig.show='hold'}
+temp_ct <- sapply(unique(lvl3_data@cdesc$cell_id),function(X) 
+  unique(lvl3_data@cdesc$pert_iname[lvl3_data@cdesc$cell_id == X]),
+  simplify=F)
+temp_ctype <- apply(cell_info[unique(lvl3_data@cdesc$cell_id),c("primary_site","sample_type")],1,
+                    function(X) paste(X,collapse=" "))
+temp_md <- data.frame(sets=names(temp_ctype),source.tissue=temp_ctype)
+temp_col <- qualitative_hcl(length(unique(temp_ctype)),palette="dark3")
+names(temp_col) <- unique(temp_md$source.tissue)
+
+upset(fromList(temp_ct),
+      nsets=length(temp_ct),
+      nintersects=NA,
+      order.by="degree",
+      set.metadata=list(data=temp_md,
+                        plots=list(
+                          list(type="text",
+                               column="source.tissue",
+                               assign=15,
+                               colors=temp_col),
+                          list(type="matrix_rows",
+                               column="source.tissue",
+                               colors=temp_col,
+                               alpha=0.7))
+      ))
+
+lig15 <- Reduce(intersect,temp_ct)
+# lig300 <- Reduce(intersect,temp_ct[names(sort(sapply(temp_ct,length),decreasing=T))[1:8]])
+
+ct14 <- names(sort(table(lvl3_data@cdesc$cell_id[lvl3_data@cdesc$pert_iname %in% lig15]),decreasing=T))
+names(ct14) <- paste(temp_md[ct14,"source.tissue"],ct14)
+names(ct14) <- gsub(" ","_",names(ct14))
+# ct_unique <- c("MCF7","VCAP","HT29","HEPG2","HCC515","HA1E","A549","A375","MCF10A")
+# names(ct_unique) <- paste(temp_md[ct_unique,"source.tissue"],ct_unique)
+# names(ct_unique) <- gsub(" ","_",names(ct_unique))
+
+rm(list=grep("^temp",ls(),value=T))
+```
+In the Connectivity Map data, there are 15 ligands assayed in all 14 cell lines, and 300 ligands assayed in 8 cell lines.
+
+```{r zscore_distributions, eval=FALSE, include=FALSE, echo=TRUE, message=FALSE, warning=FALSE}
+lvl5_data@cdesc[lvl5_data@cdesc$cell_id == "PC3" & 
+                  lvl5_data@cdesc$pert_iname == "HGF",]
+temp_trt <- lvl5_data@mat[,lvl5_data@cdesc[lvl5_data@cdesc$cell_id == "PC3" & 
+                                             lvl5_data@cdesc$pert_iname == "HGF","id"]]
+temp_trt <- temp_trt[,c(2,4)]
+temp_ctl <- lvl5_data_ctl@mat[,lvl5_data_ctl@cdesc$distil_id %in%
+                                grep("^CYT001",
+                                     lvl5_data_ctl@cdesc[lvl5_data_ctl@cdesc$cell_id == "PC3","distil_id"],
+                                     value=T)]
+
+temp_r <- qqnorm(rnorm(nrow(temp_trt),
+                       mean=mean(temp_trt[,1]),
+                       sd=sd(temp_trt[,1])),
+                 plot.it=F)
+temp_t2 <- qqnorm(temp_trt[,1],plot.it=F)
+temp_t4 <- qqnorm(temp_trt[,2],plot.it=F)
+temp_c2 <- qqnorm(temp_ctl[,1],plot.it=F)
+temp_c4 <- qqnorm(temp_ctl[,2],plot.it=F)
+
+par(mar=c(3,3,2,1),mgp=2:0)
+plot(temp_c2$x[order(temp_c2$x)],temp_c2$y[order(temp_c2$x)],
+     pch=20,col=scales::alpha("blue",0.5),
+     xlab="Theoretical Quantiles",ylab="Sample Quantiles")
+qqline(temp_ctl[,1],col="blue")
+points(temp_t2$x[order(temp_t2$x)],temp_t2$y[order(temp_t2$x)],
+       pch=20,col=scales::alpha("red",0.5))
+qqline(temp_trt[,1],col="red")
+
+
+plot(density(rnorm(nrow(lvl5_data_ctl@mat),
+                   mean=mean(lvl5_data_ctl@mat[,1]),
+                   sd=sd(lvl5_data_ctl@mat[,1]))),
+     lwd=2,col="blue",main=NA,xlim=range(lvl5_data_ctl@mat[,1]))
+points(density(lvl5_data_ctl@mat[,1]),
+       type="l",lwd=2,col="red")
+legend("topright",lwd=2,col=c("blue","red"),
+       legend=c("Norm","Data"))
+
+hist(c(pnorm(lvl5_data_ctl@mat[lvl5_data_ctl@mat[,1] < 0,1],
+             mean=mean(lvl5_data_ctl@mat[,1]),
+             sd=sd(lvl5_data_ctl@mat[,1]),
+             lower.tail=T),
+       pnorm(lvl5_data_ctl@mat[lvl5_data_ctl@mat[,1] > 0,1],
+             mean=mean(lvl5_data_ctl@mat[,1]),
+             sd=sd(lvl5_data_ctl@mat[,1]),
+             lower.tail=F)))
+
+qqnorm(lvl5_data@mat[,1])
+qqnorm(lvl5_data_ctl@mat[,1])
+qqnorm(rnorm(nrow(lvl5_data_ctl@mat),
+             mean=mean(lvl5_data_ctl@mat[,1]),
+             sd=sd(lvl5_data_ctl@mat[,1])))
+
+rm(list=grep("^temp",ls(),value=T))
+```
+
+### Distribution of samples between cell types and ligands
+
+```{r lvl3_pca, echo=TRUE, message=FALSE, warning=FALSE, fig.height=9,fig.width=9, fig.show='hold'}
+if (file.exists("200326_lvl3pca.RData") & !exists("lvl3pca")) {
+  load("200326_lvl3pca.RData") 
+}
+par(mfrow=c(3,3),mar=c(1.5,1,1,0.5),mgp=c(0,0,0))
+for (X in list(c(1,2),c(1,3),c(3,2))) {
+  plot(lvl3pca$x[,X],pch=".",xaxt="n",yaxt="n",xaxt="n",yaxt="n",main="All",
+       col=qualitative_hcl(
+         length(unique(lvl3_data@cdesc$cell_id)),
+         palette="dark3",alpha=.7)[as.factor(c(lvl3_data@cdesc$cell_id,lvl3_data_ctl@cdesc$cell_id))])
+}
+for (X in list(c(1,2),c(1,3),c(3,2))) {
+  plot(lvl3pca$x[colnames(lvl3_data_ctl@mat),X],pch=".",xaxt="n",yaxt="n",main="Controls",
+       col=qualitative_hcl(
+         length(unique(lvl3_data@cdesc$cell_id)),
+         palette="dark3",alpha=.7)[as.factor(lvl3_data_ctl@cdesc$cell_id)])
+}
+for (X in list(c(1,2),c(1,3),c(3,2))) {
+  plot(lvl3pca$x[colnames(lvl3_data@mat),X],pch=".",xaxt="n",yaxt="n",main="Treatments",
+       col=qualitative_hcl(
+         length(unique(lvl3_data@cdesc$cell_id)),
+         palette="dark3",alpha=.7)[as.factor(lvl3_data@cdesc$cell_id)])
+}
+
+rm(list=grep("^temp",ls(),value=T))
+```
+
+```{r lvl3_umap, echo=TRUE, message=FALSE, warning=FALSE, fig.height=6, fig.width=9, fig.show='hold'}
+if (file.exists("200326_lvl3umap.RData") & !exists("lvl3umap")) {
+  load("200326_lvl3umap.RData") 
+}
+par(mfrow=c(2,3),mar=c(1.5,1,1,0.5),mgp=c(0,0,0))
+plot(lvl3umap$layout,pch=".",xaxt="n",yaxt="n",main="All",xlab="UMAP1",ylab="UMAP2",
+     col=qualitative_hcl(
+       length(unique(lvl3_data@cdesc$cell_id)),
+       palette="dark3",alpha=.7)[as.factor(c(lvl3_data@cdesc$cell_id,lvl3_data_ctl@cdesc$cell_id))])
+plot(lvl3umap$layout[colnames(lvl3_data_ctl@mat),],
+     pch=".",xaxt="n",yaxt="n",main="Controls",xlab="UMAP1",ylab="UMAP2",
+     xlim=range(lvl3umap$layout[,1]),ylim=range(lvl3umap$layout[,2]),
+     col=qualitative_hcl(
+       length(unique(lvl3_data@cdesc$cell_id)),
+       palette="dark3",alpha=.7)[as.factor(lvl3_data_ctl@cdesc$cell_id)])
+plot(lvl3umap$layout[colnames(lvl3_data@mat),],
+     pch=".",xaxt="n",yaxt="n",main="Treatments",xlab="UMAP1",ylab="UMAP2",
+     xlim=range(lvl3umap$layout[,1]),ylim=range(lvl3umap$layout[,2]),
+     col=qualitative_hcl(
+       length(unique(lvl3_data@cdesc$cell_id)),
+       palette="dark3",alpha=.7)[as.factor(lvl3_data@cdesc$cell_id)])
+
+if (file.exists("200326_lvl3umap_raw.RData") & !exists("lvl3umap_raw")) {
+  load("200326_lvl3umap_raw.RData") 
+}
+plot(lvl3umap_raw$layout,pch=".",xaxt="n",yaxt="n",main="All",xlab="UMAP1",ylab="UMAP2",
+     col=qualitative_hcl(
+       length(unique(lvl3_data@cdesc$cell_id)),
+       palette="dark3",alpha=.7)[as.factor(c(lvl3_data@cdesc$cell_id,lvl3_data_ctl@cdesc$cell_id))])
+plot(lvl3umap_raw$layout[colnames(lvl3_data_ctl@mat),],
+     pch=".",xaxt="n",yaxt="n",main="Controls",xlab="UMAP1",ylab="UMAP2",
+     xlim=range(lvl3umap_raw$layout[,1]),ylim=range(lvl3umap_raw$layout[,2]),
+     col=qualitative_hcl(
+       length(unique(lvl3_data@cdesc$cell_id)),
+       palette="dark3",alpha=.7)[as.factor(lvl3_data_ctl@cdesc$cell_id)])
+plot(lvl3umap_raw$layout[colnames(lvl3_data@mat),],
+     pch=".",xaxt="n",yaxt="n",main="Treatments",xlab="UMAP1",ylab="UMAP2",
+     xlim=range(lvl3umap_raw$layout[,1]),ylim=range(lvl3umap_raw$layout[,2]),
+     col=qualitative_hcl(
+       length(unique(lvl3_data@cdesc$cell_id)),
+       palette="dark3",alpha=.7)[as.factor(lvl3_data@cdesc$cell_id)])
+
+rm(list=grep("^temp",ls(),value=T))
+```
+
+Above are PCA and UMAP projections of all Connectivity Map ligand-treated and control data coloured by cell type.
+
+```{r data_dist, echo=TRUE, message=FALSE, warning=FALSE, fig.show='hold'}
+temp <- as.data.frame(cbind(sapply(lig15,function(X)
+  table(lvl3_data@cdesc$cell_id[lvl3_data@cdesc$pert_iname == X])),
+  ctrl=table(lvl3_data_ctl@cdesc$cell_id)))
+rownames(temp) <- sapply(rownames(temp),function(X) names(ct14)[ct14 == X])
+temp$min.ctrl.ratio <- apply(temp[,colnames(temp) != "ctrl"],1,max) / temp$ctrl
+temp
+# ct_strat <- ct14[rownames(temp)[temp$min.ctrl.ratio < 0.4]]
+
+rm(list=grep("^temp",ls(),value=T))
+```
+
+Below are UMAP projections of selected cell types that represent patterns of data distribution between controls and treatments that we see in the CMap data. BT20 is a breast tumour line where very few ligands were tested, but they were tested in depth, and thus there are more treated samples (as a whole) than controls.  VCAP is a prostate tumour line where many ligands were minimally tested, with many controls.  The MCF7 breast tumour line is unique in that many ligands were tested in depth, so as a whole there is a balance between treated and control samples.  
+
+```{r lvl3_umap_ct, echo=TRUE, message=FALSE, warning=FALSE, fig.height=18, fig.width=9, fig.show='hold'}
+if (file.exists("200326_ctUMAP.RData") & !exists("ctUMAP")) {
+  load("200326_ctUMAP.RData") 
+}
+par(mfrow=c(6,3),mar=c(1,1,1,0.5),mgp=c(0,0,0))
+for (CT in names(ctUMAP)) {
+  plot(ctUMAP[[CT]]$layout,pch=".",xaxt="n",yaxt="n",
+       xlab="UMAP1",ylab="UMAP2",main=paste0(CT,": All"),
+       col=scales::alpha(c("red","blue"),0.7)[rownames(ctUMAP[[CT]]$layout) %in% 
+                                                colnames(lvl3_data@mat) + 1])
+  legend("topright",bty="n",pch=20,col=c("red","blue"),cex=0.8,legend=c("Ctl","Tx"))
+  
+  temp_facts <- list(
+    "Controls by solute & time"=as.factor(apply(lvl3_data_ctl@cdesc[lvl3_data_ctl@cdesc$cell_id == CT,
+                                                                    c("pert_iname","pert_time")],1,
+                                                function(Z) paste(Z,collapse="_"))),
+    "Controls by plate"=as.factor(lvl3_data_ctl@cdesc[lvl3_data_ctl@cdesc$cell_id == CT,"rna_plate"]),
+    "Treatments by ligand"=as.factor(lvl3_data@cdesc[lvl3_data@cdesc$cell_id == CT,"pert_iname"]),
+    "Treatments by dose & time"=as.factor(apply(lvl3_data@cdesc[lvl3_data@cdesc$cell_id == CT,
+                                                                c("pert_dose","pert_time")],1,
+                                                function(Z) paste(Z,collapse="_"))),
+    "Treatments by plate"=as.factor(lvl3_data@cdesc[lvl3_data@cdesc$cell_id == CT,"rna_plate"])
+  )
+  names(temp_facts[[2]]) <- rownames(lvl3_data_ctl@cdesc[lvl3_data_ctl@cdesc$cell_id == CT,])
+  names(temp_facts[[3]]) <- names(temp_facts[[5]]) <- rownames(lvl3_data@cdesc[lvl3_data@cdesc$cell_id == CT,])
+
+  for (X in names(temp_facts)) {
+    plot(ctUMAP[[CT]]$layout[names(temp_facts[[X]]),],
+         pch=20,xaxt="n",yaxt="n",xlab="UMAP1",ylab="UMAP2",
+         main=paste0(CT,": ",X),
+         xlim=range(ctUMAP[[CT]]$layout[,1]),ylim=range(ctUMAP[[CT]]$layout[,2]),
+         col=qualitative_hcl(length(levels(temp_facts[[X]])),
+                                         palette="dark3",alpha=.7)[temp_facts[[X]]])
+  }
+}
+rm(X,CT)
+rm(list=grep("^temp",ls(),value=T))
+```
+
+So it seems the plate effect is strong in this data.  Might consider using the plate-based Z-scores from Cmap level 5 instead of the quantile normalized transcriptomes from level 3 that are shown here.  For now, continuing with level 3 data.
+
+```{r plate_matched_controls, echo=TRUE, message=FALSE, warning=FALSE}
+PM <- sapply(as.vector(ct14),function(CT) {
+  sapply(lig15,function(L) {
+    temp_tx <- rownames(lvl3_data@cdesc)[lvl3_data@cdesc$cell_id == CT & 
+                                           lvl3_data@cdesc$pert_iname == L]
+    temp_pl <- unique(lvl3_data@cdesc[temp_tx,"rna_plate"])
+    temp_ctl <- rownames(lvl3_data_ctl@cdesc)[lvl3_data_ctl@cdesc$rna_plate %in% temp_pl &
+                                                lvl3_data_ctl@cdesc$cell_id == CT]
+    # message(paste(length(temp_tx),length(temp_ctl)))
+    return(list(tx=temp_tx,
+                ctl=temp_ctl))
+  },simplify=F)
+},simplify=F)
+
+rm(list=grep("^temp",ls(),value=T))
+```
+
+
+# Identifying stimulated cells
+
+Here we are training random forest models to distinguish between cells treated with a ligand and their respective controls.  This should be a pretty easy task, but later we'll see if the models can generalize to cell types they haven't seen.
+
+## Training on all cell types
+
+```{r RF_mix_all_cells, echo=TRUE, message=FALSE, warning=FALSE, fig.height=5, fig.width=8, fig.show='hold'}
+fx_acc <- function(L,P) { sum(P == L) / length(P) }
+fx_pre <- function(L,P) { sum(P == "yes" & L == "yes") / sum(P == "yes") }
+fx_rec <- function(L,P) { sum(P == "yes" & L == "yes") / sum(L == "yes") }
+fx_F1 <- function(PRE,REC) { 2 * ( (PRE * REC) / (PRE + REC) )}
+
+if (file.exists("200326_mixall.RData")) {
+  temp <- load("200326_mixall.RData")
+} else {
+  source("200326_lvl3_mixall.R")
+}
+
+temp_metrics <- data.frame(
+  acc_unb=round(mapply(fx_acc,L=test_labels,P=test_results),3),
+  pre_unb=round(mapply(fx_pre,L=test_labels,P=test_results),3),
+  rec_unb=round(mapply(fx_rec,L=test_labels,P=test_results),3),
+  acc_wt=round(mapply(fx_acc,L=test_labels,P=test_resultsW),3),
+  pre_wt=round(mapply(fx_pre,L=test_labels,P=test_resultsW),3),
+  rec_wt=round(mapply(fx_rec,L=test_labels,P=test_resultsW),3),
+  acc_bal=round(mapply(fx_acc,L=test_labels,P=test_resultsB),3),
+  pre_bal=round(mapply(fx_pre,L=test_labels,P=test_resultsB),3),
+  rec_bal=round(mapply(fx_rec,L=test_labels,P=test_resultsB),3)
+)
+temp_metrics
+
+layout(matrix(c(3,1,3,2),nrow=2),widths=c(5,3),heights=c(1,9))
+par(mar=c(3,3,0,1),mgp=2:0)
+plot(c(temp_metrics$rec_unb,temp_metrics$rec_wt,temp_metrics$rec_bal),
+     c(temp_metrics$pre_unb,temp_metrics$pre_wt,temp_metrics$pre_bal),
+     pch=20,xlim=c(0,1),ylim=c(0,1),
+     xlab="Recall",ylab="Precision",
+     col=c(rep("red",nrow(temp_metrics)),
+           rep("darkorange",nrow(temp_metrics)),
+           rep("darkgreen",nrow(temp_metrics))))
+arrows(x0=temp_metrics$rec_unb,x1=temp_metrics$rec_wt,
+       y0=temp_metrics$pre_unb,y1=temp_metrics$pre_wt,
+       length=0.05)
+arrows(x0=temp_metrics$rec_wt,x1=temp_metrics$rec_bal,
+       y0=temp_metrics$pre_wt,y1=temp_metrics$pre_bal,
+       length=0.05,col=scales::alpha("black",0.3))
+legend("bottomleft",pch=20,col=c("red","darkorange","darkgreen"),
+       title="Predictions per Ligand",title.adj=0.15,cex=0.9,
+       legend=c("Unbalanced","Class Weighted","Downsampled to Balance"))
+
+par(mar=c(8,3,0,1),mgp=2:0)
+boxplot(list(
+  "Unbalanced"=mapply(fx_F1,PRE=temp_metrics$pre_unb,REC=temp_metrics$rec_unb),
+  "Class Weighted"=mapply(fx_F1,PRE=temp_metrics$pre_wt,REC=temp_metrics$rec_wt),
+  "Balanced"=mapply(fx_F1,PRE=temp_metrics$pre_bal,REC=temp_metrics$rec_bal)
+),las=3,ylab="F1 Score")
+
+par(mar=c(0,3,0,3))
+# plot(NA,NA,bty="n",xaxt="n",yaxt="n")
+plot.new()
+title("Classification of control vs treated samples for each ligand",line=-2,cex.main=1.5)
+
+rm(list=temp)
+rm(list=grep("^temp",ls(),value=T))
+```
+
+Using each of the 15 ligands tested in all cells as a test case, we trained a random forest classifier to classify treated vs untreated cells. The data for each ligand consisted of all treated and control samples from all cell types in which that ligand was tested, split at random into equally-sized training and test sets. The data was very unbalanced, with many more controls than ligand-treated samples.  Upweighting the minor class didn't seem to make a difference, so randomly downsampling of control samples in the training data was used to make the data balanced.  Testing input was not balanced.
+
+
+## Generalizing to novel cell types
+
+```{r RF_leaveout1, echo=TRUE, message=FALSE, warning=FALSE, fig.height=8, fig.width=8, fig.show='hold'}
+if (file.exists("200327_leaveout1_PM.RData")) {
+  temp <- load("200327_leaveout1_PM.RData")
+} else {
+  source("200327_lvl3_leaveout1_PlateMatched.R")
+}
+
+par(mfrow=c(2,2),mar=c(3,3,2,1),mgp=2:0)
+plot(NA,NA,xlim=c(0,1),ylim=c(0,1),xlab="Recall",ylab="Precision",main="Coloured by Cell Type")
+temp_col <- qualitative_hcl(length(test_results),palette="dark3",alpha=0.7)
+temp_farts <- sapply(names(test_results),function(X) {
+  points(mapply(fx_rec,L=test_labels[[X]],P=test_results[[X]]),
+         mapply(fx_pre,L=test_labels[[X]],P=test_results[[X]]),
+         pch=20,col=temp_col[which(names(test_results) == X)])
+})
+plot(NA,NA,xlim=c(0,1),ylim=c(0,1),xlab="Recall",ylab="Precision",main="Coloured by Ligand")
+temp_col <- qualitative_hcl(length(test_results[[1]]),palette="dark3",alpha=0.7)
+temp_farts <- sapply(names(test_results),function(X) {
+  points(mapply(fx_rec,L=test_labels[[X]],P=test_results[[X]]),
+         mapply(fx_pre,L=test_labels[[X]],P=test_results[[X]]),
+         pch=20,col=temp_col)
+})
+
+par(mar=c(6,3,1,1),mgp=2:0)
+boxplot(sapply(names(test_results),function(X) 
+  mapply(fx_F1,
+         PRE=mapply(fx_pre,L=test_labels[[X]],P=test_results[[X]]),
+         REC=mapply(fx_rec,L=test_labels[[X]],P=test_results[[X]]))
+),las=3,ylab="F1 Score")
+boxplot(t(sapply(names(test_results),function(X) 
+  mapply(fx_F1,
+         PRE=mapply(fx_pre,L=test_labels[[X]],P=test_results[[X]]),
+         REC=mapply(fx_rec,L=test_labels[[X]],P=test_results[[X]]))
+)),las=3,ylab="F1 Score")
+
+as.data.frame(sapply(names(test_results),function(X) 
+  mapply(fx_F1,
+         PRE=mapply(fx_pre,L=test_labels[[X]],P=test_results[[X]]),
+         REC=mapply(fx_rec,L=test_labels[[X]],P=test_results[[X]]))
+))
+
+rm(list=temp)
+rm(list=grep("^temp",ls(),value=T))
+```
+
+```{r tx_vs_ctl_umap_ct, echo=TRUE, message=FALSE, warning=FALSE, fig.height=4, fig.width=8, fig.show='hold'}
+if (file.exists("200328_ctpmUMAP.RData") & !exists("ctUMAPpm")) {
+  load("200328_ctpmUMAP.RData") 
+}
+
+for (Z in names(ctUMAPpm)) {
+  temp_tx <- rownames(ctUMAPpm[[Z]]$layout)[rownames(ctUMAPpm[[Z]]$layout) %in% 
+                                               colnames(lvl3_data@mat)]
+  temp_ctl <- rownames(ctUMAPpm[[Z]]$layout)[!rownames(ctUMAPpm[[Z]]$layout) %in% temp_tx]
+  par(mfrow=c(1,2),mar=c(1,1,1,0.5),mgp=c(0,0,0))
+  plot(ctUMAPpm[[Z]]$layout[temp_ctl,],
+       xlim=range(ctUMAPpm[[Z]]$layout[,1]),
+       ylim=range(ctUMAPpm[[Z]]$layout[,2]),
+       pch=20,xlab="UMAP1",ylab="UMAP2",xaxt="n",yaxt="n",
+       main=paste(Z,"coloured by ligand"))
+  points(ctUMAPpm[[Z]]$layout[temp_tx,],pch=20,
+         col=qualitative_hcl(
+           length(unique(lvl3_data@cdesc[temp_tx,"pert_iname"])),
+           palette="dark3",alpha=0.7)[as.factor(lvl3_data@cdesc[temp_tx,"pert_iname"])])
+  
+  temp_plate <- rep(NA,nrow(ctUMAPpm[[Z]]$layout))
+  names(temp_plate) <- rownames(ctUMAPpm[[Z]]$layout)
+  temp_plate[temp_ctl] <- lvl3_data_ctl@cdesc[temp_ctl,"rna_plate"]
+  temp_plate[temp_tx] <- lvl3_data@cdesc[temp_tx,"rna_plate"]
+  temp_plate <- as.factor(temp_plate)
+  plot(ctUMAPpm[[Z]]$layout,
+       pch=20,xlab="UMAP1",ylab="UMAP2",xaxt="n",yaxt="n",
+       main=paste(Z,"coloured by plate"),
+       col=qualitative_hcl(length(levels(temp_plate)),
+                           palette="dark3",alpha=0.7)[temp_plate])
+}
+
+rm(list=c("Z",grep("^temp",ls(),value=T)))
+```
+
+```{r tx_vs_ctl_umap_lig, echo=TRUE, message=FALSE, warning=FALSE, fig.height=3, fig.width=9, fig.show='hold'}
+if (file.exists("200328_ctpmUMAP.RData") & !exists("ligUMAPpm")) {
+  load("200328_ctpmUMAP.RData") 
+}
+
+for (Z in names(ligUMAPpm)) {
+  temp_tx <- rownames(ligUMAPpm[[Z]]$layout)[rownames(ligUMAPpm[[Z]]$layout) %in% 
+                                               colnames(lvl3_data@mat)]
+  temp_ctl <- rownames(ligUMAPpm[[Z]]$layout)[!rownames(ligUMAPpm[[Z]]$layout) %in% temp_tx]
+  
+  par(mfrow=c(1,3),mar=c(1,1,1,0.5),mgp=c(0,0,0))
+  plot(ligUMAPpm[[Z]]$layout[c(temp_ctl,temp_tx),],pch=20,cex=0.5,
+       xlab="UMAP1",ylab="UMAP2",xaxt="n",yaxt="n",
+       main=paste(Z,"control (red) vs ligand (blue)"),
+       col=scales::alpha(c("red","blue"),
+                         alpha=0.5)[c(rep(1,length(temp_ctl)),
+                                      rep(2,length(temp_tx)))])
+  
+  temp_ct <- rep(NA,nrow(ligUMAPpm[[Z]]$layout))
+  names(temp_ct) <- rownames(ligUMAPpm[[Z]]$layout)
+  temp_ct[temp_ctl] <- lvl3_data_ctl@cdesc[temp_ctl,"cell_id"]
+  temp_ct[temp_tx] <- lvl3_data@cdesc[temp_tx,"cell_id"]
+  temp_ct <- as.factor(temp_ct)
+  plot(ligUMAPpm[[Z]]$layout,pch=20,cex=0.5,
+       xlab="UMAP1",ylab="UMAP2",xaxt="n",yaxt="n",
+       main=paste(Z,"coloured by cell type"),
+       col=qualitative_hcl(length(levels(temp_ct)),
+                           palette="dark3",alpha=0.7)[temp_ct])
+  
+  temp_plate <- rep(NA,nrow(ligUMAPpm[[Z]]$layout))
+  names(temp_plate) <- rownames(ligUMAPpm[[Z]]$layout)
+  temp_plate[temp_ctl] <- lvl3_data_ctl@cdesc[temp_ctl,"rna_plate"]
+  temp_plate[temp_tx] <- lvl3_data@cdesc[temp_tx,"rna_plate"]
+  temp_plate <- as.factor(temp_plate)
+  plot(ligUMAPpm[[Z]]$layout,pch=20,cex=0.5,
+       xlab="UMAP1",ylab="UMAP2",xaxt="n",yaxt="n",
+       main=paste(Z,"coloured by plate"),
+       col=qualitative_hcl(length(levels(temp_plate)),
+                           palette="dark3",alpha=0.7)[temp_plate])
+  
+}
+
+rm(list=c("Z",grep("^temp",ls(),value=T)))
+```
+
+Looks like transcriptomes are entirely delineated by cell type from the ligand perspective.
+
+```{r lvl3_umap_lig, echo=TRUE, message=FALSE, warning=FALSE, fig.height=4, fig.width=8, fig.show='hold'}
+if (file.exists("200328_ligUMAP.RData") & !exists("ligUMAP")) {
+  load("200328_ligUMAP.RData") 
+}
+
+par(mfrow=c(1,2),mar=c(1,1,1,0.5),mgp=c(0,0,0))
+# for (Z in names(ligUMAP)) {
+Z <- "HGF"
+temp_ct <- as.factor(lvl3_data@cdesc[rownames(ligUMAP[[Z]]$layout),"cell_id"])
+plot(ligUMAP[[Z]]$layout,pch=20,
+     xlab="UMAP1",ylab="UMAP2",xaxt="n",yaxt="n",
+     main=paste(Z,"coloured by cell type"),
+     col=qualitative_hcl(length(levels(temp_ct)),
+                         palette="dark3",alpha=0.7)[temp_ct])
+text(tapply(ligUMAP[[Z]]$layout[,1],temp_ct,mean),
+     tapply(ligUMAP[[Z]]$layout[,2],temp_ct,mean),
+     labels=levels(temp_ct),cex=0.7)
+
+temp_plate <- as.factor(lvl3_data@cdesc[rownames(ligUMAP[[Z]]$layout),"rna_plate"])
+plot(ligUMAP[[Z]]$layout,pch=20,
+     xlab="UMAP1",ylab="UMAP2",xaxt="n",yaxt="n",
+     main=paste(Z,"coloured by cell type"),
+     col=qualitative_hcl(length(levels(temp_plate)),
+                         palette="dark3",alpha=0.7)[temp_plate])
+text(tapply(ligUMAP[[Z]]$layout[,1],temp_ct,mean),
+     tapply(ligUMAP[[Z]]$layout[,2],temp_ct,mean),
+     labels=sub("_.+$","",sapply(levels(temp_ct),
+                                 function(X) names(ct14)[ct14 == X])),
+     cex=0.7)
+# }
+
+rm(list=c("Z",grep("^temp",ls(),value=T)))
+```
+
+```{r load_receptor_data, echo=TRUE, message=FALSE, warning=FALSE}
+load(system.file("LigRecDB_RData/BaderCCIeditedbyBI.RData",package="CCInx"))
+
+lvl3_data_ctl_all <- parse.gctx(
+  file.path(cmap_file_path,"GSE92742_Broad_LINCS_Level3_INF_mlr12k_n1319138x12328.gctx"),
+  cid=colnames(lvl3_data_ctl@mat))
+temp_id <- lvl3_data_ctl_all@cdesc$id
+lvl3_data_ctl_all@cdesc <- lvl3_coldata[temp_id,]
+# fixing floating-point bullshit
+lvl3_data_ctl_all@cdesc$pert_dose[lvl3_data_ctl_all@cdesc$pert_dose == "0.10000000149"] <- "0.1"
+lvl3_data_ctl_all@cdesc$pert_dose <- sub("\\.?0+$","",lvl3_data_ctl_all@cdesc$pert_dose)
+
+
+lig15_inx <- data.frame(ligand=c(inxDB$nodeA[inxDB$nodeA %in% lig15],
+                                inxDB$nodeB[inxDB$nodeB %in% lig15],
+                                rep("GAS6",3)),
+                       receptor=c(inxDB$nodeB[inxDB$nodeA %in% lig15],
+                                  inxDB$nodeA[inxDB$nodeB %in% lig15],
+                                  "AXL","TYRO3","MERTK"),
+                       stringsAsFactors=F)
+lig15_inx <- lig15_inx[grepl("Receptor",geneInfo[lig15_inx$receptor,"protein_type"]),]
+lig15_inx$rid <- mapIds(org.Hs.eg.db,lig15_inx$receptor,"ENTREZID","SYMBOL",
+                        multiVals=function(X) { 
+                          if (any(X %in% rownames(lvl3_data_ctl_all@mat))) {
+                            return(X[X %in% rownames(lvl3_data_ctl_all@mat)])
+                          } else {
+                            X[1]
+                          }
+                        })
+lig15_inx <- lig15_inx[lig15_inx$rid %in% rownames(lvl3_data_ctl_all@mat),]
+# all(lig15 %in% lig15_inx$ligand)
+
+rm(list=grep("^temp",ls(),value=T))
+```
+
+
+```{r receptor_expr, echo=TRUE, message=FALSE, warning=FALSE, fig.height=6, fig.width=6}
+lvl3_data_ctl_all_RANKS <- apply(lvl3_data_ctl_all@mat,2,rank)
+
+temp_mean <- colMeans(lvl3_data_ctl_all@mat)
+temp_sd <- apply(lvl3_data_ctl_all@mat,2,sd)
+temp_col <- as.factor(lvl3_data_ctl_all@cdesc$rna_plate)
+par(mar=c(3,3,1,1),mgp=2:0)
+plot(temp_mean,temp_sd,pch=".",
+     col=qualitative_hcl(length(levels(temp_col)),
+                         palette="dark3",
+                         alpha=.5)[temp_col])
+
+par(mar=c(1,1,1,1),mgp=2:0)
+temp_col <- sample(colnames(lvl3_data_ctl_all@mat),50)
+boxplot(lapply(temp_col,function(X) lvl3_data_ctl_all@mat[,X]),pch=".")
+points(seq_along(temp_col),lvl3_data_ctl_all@mat[50,temp_col],pch=20,col="red")
+
+
+temp_col <- as.factor(lvl3_data_ctl_all@cdesc$cell_id)
+par(mar=c(3,3,1,1),mgp=2:0)
+plot(lvl3_data_ctl_all@mat["1956",],
+     lvl3_data_ctl_all_RANKS["1956",],
+     pch=".",col=qualitative_hcl(length(levels(temp_col)),
+                                 palette="dark3",
+                                 alpha=.5)[temp_col])
+
+
+
+temp_mean <- sapply(ct14,function(CT)
+  colMeans(lvl3_data_ctl_all@mat[,lvl3_data_ctl_all@cdesc$cell_id == CT]))
+temp_sd <- sapply(ct14,function(CT) 
+  apply(lvl3_data_ctl_all@mat[,lvl3_data_ctl_all@cdesc$cell_id == CT],2,sd))
+
+# for (L in lig15) {
+#   mapply(MEAN=)
+# }
+
+
+
+
+rm(list=c("L",grep("^temp",ls(),value=T)))
+```
+
+
+### Breast
+
+```{r RF_leaveout_breast, eval=F, echo=TRUE, message=FALSE, warning=FALSE}
+#The “balanced” mode uses the values of y to automatically adjust weights inversely proportional to class frequencies in the input data as n_samples / (n_classes * np.bincount(y))
+
+temp_t_train <- lvl3_data@mat[,lvl3_data@cdesc$cell_id == "MCF7" & 
+                                lvl3_data@cdesc$pert_iname %in% lig15]
+temp_t_test <- sapply(ct14[ct14 != "MCF7"],function(X) 
+  lvl3_data@mat[,lvl3_data@cdesc$cell_id == X & 
+                  lvl3_data@cdesc$pert_iname %in% lig15],
+  simplify=F)
+temp_c_train <- lvl3_data_ctl@mat[,lvl3_data_ctl@cdesc$cell_id == "MCF7"]
+temp_c_test <- sapply(ct14[ct14 != "MCF7"],function(X) 
+  lvl3_data_ctl@mat[,lvl3_data_ctl@cdesc$cell_id == X],
+  simplify=F)
+temp_train <- t(cbind(temp_c_train,temp_t_train))
+leaveout_breast_train_labels <- as.factor(c(rep("no",ncol(temp_c_train)),
+                                            rep("yes",ncol(temp_t_train))))
+temp_test <- mapply(function(X,Y) t(cbind(X,Y)),X=temp_c_test,Y=temp_t_test)
+leaveout_breast_test_labels <- mapply(function(X,Y)
+  as.factor(c(rep("no",ncol(X)),rep("yes",ncol(Y)))),
+  X=temp_c_test,Y=temp_t_test)
+# temp_shuffle <- sample(seq_along(temp_train_labels))
+# temp_train <- temp_train[temp_shuffle,]
+# leaveout_breast_train_labels <- leaveout_breast_train_labels[temp_shuffle]
+leaveout_breast_model <- ranger(x=temp_train,
+                                y=leaveout_breast_train_labels,
+                                num.threads=8,
+                                verbose=F)
+temp_pred <- sapply(temp_test,function(X)
+  predict(leaveout_breast_model,X)$predictions,
+  simplify=F)
+leaveout_breast_accuracy <- mapply(function(P,L) sum(P == L) / length(P),
+                                   P=temp_pred,L=leaveout_breast_test_labels)
+
+data.frame(accuracy=unlist(leaveout_breast_accuracy,use.names=F),
+           breastMCF7.tx.ctrl=rep(table(leaveout_breast_train_labels)["yes"] /
+                                    table(leaveout_breast_train_labels)["no"],
+                                  length(leaveout_breast_test_labels)),
+           test.tx.ctrl=apply(sapply(leaveout_breast_test_labels,table),2,
+                              function(X) X["yes"] / X["no"]))
+
+rm(list=grep("^temp",ls(),value=T))
+```
+
+### Prostate
+
+```{r RF_leaveout_prostate, eval=F, echo=TRUE, message=FALSE, warning=FALSE}
+# VCAP ----
+temp_t_train <- lvl3_data@mat[,lvl3_data@cdesc$cell_id == "VCAP" & 
+                                lvl3_data@cdesc$pert_iname %in% lig15]
+temp_t_test <- sapply(ct14[ct14 != "VCAP"],function(X) 
+  lvl3_data@mat[,lvl3_data@cdesc$cell_id == X & 
+                  lvl3_data@cdesc$pert_iname %in% lig15],
+  simplify=F)
+temp_c_train <- lvl3_data_ctl@mat[,lvl3_data_ctl@cdesc$cell_id == "VCAP"]
+temp_c_test <- sapply(ct14[ct14 != "VCAP"],function(X) 
+  lvl3_data_ctl@mat[,lvl3_data_ctl@cdesc$cell_id == X],
+  simplify=F)
+temp_train <- t(cbind(temp_c_train,temp_t_train))
+leaveout_vcap_train_labels <- as.factor(c(rep("no",ncol(temp_c_train)),
+                                          rep("yes",ncol(temp_t_train))))
+temp_test <- mapply(function(X,Y) t(cbind(X,Y)),X=temp_c_test,Y=temp_t_test)
+leaveout_vcap_test_labels <- mapply(function(X,Y)
+  as.factor(c(rep("no",ncol(X)),rep("yes",ncol(Y)))),
+  X=temp_c_test,Y=temp_t_test)
+# temp_shuffle <- sample(seq_along(leaveout_vcap_train_labels))
+# temp_train <- temp_train[temp_shuffle,]
+# leaveout_vcap_train_labels <- leaveout_vcap_train_labels[temp_shuffle]
+leaveout_vcap_model <- ranger(x=temp_train,
+                              y=leaveout_vcap_train_labels,
+                              num.threads=8,
+                              verbose=F)
+temp_pred <- sapply(temp_test,function(X)
+  predict(leaveout_vcap_model,X)$predictions,
+  simplify=F)
+leaveout_vcap_accuracy <- mapply(function(P,L) sum(P == L) / length(P),
+                                 P=temp_pred,L=leaveout_vcap_test_labels)
+
+temp_res <- data.frame(
+  accuracy=unlist(leaveout_vcap_accuracy,use.names=F),
+  unbalanced=apply(t(sapply(leaveout_vcap_test_labels,function(X) table(X)/length(X))),1,function(X) 
+    dist(rbind(X,table(leaveout_vcap_train_labels) / length(leaveout_vcap_train_labels))))
+)
+
+plot(accuracy~unbalanced,data=temp_res,pch=20)
+
+rm(list=grep("^temp",ls(),value=T))
+
+# PC3 ----
+temp_t_train <- lvl3_data@mat[,lvl3_data@cdesc$cell_id == "PC3" & 
+                                lvl3_data@cdesc$pert_iname %in% lig15]
+temp_t_test <- sapply(ct14[ct14 != "PC3"],function(X) 
+  lvl3_data@mat[,lvl3_data@cdesc$cell_id == X & 
+                  lvl3_data@cdesc$pert_iname %in% lig15],
+  simplify=F)
+temp_c_train <- lvl3_data_ctl@mat[,lvl3_data_ctl@cdesc$cell_id == "PC3"]
+temp_c_test <- sapply(ct14[ct14 != "PC3"],function(X) 
+  lvl3_data_ctl@mat[,lvl3_data_ctl@cdesc$cell_id == X],
+  simplify=F)
+temp_train <- t(cbind(temp_c_train,temp_t_train))
+temp_train_labels <- as.factor(c(rep("no",ncol(temp_c_train)),
+                                 rep("yes",ncol(temp_t_train))))
+temp_test <- mapply(function(X,Y) t(cbind(X,Y)),X=temp_c_test,Y=temp_t_test)
+temp_test_labels <- mapply(function(X,Y)
+  as.factor(c(rep("no",ncol(X)),rep("yes",ncol(Y)))),
+  X=temp_c_test,Y=temp_t_test)
+temp_shuffle <- sample(seq_along(temp_train_labels))
+leaveout_prostate_model <- ranger(x=temp_train[temp_shuffle,],
+                                y=temp_train_labels[temp_shuffle],
+                                num.threads=8,
+                                verbose=F)
+temp_pred <- sapply(temp_test,function(X)
+  predict(leaveout_prostate_model,X)$predictions,
+  simplify=F)
+leaveout_prostate_accuracy <- mapply(function(P,L) sum(P == L) / length(P),
+                                   P=temp_pred,L=temp_test_labels)
+print("---- Trained on prostate_tumor_PC3 ----")
+for (X in names(leaveout_prostate_accuracy)) {
+  print(paste0("Accuracy in ",X,": ",round(leaveout_prostate_accuracy[X] * 100),"%"))
+}
+
+# rm(list=grep("^temp",ls(),value=T))
+```
+
+
+```{r RF_leaveout, eval=F, echo=TRUE, message=FALSE, warning=FALSE}
+if (file.exists("200310_leaveout.RData")) {
+  load("200310_leaveout.RData")
+} else {
+  leaveout_model <- leaveout_accuracy <- list()
+  for (L in lig15) {
+    leaveout_model[[L]] <- leaveout_accuracy[[L]] <- list()
+    for (Z in seq_along(ct14[-c(13,14)])) {
+      CT <- ct14[seq(1,Z)]
+      temp_t <- lvl3_data@mat[,lvl3_data@cdesc$pert_iname == L]
+      temp_t_train <- temp_t[,lvl3_data@cdesc[colnames(temp_t),"cell_id"] %in% CT]
+      temp_t_test <- temp_t[,!lvl3_data@cdesc[colnames(temp_t),"cell_id"] %in% CT]
+      temp_t_test <- sapply(ct14[!ct14 %in% CT],function(X)
+        temp_t_test[,lvl3_data@cdesc[colnames(temp_t_test),"cell_id"] == X],
+        simplify=F)
+      temp_c_train <- lvl3_data_ctl@mat[,lvl3_data_ctl@cdesc$cell_id %in% CT]
+      temp_c_test <- lvl3_data_ctl@mat[,!lvl3_data_ctl@cdesc$cell_id %in% CT]
+      temp_c_test <- sapply(ct14[!ct14 %in% CT],function(X)
+        temp_c_test[,lvl3_data_ctl@cdesc[colnames(temp_c_test),"cell_id"] == X],
+        simplify=F)
+      temp_train <- t(cbind(temp_c_train,temp_t_train))
+      temp_train_labels <- as.factor(c(rep("no",ncol(temp_c_train)),
+                                       rep("yes",ncol(temp_t_train))))
+      temp_test <- mapply(function(X,Y) t(cbind(X,Y)),X=temp_c_test,Y=temp_t_test)
+      temp_test_labels <- mapply(function(X,Y)
+        as.factor(c(rep("no",ncol(X)),rep("yes",ncol(Y)))),
+        X=temp_c_test,Y=temp_t_test)
+      
+      leaveout_model[[L]][[Z]] <- ranger(x=temp_train,
+                                         y=temp_train_labels,
+                                         num.threads=8,
+                                         verbose=F)
+      leaveout_accuracy[[L]][[Z]] <- sapply(names(temp_test),function(X) {
+        temp_pred <- predict(leaveout_model[[L]][[Z]],temp_test[[X]])$predictions
+        return(sum(temp_pred == temp_test_labels[[X]]) / length(temp_pred))
+      })
+      print(paste("Trained on:",paste(CT,collapse=", ")))
+      print(leaveout_accuracy[[L]][[Z]])
+      
+      rm(list=grep("^temp",ls(),value=T))
+    }
+  }
+  save(leaveout_accuracy,leaveout_model,file="200310_leaveout.RData")
+}
+
+
+```
+
+So it seems like predicting whether or not cells have been treated with a ligand is not a difficult task, even on novel cell lines.
+
+## Identifying discriminating genes
+
+Since this classifier is just trying to identify when a ligand has perturbed the cell (or perhaps its focusing on a DMSO gene signature), we might expect the DE prior ([Crow *et al.*](https://doi.org/10.1073/pnas.1802973116)) to predict the discriminating genes.
+
+```{r what_genes_binary, eval=FALSE, include=FALSE, echo=TRUE, message=FALSE, warning=FALSE}
+?ranger::importance
+```
+
+# Discriminating between ligands
+
+```{r RF_lig_mixall, eval=F, echo=TRUE, message=FALSE, warning=FALSE}
+if (file.exists("200310_lig_mixall.RData")) {
+  load("200310_lig_mixall.RData")
+} else {
+  temp_t <- lvl3_data@mat[,lvl3_data@cdesc$pert_iname %in% lig15]
+  temp_t_train <- temp_t[,sample(colnames(temp_t),round(ncol(temp_t) / 2))]
+  temp_t_train_labels <- lvl3_data@cdesc[colnames(temp_t_train),"pert_iname"]
+  temp_t_test <- temp_t[,!colnames(temp_t) %in% colnames(temp_t_train)]
+  temp_t_test_labels <- lvl3_data@cdesc[colnames(temp_t_test),"pert_iname"]
+  temp_c <- lvl3_data_ctl@mat
+  temp_c_train <- temp_c[,sample(colnames(temp_c),round(ncol(temp_c) / 2))]
+  temp_c_test <- temp_c[,!colnames(temp_c) %in% colnames(temp_c_train)]
+  temp_train <- t(cbind(temp_c_train,temp_t_train))
+  temp_train_labels <- as.factor(c(rep("no",ncol(temp_c_train)),
+                                   temp_t_train_labels))
+  temp_test <- t(cbind(temp_c_test,temp_t_test))
+  temp_test_labels <- as.factor(c(rep("no",ncol(temp_c_test)),
+                                  temp_t_test_labels))
+  
+  lig_mixall_model <- ranger(x=temp_train,
+                             y=temp_train_labels,
+                             num.threads=8,
+                             verbose=F)
+  temp_pred <- predict(lig_mixall_model,temp_test)$predictions
+  lig_mixall_accuracy <- sum(temp_pred == temp_test_labels) / length(temp_pred)
+  
+  save(lig_mixall_accuracy,lig_mixall_model,file="200310_lig_mixall.RData")
+  rm(list=grep("^temp",ls(),value=T))
+}
+paste0("Accuracy: ",round(lig_mixall_accuracy * 100),"%")
+```
+
+
+```{r RF_lig15_leaveout, eval=F, echo=TRUE, message=FALSE, warning=FALSE}
+sapply(lig15,function(X)
+  table(lvl3_data@cdesc$cell_id[lvl3_data@cdesc$pert_iname == X]))
+lig14 <- lig15[lig15 != "EGF"]
+ct6 <- c("SKBR3","MDAMB231","MCF7","MCF10A","HS578T","BT20")
+temp_nctmin <- min(table(lvl3_data_ctl@cdesc$cell_id[lvl3_data_ctl@cdesc$cell_id %in% ct6]))
+
+lig_leave1out_model <- lig_leave1out_accuracy <- list()
+for (CT in ct14) {
+  temp_t <- lvl3_data@mat[,lvl3_data@cdesc$pert_iname %in% lig15]
+  temp_t_train <- temp_t[,lvl3_data@cdesc[colnames(temp_t),"cell_id"] != CT]
+  temp_t_test <- temp_t[,lvl3_data@cdesc[colnames(temp_t),"cell_id"] == CT]
+  temp_c_train <- lvl3_data@mat[,lvl3_data@cdesc[,"cell_id"] != CT]
+  temp_c_test <- lvl3_data@mat[,lvl3_data@cdesc[,"cell_id"] == CT]
+  temp_train <- t(cbind(temp_c_train,temp_t_train))
+  temp_train_labels <- as.factor(c(rep("no",ncol(temp_c_train)),
+                                   rep("yes",ncol(temp_t_train))))
+  temp_test <- t(cbind(temp_c_test,temp_t_test))
+  temp_test_labels <- as.factor(c(rep("no",ncol(temp_c_test)),
+                                  rep("yes",ncol(temp_t_test))))
+  lig15_leave1out_model[[CT]] <- ranger(x=temp_train,
+                                        y=temp_train_labels,
+                                        num.threads=8,
+                                        verbose=F)
+  temp_pred <- predict(lig15_leave1out_model[[CT]],temp_test)$predictions
+  lig15_leave1out_accuracy[[CT]] <- sum(temp_pred == temp_test_labels) / length(temp_pred)
+  print(paste0(CT,": ",round(lig15_leave1out_accuracy[[CT]] * 100),"%"))
+
+  rm(list=grep("^temp",ls(),value=T))
+}
+```
+

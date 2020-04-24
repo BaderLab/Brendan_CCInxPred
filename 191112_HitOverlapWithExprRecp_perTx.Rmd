@@ -1,0 +1,283 @@
+---
+title: "CMapCorr"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+---
+
+
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
+library(cmapR)
+library(AnnotationDbi)
+library(org.Hs.eg.db)
+```
+
+```{r load_data, echo=FALSE, message=FALSE, warning=FALSE}
+load(system.file("LigRecDB_RData/BaderCCIeditedbyBI.RData",package="CCInx"))
+
+cmap_file_path <- "~/Data_LINCS"
+# cmap_file_path <- "D:/temp_data/"
+cmap_coldata <- read.gctx.meta(
+  file.path(cmap_file_path,"annotated_GSE92742_Broad_LINCS_Level5_COMPZ_n473647x12328.gctx"),
+  dimension="column")
+
+table(cmap_coldata$pert_type)
+cmap_lig_hgnc <- unique(cmap_coldata$pert_iname[cmap_coldata$pert_type == "trt_lig"])
+cmap_lig_hgnc[!cmap_lig_hgnc %in% geneInfo$hgnc_symbol]
+# Need to map these to their proper HGNC symbols, and they should show up in CCInx DB
+
+cmap_lig_cid <- cmap_coldata$id[cmap_coldata$pert_type == "trt_lig"]
+cmap_lig <- parse.gctx(
+  file.path(cmap_file_path,"annotated_GSE92742_Broad_LINCS_Level5_COMPZ_n473647x12328.gctx"),
+  cid=cmap_lig_cid)
+
+lvl3_coldata <- read.table(file.path(cmap_file_path,"GSE92742_Broad_LINCS_inst_info.txt"),
+                           header=T,sep="\t",row.names=1,colClasses="character")
+cmap_ctl_cid <- rownames(lvl3_coldata)[lvl3_coldata$cell_id %in% unique(cmap_lig@cdesc$cell_id) & 
+                                         lvl3_coldata$pert_type == "ctl_vehicle"]
+cmap_ctl <- parse.gctx(
+  file.path(cmap_file_path,"GSE92742_Broad_LINCS_Level3_INF_mlr12k_n1319138x12328.gctx"),
+  cid=cmap_ctl_cid)
+cmap_ctl@cdesc <- lvl3_coldata[cmap_ctl@cdesc$id,]
+cmap_ctl@cdesc$pert_dose[cmap_ctl@cdesc$pert_dose == "0.10000000149"] <- "0.1"
+# fixing floating-point bullshit
+```
+
+# Between-control variability
+```{r within_control_var, echo=FALSE, message=FALSE, warning=FALSE, fig.width=9, fig.height=6}
+unique_combos <- unique(cmap_ctl@cdesc[,c("pert_iname","pert_dose","pert_dose_unit","pert_time","cell_id")])
+rownames(unique_combos) <- apply(unique_combos,1,function(X) paste(X,collapse="_"))
+ctl_cor <- apply(unique_combos,
+                 1,function(R) {
+                   temp_r <- apply(cmap_ctl@cdesc[,colnames(unique_combos)],
+                                   1,function(X) all(X == R))
+                   temp_cor <- cor(cmap_ctl@mat[,temp_r])
+                   return(temp_cor[upper.tri(temp_cor)])
+                 })
+par(mar=c(15,3,1,1),mgp=2:0)
+boxplot(ctl_cor,pch=".",las=3)
+
+ctl_cor_ct <- sapply(unique(cmap_ctl@cdesc$cell_id),
+                     function(X) {
+                       temp_cor <- cor(cmap_ctl@mat[,cmap_ctl@cdesc$cell_id == X])
+                       return(temp_cor[upper.tri(temp_cor)])
+                     },simplify=F)
+par(mar=c(5,3,1,1),mgp=2:0)
+boxplot(ctl_cor_ct,pch=".",las=3)
+
+temp_ctl_order <- sapply(names(ctl_cor_ct),function(X) grep(paste0("_",X,"$"),names(ctl_cor)))
+ctl_cor_all <- sapply(names(ctl_cor_ct),function(X) 
+  c(ctl_cor_ct[X],ctl_cor[temp_ctl_order[[X]]]))
+temp_ct_col <- unlist(mapply(function(X,Y) rep(X,times=Y),
+                             X=colorspace::qualitative_hcl(length(ctl_cor_ct),palette="Pastel 1"),
+                             Y=sapply(ctl_cor_all,length)),
+                      use.names=F)
+ctl_cor_all <- unlist(ctl_cor_all,recursive=F)
+for (X in names(ctl_cor_ct)) {
+  names(ctl_cor_all) <- sub(paste0("[._]",X,"$"),"",names(ctl_cor_all))
+}
+```
+
+```{r within_control_var, echo=FALSE, message=FALSE, warning=FALSE, fig.width=9, fig.height=6}
+# png(filename="191112_ctl_cor_all.png",width=9,height=6,units="in",res=300)
+par(mar=c(11,3,1,1),mgp=2:0)
+boxplot(ctl_cor_all,pch=".",col=temp_ct_col,xaxt="n",xaxs="i",
+        ylab="Pairwise PCC between replicates")
+for (X in sapply(names(ctl_cor_ct),function(X) which(names(ctl_cor_all) == X))) {
+  rect(xleft=X - 0.5,xright=X + 0.5,ytop=par("usr")[3],ybottom=-0.61,
+       xpd=NA,col=temp_ct_col[X],border=NA)
+}
+axis(1,1:length(ctl_cor_all),names(ctl_cor_all),las=3,cex.axis=.7)
+# dev.off()
+```
+
+
+# Robustness of transcriptional response
+```{r lig_tx_signal, echo=FALSE, message=FALSE, warning=FALSE, fig.height=4, fig.width=4}
+TX <- "EGF"
+CT <- "SKBR3"
+
+temp_tx <- cmap_lig@cdesc$pert_iname == TX
+temp_ct <- cmap_lig@cdesc$cell_id == CT
+temp_time <- cmap_lig@cdesc$pert_time == 1
+temp_dose <- cmap_lig@cdesc$pert_dose == "100.0"
+
+# temp_dens <- apply(cmap_lig@mat[,temp_tx & temp_ct],2,density)
+# plot(NA,NA,xlim=c(-10,10),ylim=c(0,max(sapply(temp_dens,function(X) X$y))),
+#      xlab="logFC",ylab="Density")
+# fart <- sapply(temp_dens,function(X) points(X,type="l"))
+
+cmap_lig@cdesc[temp_tx & temp_ct,c("pert_dose","pert_dose_unit","pert_time")]
+
+temp_zscores <- cmap_lig@mat[,temp_tx & temp_ct & temp_time & temp_dose]
+par(mar=c(3,3,1,1),mgp=2:0)
+plot(temp_zscores,pch=".")
+points(temp_zscores[temp_zscores[,1] > 1.25 | temp_zscores[,2] > 1.25,1],
+       temp_zscores[temp_zscores[,1] > 1.25 | temp_zscores[,2] > 1.25,2],
+       pch=20)
+
+
+
+temp_Xexpr <- parse.gctx(
+  file.path(cmap_file_path,"GSE92742_Broad_LINCS_Level3_INF_mlr12k_n1319138x12328.gctx"),
+  cid=rownames(lvl3_coldata)[grepl("LJP003_SKBR3_1H",rownames(lvl3_coldata)) & 
+                               grepl("CMAP-L097",lvl3_coldata$pert_id) & 
+                               lvl3_coldata$pert_dose == "100.0"]
+)
+summary(cor(temp_Xexpr@mat)[upper.tri(cor(temp_Xexpr@mat))])
+
+temp_Yexpr <- parse.gctx(
+  file.path(cmap_file_path,"GSE92742_Broad_LINCS_Level3_INF_mlr12k_n1319138x12328.gctx"),
+  cid=rownames(lvl3_coldata)[grepl("LJP004_SKBR3_1H",rownames(lvl3_coldata)) & 
+                               grepl("CMAP-L097",lvl3_coldata$pert_id) & 
+                               lvl3_coldata$pert_dose == "100.0"]
+)
+summary(cor(temp_Yexpr@mat)[upper.tri(cor(temp_Yexpr@mat))])
+
+par(mar=c(3,3,1,1),mgp=2:0)
+plot(rowMeans(temp_Xexpr@mat),rowMeans(temp_Yexpr@mat),pch=".")
+mtext(cor(rowMeans(temp_Xexpr@mat),rowMeans(temp_Yexpr@mat)),side=3)
+par(mar=c(3,3,1,1),mgp=2:0)
+plot(rowMedians(temp_Xexpr@mat),rowMedians(temp_Yexpr@mat),pch=".")
+mtext(cor(rowMedians(temp_Xexpr@mat),rowMedians(temp_Yexpr@mat)),side=3)
+
+```
+
+# Receptor expression per cell type
+```{r rec_expr_ct_demo_fig, echo=FALSE, message=FALSE, warning=FALSE, fig.height=8, fig.width=7}
+
+
+temp_ct_col <- colorspace::qualitative_hcl(length(unique(cmap_ctl@cdesc$cell_id)),palette="Dark3")
+names(temp_ct_col) <- unique(cmap_ctl@cdesc$cell_id)
+
+par(mfrow=c(2,1),mar=c(3,3,2,1),mgp=2:0)
+plot(x=NA,y=NA,xlim=range(cmap_ctl@mat["2099",]),ylim=0:1,xlab="Expr",ylab="Density",main="ESR1")
+fart <- sapply(unique(cmap_ctl@cdesc$cell_id),function(CT) 
+  points(density(cmap_ctl@mat["2099",cmap_ctl@cdesc$cell_id == CT]),
+         type="l",col=temp_ct_col[CT],lwd=2))
+legend("top",bty="n",ncol=5,legend=unique(cmap_ctl@cdesc$cell_id),lwd=2,col=temp_ct_col,cex=0.8)
+
+plot(x=NA,y=NA,xlim=c(-10,10),ylim=0:1,xlab="- mean",ylab="Density",main="ESR1")
+fart <- sapply(unique(cmap_ctl@cdesc$cell_id),function(CT)
+  points(density(
+    cmap_ctl@mat["2099",cmap_ctl@cdesc$cell_id == CT] - colMeans(cmap_ctl@mat[,cmap_ctl@cdesc$cell_id == CT])
+  ),type="l",col=temp_ct_col[CT],lwd=2))
+
+
+plot(x=NA,y=NA,xlim=range(cmap_ctl@mat["1956",]),ylim=0:1,xlab="Expr",ylab="Density",main="EGFR")
+fart <- sapply(unique(cmap_ctl@cdesc$cell_id),function(CT)
+  points(density(cmap_ctl@mat["1956",cmap_ctl@cdesc$cell_id == CT]),
+         type="l",col=temp_ct_col[CT],lwd=2))
+legend("top",bty="n",ncol=5,legend=unique(cmap_ctl@cdesc$cell_id),lwd=2,col=temp_ct_col,cex=0.8)
+
+plot(x=NA,y=NA,xlim=c(-10,10),ylim=0:1,xlab="- mean",ylab="Density",main="EGFR")
+fart <- sapply(unique(cmap_ctl@cdesc$cell_id),function(CT)
+  points(density(
+    cmap_ctl@mat["1956",cmap_ctl@cdesc$cell_id == CT] - colMeans(cmap_ctl@mat[,cmap_ctl@cdesc$cell_id == CT])
+  ),type="l",col=temp_ct_col[CT],lwd=2))
+
+```
+
+
+```{r rec_expr_ct_THIS_IS_DUMB, eval=TRUE, message=FALSE, warning=FALSE, include=FALSE}
+geneInfo$entrez_id <- mapIds(org.Hs.eg.db,column="ENTREZID",keytype="SYMBOL",
+                             keys=geneInfo$hgnc_symbol)
+geneInfo <- geneInfo[geneInfo$entrez_id %in% rownames(cmap_ctl@mat),]
+TXtypes <- c("pert_iname","pert_dose","pert_dose_unit","pert_time","cell_id")
+for (TX in rownames(unique_combos)) {
+  temp_r <- apply(cmap_ctl@cdesc[,colnames(unique_combos)],
+                  1,function(X) all(X == unique_combos[TX,]))
+  temp_expr <- rowMeans(cmap_ctl@mat[,temp_r]) > 
+    mean(apply(cmap_ctl@mat[,temp_r],2,quantile,probs=1/3))
+  geneInfo[,TX] <- temp_expr[geneInfo$entrez_id]
+}
+hist(apply(geneInfo[,-1*1:3],1,sum))
+geneInfo <- geneInfo[apply(geneInfo[,-1*1:3],1,any),]
+geneExpr <- apply(geneInfo[,-1*1:3],1,function(X) colnames(geneInfo)[-1*1:3][X])
+inxDB <- inxDB[inxDB$nodeA %in% geneInfo$hgnc_symbol & inxDB$nodeB %in% geneInfo$hgnc_symbol,]
+temp_inx <- inxDB[( grepl("Ligand",geneInfo[inxDB$nodeA,"protein_type"]) & 
+                   grepl("Receptor",geneInfo[inxDB$nodeB,"protein_type"]) ),]
+colnames(temp_inx) <- c("key","Ligand","Receptor")
+temp_inx2 <- inxDB[( grepl("Ligand",geneInfo[inxDB$nodeB,"protein_type"]) & 
+                       grepl("Receptor",geneInfo[inxDB$nodeA,"protein_type"]) ),
+                   c("key","nodeB","nodeA")]
+colnames(temp_inx2) <- c("key","Ligand","Receptor")
+inxDB <- rbind(temp_inx,temp_inx2)
+inxDB <- inxDB[inxDB$Ligand %in% cmap_lig@cdesc$pert_iname,]
+```
+
+# Ligand response in cells expressing receptor
+
+Note that I have no idea how to figure out whether a cell is actually expressing the receptor (see *_THIS_IS_DUMB* code block, which the following code depends on).
+
+```{r rec_expr_ct, message=FALSE, warning=FALSE, include=FALSE}
+overlap_count <- list()
+for (INX in inxDB$key[inxDB$Ligand == "IGFBP3"]) {
+  temp_samp <- cmap_lig@cdesc[cmap_lig@cdesc$pert_iname == inxDB[INX,"Ligand"] &
+                                cmap_lig@cdesc$cell_id %in% geneExpr[[inxDB[INX,"Receptor"]]],
+                              "id"]
+  overlap_count[[INX]] <- sapply(c(0.55,0.85,1.25),function(Z) {
+    temp_hits <- sapply(temp_samp,function(X) 
+      rownames(cmap_lig@mat)[cmap_lig@mat[,X] > Z])
+    sapply(2:length(temp_hits),function(L) {
+      if (choose(length(temp_hits),L) > 1000) {
+        temp_combn <- sapply(1:1000,function(X) sample(names(temp_hits),L,replace=F))
+      } else {
+        temp_combn <- combn(names(temp_hits),L)
+      }
+      temp_overlap <- apply(temp_combn,2,function(X) 
+        length(Reduce(intersect,temp_hits[X])))
+      temp_expected <- apply(temp_combn,2,function(X) 
+        Reduce("*",sapply(temp_hits[X],length) / nrow(cmap_lig@mat)) * nrow(cmap_lig@mat))
+      return(c(mean(temp_overlap - temp_expected)))
+    })
+  })
+      
+  plot(x=NA,y=NA,xlim=c(1,nrow(overlap_count[[INX]])),ylim=range(overlap_count[[INX]]),xaxt="n",
+       main=INX,ylab="# overlapping genes above expectation",xlab="# of conditions overlapping")
+  axis(1,at=1:nrow(overlap_count[[INX]]),labels=1:nrow(overlap_count[[INX]]) + 1)
+  abline(h=0,lty=2)
+  apply(overlap_count[[INX]],2,function(Y) points(Y,type="b"))
+  legend("topright",legend=c("80th %","90th %","95th %"),title="Z-score",lty=1,pch=1)
+}
+
+Z <- 0.85 # 90th %
+overlap_genes <- list()
+expected_overlap <- list()
+num_conditions <- list()
+for (INX in inxDB$key) {
+  temp_bool <- cmap_lig@cdesc$pert_iname == inxDB[INX,"Ligand"] &
+    cmap_lig@cdesc$cell_id %in% geneExpr[[inxDB[INX,"Receptor"]]]
+  if (!any(temp_bool)) { next }
+  temp_samp <- cmap_lig@cdesc[temp_bool,"id"]
+  temp_hits <- sapply(temp_samp,function(X) 
+    rownames(cmap_lig@mat)[cmap_lig@mat[,X] > Z])
+  overlap_genes[[INX]] <- Reduce(intersect,temp_hits)
+  expected_overlap[[INX]] <- Reduce("*",sapply(temp_hits,length) / nrow(cmap_lig@mat)) * nrow(cmap_lig@mat)
+  num_conditions[[INX]] <- length(temp_samp)
+}
+expected_overlap <- unlist(expected_overlap)
+num_conditions <- unlist(num_conditions)  
+
+hist(sapply(overlap_genes,length) - expected_overlap,breaks=50,ylim=c(0,100))
+plot(num_conditions,sapply(overlap_genes,length) - expected_overlap,pch=20)
+```
+
+```{r rec_expr_ct, message=FALSE, warning=FALSE, include=FALSE}
+# Filtering DE prior (Crow et al. PNAS 2019) ----
+DEprior <- read.table("CCCnet/LINCS/pnas.1802973116.sd02.txt",header=T)
+overlap_DEprior_rank <- sapply(overlap_genes[sapply(overlap_genes,length) > 0], 
+                               function(HIT) DEprior[DEprior$Gene_EntrezID %in% HIT,"DE_Prior_Rank"])
+par(mar=c(3,3,1,1),mgp=2:0)
+boxplot(overlap_DEprior_rank[order(sapply(overlap_DEprior_rank,mean))],
+        las=3,pch=".",xaxt="n",ylab="DE_Prior_Rank",xlab="LR pairs")
+abline(h=.5,lty=2)
+```
+
+# Linear model for EGF - EGFR 
+```{r demo_linreg, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+```
+
