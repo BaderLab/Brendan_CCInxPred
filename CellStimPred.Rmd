@@ -1,0 +1,266 @@
+---
+title: "Predicting cell stimulation"
+---
+
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
+library(cmapR)
+library(ranger)
+library(colorspace)
+library(kableExtra)
+```
+
+```{r load_data_lvl3, message=FALSE, warning=FALSE, include=FALSE}
+if (file.exists("../CMapCorr_files/lvl3_inputs.RData") & !exists("lvl3_data")) {
+  load("../CMapCorr_files/lvl3_inputs.RData") 
+} else {
+  source("lvl3_inputs.R")
+}
+
+```
+
+
+# Identifying stimulated cells
+
+Here we are training random forest models to distinguish between cells treated with a ligand and their respective controls.  This should be a pretty easy task, but later we'll see if the models can generalize to cell types they haven't seen.
+
+## Training on all cell types
+
+```{r RF_mix_all_cells, echo=FALSE, message=FALSE, warning=FALSE, fig.height=5, fig.width=8, fig.show='hold'}
+fx_acc <- function(L,P) { sum(P == L) / length(P) }
+fx_pre <- function(L,P) { sum(P == "yes" & L == "yes") / sum(P == "yes") }
+fx_rec <- function(L,P) { sum(P == "yes" & L == "yes") / sum(L == "yes") }
+fx_F1 <- function(PRE,REC) { 2 * ( (PRE * REC) / (PRE + REC) )}
+
+if (file.exists("../CMapCorr_files/200326_mixall.RData")) {
+  temp <- load("../CMapCorr_files/200326_mixall.RData")
+} else {
+  source("200326_lvl3_mixall.R")
+}
+
+temp_metrics <- data.frame(
+  acc_unb=round(mapply(fx_acc,L=test_labels,P=test_results),3),
+  pre_unb=round(mapply(fx_pre,L=test_labels,P=test_results),3),
+  rec_unb=round(mapply(fx_rec,L=test_labels,P=test_results),3),
+  acc_wt=round(mapply(fx_acc,L=test_labels,P=test_resultsW),3),
+  pre_wt=round(mapply(fx_pre,L=test_labels,P=test_resultsW),3),
+  rec_wt=round(mapply(fx_rec,L=test_labels,P=test_resultsW),3),
+  acc_bal=round(mapply(fx_acc,L=test_labels,P=test_resultsB),3),
+  pre_bal=round(mapply(fx_pre,L=test_labels,P=test_resultsB),3),
+  rec_bal=round(mapply(fx_rec,L=test_labels,P=test_resultsB),3)
+)
+kable(temp_metrics,format="html")  %>%
+  kable_styling() %>%
+  scroll_box(width = "9in", height = "4in")
+
+layout(matrix(c(3,1,3,2),nrow=2),widths=c(5,3),heights=c(1,9))
+par(mar=c(3,3,0,1),mgp=2:0)
+plot(c(temp_metrics$rec_unb,temp_metrics$rec_wt,temp_metrics$rec_bal),
+     c(temp_metrics$pre_unb,temp_metrics$pre_wt,temp_metrics$pre_bal),
+     pch=20,xlim=c(0,1),ylim=c(0,1),
+     xlab="Recall",ylab="Precision",
+     col=c(rep("red",nrow(temp_metrics)),
+           rep("darkorange",nrow(temp_metrics)),
+           rep("darkgreen",nrow(temp_metrics))))
+arrows(x0=temp_metrics$rec_unb,x1=temp_metrics$rec_wt,
+       y0=temp_metrics$pre_unb,y1=temp_metrics$pre_wt,
+       length=0.05)
+arrows(x0=temp_metrics$rec_wt,x1=temp_metrics$rec_bal,
+       y0=temp_metrics$pre_wt,y1=temp_metrics$pre_bal,
+       length=0.05,col=scales::alpha("black",0.3))
+legend("bottomleft",pch=20,col=c("red","darkorange","darkgreen"),
+       title="Predictions per Ligand",title.adj=0.15,cex=0.9,
+       legend=c("Unbalanced","Class Weighted","Downsampled to Balance"))
+
+par(mar=c(8,3,0,1),mgp=2:0)
+boxplot(list(
+  "Unbalanced"=mapply(fx_F1,PRE=temp_metrics$pre_unb,REC=temp_metrics$rec_unb),
+  "Class Weighted"=mapply(fx_F1,PRE=temp_metrics$pre_wt,REC=temp_metrics$rec_wt),
+  "Balanced"=mapply(fx_F1,PRE=temp_metrics$pre_bal,REC=temp_metrics$rec_bal)
+),las=3,ylab="F1 Score")
+
+par(mar=c(0,3,0,3))
+# plot(NA,NA,bty="n",xaxt="n",yaxt="n")
+plot.new()
+title("Classification of control vs treated samples for each ligand",line=-2,cex.main=1.5)
+
+rm(list=temp)
+rm(list=grep("^temp",ls(),value=T))
+```
+
+Using each of the 15 ligands tested in all cells as a test case, we trained a random forest classifier to classify treated vs untreated cells. The data for each ligand consisted of all treated and control samples from all cell types in which that ligand was tested, split at random into equally-sized training and test sets. The data was very unbalanced, with many more controls than ligand-treated samples.  Upweighting the minor class didn't seem to make a difference, so randomly downsampling of control samples in the training data was used to make the data balanced.  Testing input was not balanced.
+
+## Generalizing to novel cell types
+
+```{r RF_leaveout1, echo=TRUE, message=FALSE, warning=FALSE, fig.height=8, fig.width=8, fig.show='hold'}
+if (file.exists("../CMapCorr_files/200327_leaveout1_PM.RData")) {
+  temp <- load("../CMapCorr_files/200327_leaveout1_PM.RData")
+} else {
+  source("200327_lvl3_leaveout1_PlateMatched.R")
+}
+
+par(mfrow=c(2,2),mar=c(3,3,2,1),mgp=2:0)
+plot(NA,NA,xlim=c(0,1),ylim=c(0,1),xlab="Recall",ylab="Precision",main="Coloured by Cell Type")
+temp_col <- qualitative_hcl(length(test_results),palette="dark3",alpha=0.7)
+temp_farts <- sapply(names(test_results),function(X) {
+  points(mapply(fx_rec,L=test_labels[[X]],P=test_results[[X]]),
+         mapply(fx_pre,L=test_labels[[X]],P=test_results[[X]]),
+         pch=20,col=temp_col[which(names(test_results) == X)])
+})
+plot(NA,NA,xlim=c(0,1),ylim=c(0,1),xlab="Recall",ylab="Precision",main="Coloured by Ligand")
+temp_col <- qualitative_hcl(length(test_results[[1]]),palette="dark3",alpha=0.7)
+temp_farts <- sapply(names(test_results),function(X) {
+  points(mapply(fx_rec,L=test_labels[[X]],P=test_results[[X]]),
+         mapply(fx_pre,L=test_labels[[X]],P=test_results[[X]]),
+         pch=20,col=temp_col)
+})
+
+par(mar=c(6,3,1,1),mgp=2:0)
+boxplot(sapply(names(test_results),function(X) 
+  mapply(fx_F1,
+         PRE=mapply(fx_pre,L=test_labels[[X]],P=test_results[[X]]),
+         REC=mapply(fx_rec,L=test_labels[[X]],P=test_results[[X]]))
+),las=3,ylab="F1 Score")
+boxplot(t(sapply(names(test_results),function(X) 
+  mapply(fx_F1,
+         PRE=mapply(fx_pre,L=test_labels[[X]],P=test_results[[X]]),
+         REC=mapply(fx_rec,L=test_labels[[X]],P=test_results[[X]]))
+)),las=3,ylab="F1 Score")
+
+
+temp_metrics <- as.data.frame(sapply(names(test_results),function(X) 
+  mapply(fx_F1,
+         PRE=mapply(fx_pre,L=test_labels[[X]],P=test_results[[X]]),
+         REC=mapply(fx_rec,L=test_labels[[X]],P=test_results[[X]]))
+))
+kable(temp_metrics,format="html")  %>%
+  kable_styling() %>%
+  scroll_box(width = "9in", height = "4in")
+
+
+rm(list=temp)
+rm(list=grep("^temp",ls(),value=T))
+```
+
+```{r tx_vs_ctl_umap_ct, echo=TRUE, message=FALSE, warning=FALSE, fig.height=4, fig.width=8, fig.show='hold'}
+if (file.exists("../CMapCorr_files/200328_ctpmUMAP.RData") & !exists("ctUMAPpm")) {
+  load("../CMapCorr_files/200328_ctpmUMAP.RData") 
+} else {
+  source("200326_lvl3_pca_umap.R")
+}
+
+for (Z in names(ctUMAPpm)) {
+  temp_tx <- rownames(ctUMAPpm[[Z]]$layout)[rownames(ctUMAPpm[[Z]]$layout) %in% 
+                                               colnames(lvl3_data@mat)]
+  temp_ctl <- rownames(ctUMAPpm[[Z]]$layout)[!rownames(ctUMAPpm[[Z]]$layout) %in% temp_tx]
+  par(mfrow=c(1,2),mar=c(1,1,1,0.5),mgp=c(0,0,0))
+  plot(ctUMAPpm[[Z]]$layout[temp_ctl,],
+       xlim=range(ctUMAPpm[[Z]]$layout[,1]),
+       ylim=range(ctUMAPpm[[Z]]$layout[,2]),
+       pch=20,xlab="UMAP1",ylab="UMAP2",xaxt="n",yaxt="n",
+       main=paste(Z,"coloured by ligand"))
+  points(ctUMAPpm[[Z]]$layout[temp_tx,],pch=20,
+         col=qualitative_hcl(
+           length(unique(lvl3_data@cdesc[temp_tx,"pert_iname"])),
+           palette="dark3",alpha=0.7)[as.factor(lvl3_data@cdesc[temp_tx,"pert_iname"])])
+  
+  temp_plate <- rep(NA,nrow(ctUMAPpm[[Z]]$layout))
+  names(temp_plate) <- rownames(ctUMAPpm[[Z]]$layout)
+  temp_plate[temp_ctl] <- lvl3_data_ctl@cdesc[temp_ctl,"rna_plate"]
+  temp_plate[temp_tx] <- lvl3_data@cdesc[temp_tx,"rna_plate"]
+  temp_plate <- as.factor(temp_plate)
+  plot(ctUMAPpm[[Z]]$layout,
+       pch=20,xlab="UMAP1",ylab="UMAP2",xaxt="n",yaxt="n",
+       main=paste(Z,"coloured by plate"),
+       col=qualitative_hcl(length(levels(temp_plate)),
+                           palette="dark3",alpha=0.7)[temp_plate])
+}
+
+rm(list=c("Z",grep("^temp",ls(),value=T)))
+```
+
+```{r tx_vs_ctl_umap_lig, echo=TRUE, message=FALSE, warning=FALSE, fig.height=3, fig.width=9, fig.show='hold'}
+if (file.exists("200328_ctpmUMAP.RData") & !exists("ligUMAPpm")) {
+  load("200328_ctpmUMAP.RData") 
+} else {
+  source("200326_lvl3_pca_umap.R")
+}
+
+for (Z in names(ligUMAPpm)) {
+  temp_tx <- rownames(ligUMAPpm[[Z]]$layout)[rownames(ligUMAPpm[[Z]]$layout) %in% 
+                                               colnames(lvl3_data@mat)]
+  temp_ctl <- rownames(ligUMAPpm[[Z]]$layout)[!rownames(ligUMAPpm[[Z]]$layout) %in% temp_tx]
+  
+  par(mfrow=c(1,3),mar=c(1,1,1,0.5),mgp=c(0,0,0))
+  plot(ligUMAPpm[[Z]]$layout[c(temp_ctl,temp_tx),],pch=20,cex=0.5,
+       xlab="UMAP1",ylab="UMAP2",xaxt="n",yaxt="n",
+       main=paste(Z,"control (red) vs ligand (blue)"),
+       col=scales::alpha(c("red","blue"),
+                         alpha=0.5)[c(rep(1,length(temp_ctl)),
+                                      rep(2,length(temp_tx)))])
+  
+  temp_ct <- rep(NA,nrow(ligUMAPpm[[Z]]$layout))
+  names(temp_ct) <- rownames(ligUMAPpm[[Z]]$layout)
+  temp_ct[temp_ctl] <- lvl3_data_ctl@cdesc[temp_ctl,"cell_id"]
+  temp_ct[temp_tx] <- lvl3_data@cdesc[temp_tx,"cell_id"]
+  temp_ct <- as.factor(temp_ct)
+  plot(ligUMAPpm[[Z]]$layout,pch=20,cex=0.5,
+       xlab="UMAP1",ylab="UMAP2",xaxt="n",yaxt="n",
+       main=paste(Z,"coloured by cell type"),
+       col=qualitative_hcl(length(levels(temp_ct)),
+                           palette="dark3",alpha=0.7)[temp_ct])
+  
+  temp_plate <- rep(NA,nrow(ligUMAPpm[[Z]]$layout))
+  names(temp_plate) <- rownames(ligUMAPpm[[Z]]$layout)
+  temp_plate[temp_ctl] <- lvl3_data_ctl@cdesc[temp_ctl,"rna_plate"]
+  temp_plate[temp_tx] <- lvl3_data@cdesc[temp_tx,"rna_plate"]
+  temp_plate <- as.factor(temp_plate)
+  plot(ligUMAPpm[[Z]]$layout,pch=20,cex=0.5,
+       xlab="UMAP1",ylab="UMAP2",xaxt="n",yaxt="n",
+       main=paste(Z,"coloured by plate"),
+       col=qualitative_hcl(length(levels(temp_plate)),
+                           palette="dark3",alpha=0.7)[temp_plate])
+  
+}
+
+rm(list=c("Z",grep("^temp",ls(),value=T)))
+```
+
+Looks like transcriptomes are entirely delineated by cell type from the ligand perspective.
+
+```{r lvl3_umap_lig, echo=TRUE, message=FALSE, warning=FALSE, fig.height=4, fig.width=8, fig.show='hold'}
+if (file.exists("200328_ligUMAP.RData") & !exists("ligUMAP")) {
+  load("200328_ligUMAP.RData") 
+} else {
+  source("200326_lvl3_pca_umap.R")
+}
+
+par(mfrow=c(1,2),mar=c(1,1,1,0.5),mgp=c(0,0,0))
+# for (Z in names(ligUMAP)) {
+Z <- "HGF"
+temp_ct <- as.factor(lvl3_data@cdesc[rownames(ligUMAP[[Z]]$layout),"cell_id"])
+plot(ligUMAP[[Z]]$layout,pch=20,
+     xlab="UMAP1",ylab="UMAP2",xaxt="n",yaxt="n",
+     main=paste(Z,"coloured by cell type"),
+     col=qualitative_hcl(length(levels(temp_ct)),
+                         palette="dark3",alpha=0.7)[temp_ct])
+text(tapply(ligUMAP[[Z]]$layout[,1],temp_ct,mean),
+     tapply(ligUMAP[[Z]]$layout[,2],temp_ct,mean),
+     labels=levels(temp_ct),cex=0.7)
+
+temp_plate <- as.factor(lvl3_data@cdesc[rownames(ligUMAP[[Z]]$layout),"rna_plate"])
+plot(ligUMAP[[Z]]$layout,pch=20,
+     xlab="UMAP1",ylab="UMAP2",xaxt="n",yaxt="n",
+     main=paste(Z,"coloured by cell type"),
+     col=qualitative_hcl(length(levels(temp_plate)),
+                         palette="dark3",alpha=0.7)[temp_plate])
+text(tapply(ligUMAP[[Z]]$layout[,1],temp_ct,mean),
+     tapply(ligUMAP[[Z]]$layout[,2],temp_ct,mean),
+     labels=sub("_.+$","",sapply(levels(temp_ct),
+                                 function(X) names(ct14)[ct14 == X])),
+     cex=0.7)
+# }
+
+rm(list=c("Z",grep("^temp",ls(),value=T)))
+```
+
+****

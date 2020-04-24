@@ -1,0 +1,1797 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Predicting cell stimulation</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">CCinxPred?</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="CmapDataSummary.html">CMap data summary</a>
+</li>
+<li>
+  <a href="CellStimPred.html">Predicting cell stimulation</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Predicting cell stimulation</h1>
+
+</div>
+
+
+<div id="identifying-stimulated-cells" class="section level1">
+<h1>Identifying stimulated cells</h1>
+<p>Here we are training random forest models to distinguish between cells treated with a ligand and their respective controls. This should be a pretty easy task, but later we’ll see if the models can generalize to cell types they haven’t seen.</p>
+<div id="training-on-all-cell-types" class="section level2">
+<h2>Training on all cell types</h2>
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:4in; overflow-x: scroll; width:9in; ">
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+acc_unb
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+pre_unb
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+rec_unb
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+acc_wt
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+pre_wt
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+rec_wt
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+acc_bal
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+pre_bal
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+rec_bal
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+BTC
+</td>
+<td style="text-align:right;">
+0.988
+</td>
+<td style="text-align:right;">
+0.908
+</td>
+<td style="text-align:right;">
+0.321
+</td>
+<td style="text-align:right;">
+0.988
+</td>
+<td style="text-align:right;">
+0.920
+</td>
+<td style="text-align:right;">
+0.321
+</td>
+<td style="text-align:right;">
+0.965
+</td>
+<td style="text-align:right;">
+0.319
+</td>
+<td style="text-align:right;">
+0.926
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+EGF
+</td>
+<td style="text-align:right;">
+0.980
+</td>
+<td style="text-align:right;">
+0.703
+</td>
+<td style="text-align:right;">
+0.667
+</td>
+<td style="text-align:right;">
+0.980
+</td>
+<td style="text-align:right;">
+0.694
+</td>
+<td style="text-align:right;">
+0.672
+</td>
+<td style="text-align:right;">
+0.978
+</td>
+<td style="text-align:right;">
+0.598
+</td>
+<td style="text-align:right;">
+0.934
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+GDNF
+</td>
+<td style="text-align:right;">
+0.987
+</td>
+<td style="text-align:right;">
+0.836
+</td>
+<td style="text-align:right;">
+0.262
+</td>
+<td style="text-align:right;">
+0.986
+</td>
+<td style="text-align:right;">
+0.800
+</td>
+<td style="text-align:right;">
+0.262
+</td>
+<td style="text-align:right;">
+0.974
+</td>
+<td style="text-align:right;">
+0.383
+</td>
+<td style="text-align:right;">
+0.883
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+HGF
+</td>
+<td style="text-align:right;">
+0.983
+</td>
+<td style="text-align:right;">
+0.648
+</td>
+<td style="text-align:right;">
+0.194
+</td>
+<td style="text-align:right;">
+0.982
+</td>
+<td style="text-align:right;">
+0.609
+</td>
+<td style="text-align:right;">
+0.165
+</td>
+<td style="text-align:right;">
+0.950
+</td>
+<td style="text-align:right;">
+0.263
+</td>
+<td style="text-align:right;">
+0.932
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+INS
+</td>
+<td style="text-align:right;">
+0.984
+</td>
+<td style="text-align:right;">
+0.689
+</td>
+<td style="text-align:right;">
+0.191
+</td>
+<td style="text-align:right;">
+0.985
+</td>
+<td style="text-align:right;">
+0.746
+</td>
+<td style="text-align:right;">
+0.227
+</td>
+<td style="text-align:right;">
+0.970
+</td>
+<td style="text-align:right;">
+0.357
+</td>
+<td style="text-align:right;">
+0.909
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TNF
+</td>
+<td style="text-align:right;">
+0.994
+</td>
+<td style="text-align:right;">
+0.993
+</td>
+<td style="text-align:right;">
+0.645
+</td>
+<td style="text-align:right;">
+0.994
+</td>
+<td style="text-align:right;">
+0.993
+</td>
+<td style="text-align:right;">
+0.635
+</td>
+<td style="text-align:right;">
+0.978
+</td>
+<td style="text-align:right;">
+0.434
+</td>
+<td style="text-align:right;">
+0.934
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+FGF1
+</td>
+<td style="text-align:right;">
+0.985
+</td>
+<td style="text-align:right;">
+0.746
+</td>
+<td style="text-align:right;">
+0.215
+</td>
+<td style="text-align:right;">
+0.985
+</td>
+<td style="text-align:right;">
+0.687
+</td>
+<td style="text-align:right;">
+0.210
+</td>
+<td style="text-align:right;">
+0.969
+</td>
+<td style="text-align:right;">
+0.345
+</td>
+<td style="text-align:right;">
+0.900
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+GAS6
+</td>
+<td style="text-align:right;">
+0.984
+</td>
+<td style="text-align:right;">
+0.622
+</td>
+<td style="text-align:right;">
+0.108
+</td>
+<td style="text-align:right;">
+0.984
+</td>
+<td style="text-align:right;">
+0.574
+</td>
+<td style="text-align:right;">
+0.127
+</td>
+<td style="text-align:right;">
+0.971
+</td>
+<td style="text-align:right;">
+0.360
+</td>
+<td style="text-align:right;">
+0.901
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+HBEGF
+</td>
+<td style="text-align:right;">
+0.986
+</td>
+<td style="text-align:right;">
+0.812
+</td>
+<td style="text-align:right;">
+0.237
+</td>
+<td style="text-align:right;">
+0.986
+</td>
+<td style="text-align:right;">
+0.815
+</td>
+<td style="text-align:right;">
+0.242
+</td>
+<td style="text-align:right;">
+0.962
+</td>
+<td style="text-align:right;">
+0.304
+</td>
+<td style="text-align:right;">
+0.941
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+IFNG
+</td>
+<td style="text-align:right;">
+0.991
+</td>
+<td style="text-align:right;">
+1.000
+</td>
+<td style="text-align:right;">
+0.495
+</td>
+<td style="text-align:right;">
+0.992
+</td>
+<td style="text-align:right;">
+1.000
+</td>
+<td style="text-align:right;">
+0.505
+</td>
+<td style="text-align:right;">
+0.978
+</td>
+<td style="text-align:right;">
+0.434
+</td>
+<td style="text-align:right;">
+0.949
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+IGF1
+</td>
+<td style="text-align:right;">
+0.984
+</td>
+<td style="text-align:right;">
+0.647
+</td>
+<td style="text-align:right;">
+0.151
+</td>
+<td style="text-align:right;">
+0.984
+</td>
+<td style="text-align:right;">
+0.680
+</td>
+<td style="text-align:right;">
+0.155
+</td>
+<td style="text-align:right;">
+0.972
+</td>
+<td style="text-align:right;">
+0.372
+</td>
+<td style="text-align:right;">
+0.895
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+IGF2
+</td>
+<td style="text-align:right;">
+0.983
+</td>
+<td style="text-align:right;">
+0.566
+</td>
+<td style="text-align:right;">
+0.195
+</td>
+<td style="text-align:right;">
+0.983
+</td>
+<td style="text-align:right;">
+0.538
+</td>
+<td style="text-align:right;">
+0.195
+</td>
+<td style="text-align:right;">
+0.972
+</td>
+<td style="text-align:right;">
+0.376
+</td>
+<td style="text-align:right;">
+0.905
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+IL17A
+</td>
+<td style="text-align:right;">
+0.986
+</td>
+<td style="text-align:right;">
+0.833
+</td>
+<td style="text-align:right;">
+0.191
+</td>
+<td style="text-align:right;">
+0.986
+</td>
+<td style="text-align:right;">
+0.796
+</td>
+<td style="text-align:right;">
+0.206
+</td>
+<td style="text-align:right;">
+0.978
+</td>
+<td style="text-align:right;">
+0.431
+</td>
+<td style="text-align:right;">
+0.976
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+IL4
+</td>
+<td style="text-align:right;">
+0.986
+</td>
+<td style="text-align:right;">
+0.705
+</td>
+<td style="text-align:right;">
+0.286
+</td>
+<td style="text-align:right;">
+0.986
+</td>
+<td style="text-align:right;">
+0.692
+</td>
+<td style="text-align:right;">
+0.290
+</td>
+<td style="text-align:right;">
+0.977
+</td>
+<td style="text-align:right;">
+0.418
+</td>
+<td style="text-align:right;">
+0.871
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+IL6
+</td>
+<td style="text-align:right;">
+0.985
+</td>
+<td style="text-align:right;">
+0.766
+</td>
+<td style="text-align:right;">
+0.226
+</td>
+<td style="text-align:right;">
+0.985
+</td>
+<td style="text-align:right;">
+0.750
+</td>
+<td style="text-align:right;">
+0.235
+</td>
+<td style="text-align:right;">
+0.976
+</td>
+<td style="text-align:right;">
+0.412
+</td>
+<td style="text-align:right;">
+0.871
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><img src="CellStimPred_files/figure-html/RF_mix_all_cells-1.png" width="768" /></p>
+<p>Using each of the 15 ligands tested in all cells as a test case, we trained a random forest classifier to classify treated vs untreated cells. The data for each ligand consisted of all treated and control samples from all cell types in which that ligand was tested, split at random into equally-sized training and test sets. The data was very unbalanced, with many more controls than ligand-treated samples. Upweighting the minor class didn’t seem to make a difference, so randomly downsampling of control samples in the training data was used to make the data balanced. Testing input was not balanced.</p>
+</div>
+<div id="generalizing-to-novel-cell-types" class="section level2">
+<h2>Generalizing to novel cell types</h2>
+<pre class="r"><code>if (file.exists(&quot;../CMapCorr_files/200327_leaveout1_PM.RData&quot;)) {
+  temp &lt;- load(&quot;../CMapCorr_files/200327_leaveout1_PM.RData&quot;)
+} else {
+  source(&quot;200327_lvl3_leaveout1_PlateMatched.R&quot;)
+}
+
+par(mfrow=c(2,2),mar=c(3,3,2,1),mgp=2:0)
+plot(NA,NA,xlim=c(0,1),ylim=c(0,1),xlab=&quot;Recall&quot;,ylab=&quot;Precision&quot;,main=&quot;Coloured by Cell Type&quot;)
+temp_col &lt;- qualitative_hcl(length(test_results),palette=&quot;dark3&quot;,alpha=0.7)
+temp_farts &lt;- sapply(names(test_results),function(X) {
+  points(mapply(fx_rec,L=test_labels[[X]],P=test_results[[X]]),
+         mapply(fx_pre,L=test_labels[[X]],P=test_results[[X]]),
+         pch=20,col=temp_col[which(names(test_results) == X)])
+})
+plot(NA,NA,xlim=c(0,1),ylim=c(0,1),xlab=&quot;Recall&quot;,ylab=&quot;Precision&quot;,main=&quot;Coloured by Ligand&quot;)
+temp_col &lt;- qualitative_hcl(length(test_results[[1]]),palette=&quot;dark3&quot;,alpha=0.7)
+temp_farts &lt;- sapply(names(test_results),function(X) {
+  points(mapply(fx_rec,L=test_labels[[X]],P=test_results[[X]]),
+         mapply(fx_pre,L=test_labels[[X]],P=test_results[[X]]),
+         pch=20,col=temp_col)
+})
+
+par(mar=c(6,3,1,1),mgp=2:0)
+boxplot(sapply(names(test_results),function(X) 
+  mapply(fx_F1,
+         PRE=mapply(fx_pre,L=test_labels[[X]],P=test_results[[X]]),
+         REC=mapply(fx_rec,L=test_labels[[X]],P=test_results[[X]]))
+),las=3,ylab=&quot;F1 Score&quot;)
+boxplot(t(sapply(names(test_results),function(X) 
+  mapply(fx_F1,
+         PRE=mapply(fx_pre,L=test_labels[[X]],P=test_results[[X]]),
+         REC=mapply(fx_rec,L=test_labels[[X]],P=test_results[[X]]))
+)),las=3,ylab=&quot;F1 Score&quot;)
+
+
+temp_metrics &lt;- as.data.frame(sapply(names(test_results),function(X) 
+  mapply(fx_F1,
+         PRE=mapply(fx_pre,L=test_labels[[X]],P=test_results[[X]]),
+         REC=mapply(fx_rec,L=test_labels[[X]],P=test_results[[X]]))
+))
+kable(temp_metrics,format=&quot;html&quot;)  %&gt;%
+  kable_styling() %&gt;%
+  scroll_box(width = &quot;9in&quot;, height = &quot;4in&quot;)</code></pre>
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:4in; overflow-x: scroll; width:9in; ">
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+PC3
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+MCF7
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+A375
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+A549
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+HA1E
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+HCC515
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+HEPG2
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+HT29
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+VCAP
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+BT20
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+HS578T
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+MCF10A
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+MDAMB231
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+SKBR3
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+BTC
+</td>
+<td style="text-align:right;">
+0.0888889
+</td>
+<td style="text-align:right;">
+0.4400000
+</td>
+<td style="text-align:right;">
+0.1764706
+</td>
+<td style="text-align:right;">
+0.3636364
+</td>
+<td style="text-align:right;">
+0.5454545
+</td>
+<td style="text-align:right;">
+0.4000000
+</td>
+<td style="text-align:right;">
+0.5882353
+</td>
+<td style="text-align:right;">
+0.1666667
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+<td style="text-align:right;">
+0.7073171
+</td>
+<td style="text-align:right;">
+0.6835443
+</td>
+<td style="text-align:right;">
+0.6521739
+</td>
+<td style="text-align:right;">
+0.6170213
+</td>
+<td style="text-align:right;">
+0.6705882
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+EGF
+</td>
+<td style="text-align:right;">
+0.0857143
+</td>
+<td style="text-align:right;">
+0.3571429
+</td>
+<td style="text-align:right;">
+0.1875000
+</td>
+<td style="text-align:right;">
+0.5882353
+</td>
+<td style="text-align:right;">
+0.2307692
+</td>
+<td style="text-align:right;">
+0.3157895
+</td>
+<td style="text-align:right;">
+0.6666667
+</td>
+<td style="text-align:right;">
+0.5000000
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+<td style="text-align:right;">
+0.7576792
+</td>
+<td style="text-align:right;">
+0.7000000
+</td>
+<td style="text-align:right;">
+0.6517857
+</td>
+<td style="text-align:right;">
+0.7692308
+</td>
+<td style="text-align:right;">
+0.7465753
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+GDNF
+</td>
+<td style="text-align:right;">
+0.2222222
+</td>
+<td style="text-align:right;">
+0.2816901
+</td>
+<td style="text-align:right;">
+0.1333333
+</td>
+<td style="text-align:right;">
+0.6153846
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+<td style="text-align:right;">
+0.3750000
+</td>
+<td style="text-align:right;">
+0.5714286
+</td>
+<td style="text-align:right;">
+0.5714286
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+<td style="text-align:right;">
+0.3529412
+</td>
+<td style="text-align:right;">
+0.1917808
+</td>
+<td style="text-align:right;">
+0.5972222
+</td>
+<td style="text-align:right;">
+0.6145251
+</td>
+<td style="text-align:right;">
+0.0327869
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+HGF
+</td>
+<td style="text-align:right;">
+0.1320755
+</td>
+<td style="text-align:right;">
+0.4022346
+</td>
+<td style="text-align:right;">
+0.2307692
+</td>
+<td style="text-align:right;">
+0.6363636
+</td>
+<td style="text-align:right;">
+0.4761905
+</td>
+<td style="text-align:right;">
+0.5000000
+</td>
+<td style="text-align:right;">
+0.8000000
+</td>
+<td style="text-align:right;">
+0.4800000
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+<td style="text-align:right;">
+0.4126984
+</td>
+<td style="text-align:right;">
+0.6388889
+</td>
+<td style="text-align:right;">
+0.6329114
+</td>
+<td style="text-align:right;">
+0.6222222
+</td>
+<td style="text-align:right;">
+0.4961240
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+INS
+</td>
+<td style="text-align:right;">
+0.1052632
+</td>
+<td style="text-align:right;">
+0.4661654
+</td>
+<td style="text-align:right;">
+0.1935484
+</td>
+<td style="text-align:right;">
+0.5000000
+</td>
+<td style="text-align:right;">
+0.2857143
+</td>
+<td style="text-align:right;">
+0.5000000
+</td>
+<td style="text-align:right;">
+0.5454545
+</td>
+<td style="text-align:right;">
+0.6666667
+</td>
+<td style="text-align:right;">
+0.3076923
+</td>
+<td style="text-align:right;">
+0.5948718
+</td>
+<td style="text-align:right;">
+0.1690141
+</td>
+<td style="text-align:right;">
+0.4200000
+</td>
+<td style="text-align:right;">
+0.6486486
+</td>
+<td style="text-align:right;">
+0.5844156
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TNF
+</td>
+<td style="text-align:right;">
+0.8888889
+</td>
+<td style="text-align:right;">
+0.8085106
+</td>
+<td style="text-align:right;">
+0.8888889
+</td>
+<td style="text-align:right;">
+0.8571429
+</td>
+<td style="text-align:right;">
+0.7142857
+</td>
+<td style="text-align:right;">
+0.6666667
+</td>
+<td style="text-align:right;">
+0.8571429
+</td>
+<td style="text-align:right;">
+1.0000000
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+<td style="text-align:right;">
+0.8721805
+</td>
+<td style="text-align:right;">
+0.8297872
+</td>
+<td style="text-align:right;">
+0.7294118
+</td>
+<td style="text-align:right;">
+0.7724138
+</td>
+<td style="text-align:right;">
+0.9142857
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+FGF1
+</td>
+<td style="text-align:right;">
+0.1449275
+</td>
+<td style="text-align:right;">
+0.4831461
+</td>
+<td style="text-align:right;">
+0.1290323
+</td>
+<td style="text-align:right;">
+0.8000000
+</td>
+<td style="text-align:right;">
+0.2352941
+</td>
+<td style="text-align:right;">
+0.5454545
+</td>
+<td style="text-align:right;">
+0.6666667
+</td>
+<td style="text-align:right;">
+0.5000000
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+<td style="text-align:right;">
+0.6502463
+</td>
+<td style="text-align:right;">
+0.5252525
+</td>
+<td style="text-align:right;">
+0.4727273
+</td>
+<td style="text-align:right;">
+0.6315789
+</td>
+<td style="text-align:right;">
+0.6052632
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+GAS6
+</td>
+<td style="text-align:right;">
+0.1176471
+</td>
+<td style="text-align:right;">
+0.5662100
+</td>
+<td style="text-align:right;">
+0.2857143
+</td>
+<td style="text-align:right;">
+0.5454545
+</td>
+<td style="text-align:right;">
+0.3529412
+</td>
+<td style="text-align:right;">
+0.3076923
+</td>
+<td style="text-align:right;">
+0.4285714
+</td>
+<td style="text-align:right;">
+0.1818182
+</td>
+<td style="text-align:right;">
+0.2222222
+</td>
+<td style="text-align:right;">
+0.6138614
+</td>
+<td style="text-align:right;">
+0.5921788
+</td>
+<td style="text-align:right;">
+0.3333333
+</td>
+<td style="text-align:right;">
+0.5477707
+</td>
+<td style="text-align:right;">
+0.6060606
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+HBEGF
+</td>
+<td style="text-align:right;">
+0.1012658
+</td>
+<td style="text-align:right;">
+0.3221477
+</td>
+<td style="text-align:right;">
+0.1500000
+</td>
+<td style="text-align:right;">
+0.5000000
+</td>
+<td style="text-align:right;">
+0.3571429
+</td>
+<td style="text-align:right;">
+0.5333333
+</td>
+<td style="text-align:right;">
+0.6153846
+</td>
+<td style="text-align:right;">
+0.5000000
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+<td style="text-align:right;">
+0.6703911
+</td>
+<td style="text-align:right;">
+0.6075949
+</td>
+<td style="text-align:right;">
+0.5970149
+</td>
+<td style="text-align:right;">
+0.6250000
+</td>
+<td style="text-align:right;">
+0.6433566
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+IFNG
+</td>
+<td style="text-align:right;">
+0.8000000
+</td>
+<td style="text-align:right;">
+0.6428571
+</td>
+<td style="text-align:right;">
+0.7500000
+</td>
+<td style="text-align:right;">
+1.0000000
+</td>
+<td style="text-align:right;">
+0.8333333
+</td>
+<td style="text-align:right;">
+0.8333333
+</td>
+<td style="text-align:right;">
+1.0000000
+</td>
+<td style="text-align:right;">
+0.9090909
+</td>
+<td style="text-align:right;">
+0.9090909
+</td>
+<td style="text-align:right;">
+0.6759259
+</td>
+<td style="text-align:right;">
+0.7959184
+</td>
+<td style="text-align:right;">
+0.7777778
+</td>
+<td style="text-align:right;">
+0.7179487
+</td>
+<td style="text-align:right;">
+0.5476190
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+IGF1
+</td>
+<td style="text-align:right;">
+0.1666667
+</td>
+<td style="text-align:right;">
+0.4301075
+</td>
+<td style="text-align:right;">
+0.1538462
+</td>
+<td style="text-align:right;">
+0.6666667
+</td>
+<td style="text-align:right;">
+0.1250000
+</td>
+<td style="text-align:right;">
+0.5714286
+</td>
+<td style="text-align:right;">
+0.6000000
+</td>
+<td style="text-align:right;">
+0.4000000
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+<td style="text-align:right;">
+0.4962406
+</td>
+<td style="text-align:right;">
+0.4918033
+</td>
+<td style="text-align:right;">
+0.4655172
+</td>
+<td style="text-align:right;">
+0.5977011
+</td>
+<td style="text-align:right;">
+0.6162162
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+IGF2
+</td>
+<td style="text-align:right;">
+0.0465116
+</td>
+<td style="text-align:right;">
+0.4727273
+</td>
+<td style="text-align:right;">
+0.2500000
+</td>
+<td style="text-align:right;">
+0.5000000
+</td>
+<td style="text-align:right;">
+0.3333333
+</td>
+<td style="text-align:right;">
+0.5000000
+</td>
+<td style="text-align:right;">
+0.5000000
+</td>
+<td style="text-align:right;">
+0.4000000
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+<td style="text-align:right;">
+0.5352113
+</td>
+<td style="text-align:right;">
+0.3725490
+</td>
+<td style="text-align:right;">
+0.4695652
+</td>
+<td style="text-align:right;">
+0.6187845
+</td>
+<td style="text-align:right;">
+0.6322581
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+IL17A
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+<td style="text-align:right;">
+0.1818182
+</td>
+<td style="text-align:right;">
+0.1818182
+</td>
+<td style="text-align:right;">
+0.8000000
+</td>
+<td style="text-align:right;">
+0.2857143
+</td>
+<td style="text-align:right;">
+0.1600000
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+<td style="text-align:right;">
+0.1265823
+</td>
+<td style="text-align:right;">
+0.0857143
+</td>
+<td style="text-align:right;">
+0.5483871
+</td>
+<td style="text-align:right;">
+0.6272189
+</td>
+<td style="text-align:right;">
+0.6153846
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+IL4
+</td>
+<td style="text-align:right;">
+0.1224490
+</td>
+<td style="text-align:right;">
+0.5315315
+</td>
+<td style="text-align:right;">
+0.2857143
+</td>
+<td style="text-align:right;">
+0.6000000
+</td>
+<td style="text-align:right;">
+0.2666667
+</td>
+<td style="text-align:right;">
+0.5000000
+</td>
+<td style="text-align:right;">
+0.6000000
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+<td style="text-align:right;">
+0.6590909
+</td>
+<td style="text-align:right;">
+0.4000000
+</td>
+<td style="text-align:right;">
+0.4842105
+</td>
+<td style="text-align:right;">
+0.6417112
+</td>
+<td style="text-align:right;">
+0.6303030
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+IL6
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+<td style="text-align:right;">
+0.0618557
+</td>
+<td style="text-align:right;">
+0.5000000
+</td>
+<td style="text-align:right;">
+0.6153846
+</td>
+<td style="text-align:right;">
+0.3478261
+</td>
+<td style="text-align:right;">
+0.5000000
+</td>
+<td style="text-align:right;">
+0.6666667
+</td>
+<td style="text-align:right;">
+0.2222222
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+<td style="text-align:right;">
+0.6478873
+</td>
+<td style="text-align:right;">
+0.5957447
+</td>
+<td style="text-align:right;">
+0.5090909
+</td>
+<td style="text-align:right;">
+0.6666667
+</td>
+<td style="text-align:right;">
+0.6666667
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<pre class="r"><code>rm(list=temp)
+rm(list=grep(&quot;^temp&quot;,ls(),value=T))</code></pre>
+<p><img src="CellStimPred_files/figure-html/RF_leaveout1-1.png" width="768" /></p>
+<pre class="r"><code>if (file.exists(&quot;../CMapCorr_files/200328_ctpmUMAP.RData&quot;) &amp; !exists(&quot;ctUMAPpm&quot;)) {
+  load(&quot;../CMapCorr_files/200328_ctpmUMAP.RData&quot;) 
+} else {
+  source(&quot;200326_lvl3_pca_umap.R&quot;)
+}
+
+for (Z in names(ctUMAPpm)) {
+  temp_tx &lt;- rownames(ctUMAPpm[[Z]]$layout)[rownames(ctUMAPpm[[Z]]$layout) %in% 
+                                               colnames(lvl3_data@mat)]
+  temp_ctl &lt;- rownames(ctUMAPpm[[Z]]$layout)[!rownames(ctUMAPpm[[Z]]$layout) %in% temp_tx]
+  par(mfrow=c(1,2),mar=c(1,1,1,0.5),mgp=c(0,0,0))
+  plot(ctUMAPpm[[Z]]$layout[temp_ctl,],
+       xlim=range(ctUMAPpm[[Z]]$layout[,1]),
+       ylim=range(ctUMAPpm[[Z]]$layout[,2]),
+       pch=20,xlab=&quot;UMAP1&quot;,ylab=&quot;UMAP2&quot;,xaxt=&quot;n&quot;,yaxt=&quot;n&quot;,
+       main=paste(Z,&quot;coloured by ligand&quot;))
+  points(ctUMAPpm[[Z]]$layout[temp_tx,],pch=20,
+         col=qualitative_hcl(
+           length(unique(lvl3_data@cdesc[temp_tx,&quot;pert_iname&quot;])),
+           palette=&quot;dark3&quot;,alpha=0.7)[as.factor(lvl3_data@cdesc[temp_tx,&quot;pert_iname&quot;])])
+  
+  temp_plate &lt;- rep(NA,nrow(ctUMAPpm[[Z]]$layout))
+  names(temp_plate) &lt;- rownames(ctUMAPpm[[Z]]$layout)
+  temp_plate[temp_ctl] &lt;- lvl3_data_ctl@cdesc[temp_ctl,&quot;rna_plate&quot;]
+  temp_plate[temp_tx] &lt;- lvl3_data@cdesc[temp_tx,&quot;rna_plate&quot;]
+  temp_plate &lt;- as.factor(temp_plate)
+  plot(ctUMAPpm[[Z]]$layout,
+       pch=20,xlab=&quot;UMAP1&quot;,ylab=&quot;UMAP2&quot;,xaxt=&quot;n&quot;,yaxt=&quot;n&quot;,
+       main=paste(Z,&quot;coloured by plate&quot;),
+       col=qualitative_hcl(length(levels(temp_plate)),
+                           palette=&quot;dark3&quot;,alpha=0.7)[temp_plate])
+}
+
+rm(list=c(&quot;Z&quot;,grep(&quot;^temp&quot;,ls(),value=T)))</code></pre>
+<p><img src="CellStimPred_files/figure-html/tx_vs_ctl_umap_ct-1.png" width="768" /><img src="CellStimPred_files/figure-html/tx_vs_ctl_umap_ct-2.png" width="768" /><img src="CellStimPred_files/figure-html/tx_vs_ctl_umap_ct-3.png" width="768" /><img src="CellStimPred_files/figure-html/tx_vs_ctl_umap_ct-4.png" width="768" /></p>
+<pre class="r"><code>if (file.exists(&quot;200328_ctpmUMAP.RData&quot;) &amp; !exists(&quot;ligUMAPpm&quot;)) {
+  load(&quot;200328_ctpmUMAP.RData&quot;) 
+} else {
+  source(&quot;200326_lvl3_pca_umap.R&quot;)
+}
+
+for (Z in names(ligUMAPpm)) {
+  temp_tx &lt;- rownames(ligUMAPpm[[Z]]$layout)[rownames(ligUMAPpm[[Z]]$layout) %in% 
+                                               colnames(lvl3_data@mat)]
+  temp_ctl &lt;- rownames(ligUMAPpm[[Z]]$layout)[!rownames(ligUMAPpm[[Z]]$layout) %in% temp_tx]
+  
+  par(mfrow=c(1,3),mar=c(1,1,1,0.5),mgp=c(0,0,0))
+  plot(ligUMAPpm[[Z]]$layout[c(temp_ctl,temp_tx),],pch=20,cex=0.5,
+       xlab=&quot;UMAP1&quot;,ylab=&quot;UMAP2&quot;,xaxt=&quot;n&quot;,yaxt=&quot;n&quot;,
+       main=paste(Z,&quot;control (red) vs ligand (blue)&quot;),
+       col=scales::alpha(c(&quot;red&quot;,&quot;blue&quot;),
+                         alpha=0.5)[c(rep(1,length(temp_ctl)),
+                                      rep(2,length(temp_tx)))])
+  
+  temp_ct &lt;- rep(NA,nrow(ligUMAPpm[[Z]]$layout))
+  names(temp_ct) &lt;- rownames(ligUMAPpm[[Z]]$layout)
+  temp_ct[temp_ctl] &lt;- lvl3_data_ctl@cdesc[temp_ctl,&quot;cell_id&quot;]
+  temp_ct[temp_tx] &lt;- lvl3_data@cdesc[temp_tx,&quot;cell_id&quot;]
+  temp_ct &lt;- as.factor(temp_ct)
+  plot(ligUMAPpm[[Z]]$layout,pch=20,cex=0.5,
+       xlab=&quot;UMAP1&quot;,ylab=&quot;UMAP2&quot;,xaxt=&quot;n&quot;,yaxt=&quot;n&quot;,
+       main=paste(Z,&quot;coloured by cell type&quot;),
+       col=qualitative_hcl(length(levels(temp_ct)),
+                           palette=&quot;dark3&quot;,alpha=0.7)[temp_ct])
+  
+  temp_plate &lt;- rep(NA,nrow(ligUMAPpm[[Z]]$layout))
+  names(temp_plate) &lt;- rownames(ligUMAPpm[[Z]]$layout)
+  temp_plate[temp_ctl] &lt;- lvl3_data_ctl@cdesc[temp_ctl,&quot;rna_plate&quot;]
+  temp_plate[temp_tx] &lt;- lvl3_data@cdesc[temp_tx,&quot;rna_plate&quot;]
+  temp_plate &lt;- as.factor(temp_plate)
+  plot(ligUMAPpm[[Z]]$layout,pch=20,cex=0.5,
+       xlab=&quot;UMAP1&quot;,ylab=&quot;UMAP2&quot;,xaxt=&quot;n&quot;,yaxt=&quot;n&quot;,
+       main=paste(Z,&quot;coloured by plate&quot;),
+       col=qualitative_hcl(length(levels(temp_plate)),
+                           palette=&quot;dark3&quot;,alpha=0.7)[temp_plate])
+  
+}
+
+rm(list=c(&quot;Z&quot;,grep(&quot;^temp&quot;,ls(),value=T)))</code></pre>
+<p><img src="CellStimPred_files/figure-html/tx_vs_ctl_umap_lig-1.png" width="864" /><img src="CellStimPred_files/figure-html/tx_vs_ctl_umap_lig-2.png" width="864" /><img src="CellStimPred_files/figure-html/tx_vs_ctl_umap_lig-3.png" width="864" /><img src="CellStimPred_files/figure-html/tx_vs_ctl_umap_lig-4.png" width="864" /></p>
+<p>Looks like transcriptomes are entirely delineated by cell type from the ligand perspective.</p>
+<pre class="r"><code>if (file.exists(&quot;200328_ligUMAP.RData&quot;) &amp; !exists(&quot;ligUMAP&quot;)) {
+  load(&quot;200328_ligUMAP.RData&quot;) 
+} else {
+  source(&quot;200326_lvl3_pca_umap.R&quot;)
+}
+
+par(mfrow=c(1,2),mar=c(1,1,1,0.5),mgp=c(0,0,0))
+# for (Z in names(ligUMAP)) {
+Z &lt;- &quot;HGF&quot;
+temp_ct &lt;- as.factor(lvl3_data@cdesc[rownames(ligUMAP[[Z]]$layout),&quot;cell_id&quot;])
+plot(ligUMAP[[Z]]$layout,pch=20,
+     xlab=&quot;UMAP1&quot;,ylab=&quot;UMAP2&quot;,xaxt=&quot;n&quot;,yaxt=&quot;n&quot;,
+     main=paste(Z,&quot;coloured by cell type&quot;),
+     col=qualitative_hcl(length(levels(temp_ct)),
+                         palette=&quot;dark3&quot;,alpha=0.7)[temp_ct])
+text(tapply(ligUMAP[[Z]]$layout[,1],temp_ct,mean),
+     tapply(ligUMAP[[Z]]$layout[,2],temp_ct,mean),
+     labels=levels(temp_ct),cex=0.7)
+
+temp_plate &lt;- as.factor(lvl3_data@cdesc[rownames(ligUMAP[[Z]]$layout),&quot;rna_plate&quot;])
+plot(ligUMAP[[Z]]$layout,pch=20,
+     xlab=&quot;UMAP1&quot;,ylab=&quot;UMAP2&quot;,xaxt=&quot;n&quot;,yaxt=&quot;n&quot;,
+     main=paste(Z,&quot;coloured by cell type&quot;),
+     col=qualitative_hcl(length(levels(temp_plate)),
+                         palette=&quot;dark3&quot;,alpha=0.7)[temp_plate])
+text(tapply(ligUMAP[[Z]]$layout[,1],temp_ct,mean),
+     tapply(ligUMAP[[Z]]$layout[,2],temp_ct,mean),
+     labels=sub(&quot;_.+$&quot;,&quot;&quot;,sapply(levels(temp_ct),
+                                 function(X) names(ct14)[ct14 == X])),
+     cex=0.7)
+# }
+
+rm(list=c(&quot;Z&quot;,grep(&quot;^temp&quot;,ls(),value=T)))</code></pre>
+<p><img src="CellStimPred_files/figure-html/lvl3_umap_lig-1.png" width="768" /></p>
+<hr />
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

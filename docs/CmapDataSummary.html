@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Cmap data summary</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">CCinxPred?</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="CmapDataSummary.html">CMap data summary</a>
+</li>
+<li>
+  <a href="CellStimPred.html">Predicting cell stimulation</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Cmap data summary</h1>
+
+</div>
+
+
+<div id="ligand-transcriptome-perturbations-from-connectivity-map" class="section level1">
+<h1>Ligand transcriptome perturbations from Connectivity Map</h1>
+<div id="ligands-cell-lines-assayed" class="section level2">
+<h2>Ligands / cell lines assayed</h2>
+<p><img src="CmapDataSummary_files/figure-html/data_summary-1.png" width="768" /> In the Connectivity Map data, there are 15 ligands assayed in all 14 cell lines, and 300 ligands assayed in 8 cell lines.</p>
+</div>
+<div id="distribution-of-samples-between-cell-types-and-ligands" class="section level2">
+<h2>Distribution of samples between cell types and ligands</h2>
+<p><img src="CmapDataSummary_files/figure-html/lvl3_pca-1.png" width="864" /></p>
+<p><img src="CmapDataSummary_files/figure-html/lvl3_umap-1.png" width="864" /></p>
+<p>Above are PCA and UMAP projections of all Connectivity Map ligand-treated and control data coloured by cell type.</p>
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:4in; overflow-x: scroll; width:9in; ">
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+BTC
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+EGF
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+GDNF
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+HGF
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+INS
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+TNF
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+FGF1
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+GAS6
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+HBEGF
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+IFNG
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+IGF1
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+IGF2
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+IL17A
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+IL4
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+IL6
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+ctrl
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+min.ctrl.ratio
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+skin_tumor_A375
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+2264
+</td>
+<td style="text-align:right;">
+0.0044170
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+lung_tumor_A549
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+12
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+2847
+</td>
+<td style="text-align:right;">
+0.0042150
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+breast_tumor_BT20
+</td>
+<td style="text-align:right;">
+74
+</td>
+<td style="text-align:right;">
+146
+</td>
+<td style="text-align:right;">
+74
+</td>
+<td style="text-align:right;">
+74
+</td>
+<td style="text-align:right;">
+74
+</td>
+<td style="text-align:right;">
+74
+</td>
+<td style="text-align:right;">
+74
+</td>
+<td style="text-align:right;">
+69
+</td>
+<td style="text-align:right;">
+74
+</td>
+<td style="text-align:right;">
+73
+</td>
+<td style="text-align:right;">
+74
+</td>
+<td style="text-align:right;">
+73
+</td>
+<td style="text-align:right;">
+74
+</td>
+<td style="text-align:right;">
+74
+</td>
+<td style="text-align:right;">
+73
+</td>
+<td style="text-align:right;">
+273
+</td>
+<td style="text-align:right;">
+0.5347985
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+kidney_normal_HA1E
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+1135
+</td>
+<td style="text-align:right;">
+0.0088106
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+lung_normal_HCC515
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+957
+</td>
+<td style="text-align:right;">
+0.0104493
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+liver_tumor_HEPG2
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+12
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+780
+</td>
+<td style="text-align:right;">
+0.0153846
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+breast_tumor_HS578T
+</td>
+<td style="text-align:right;">
+57
+</td>
+<td style="text-align:right;">
+120
+</td>
+<td style="text-align:right;">
+58
+</td>
+<td style="text-align:right;">
+58
+</td>
+<td style="text-align:right;">
+59
+</td>
+<td style="text-align:right;">
+55
+</td>
+<td style="text-align:right;">
+60
+</td>
+<td style="text-align:right;">
+59
+</td>
+<td style="text-align:right;">
+60
+</td>
+<td style="text-align:right;">
+58
+</td>
+<td style="text-align:right;">
+60
+</td>
+<td style="text-align:right;">
+60
+</td>
+<td style="text-align:right;">
+60
+</td>
+<td style="text-align:right;">
+59
+</td>
+<td style="text-align:right;">
+60
+</td>
+<td style="text-align:right;">
+232
+</td>
+<td style="text-align:right;">
+0.5172414
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+large_intestine_tumor_HT29
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+2059
+</td>
+<td style="text-align:right;">
+0.0048567
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+breast_normal_MCF10A
+</td>
+<td style="text-align:right;">
+60
+</td>
+<td style="text-align:right;">
+119
+</td>
+<td style="text-align:right;">
+61
+</td>
+<td style="text-align:right;">
+62
+</td>
+<td style="text-align:right;">
+62
+</td>
+<td style="text-align:right;">
+62
+</td>
+<td style="text-align:right;">
+59
+</td>
+<td style="text-align:right;">
+60
+</td>
+<td style="text-align:right;">
+61
+</td>
+<td style="text-align:right;">
+60
+</td>
+<td style="text-align:right;">
+62
+</td>
+<td style="text-align:right;">
+62
+</td>
+<td style="text-align:right;">
+60
+</td>
+<td style="text-align:right;">
+59
+</td>
+<td style="text-align:right;">
+60
+</td>
+<td style="text-align:right;">
+196
+</td>
+<td style="text-align:right;">
+0.6071429
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+breast_tumor_MCF7
+</td>
+<td style="text-align:right;">
+80
+</td>
+<td style="text-align:right;">
+153
+</td>
+<td style="text-align:right;">
+79
+</td>
+<td style="text-align:right;">
+83
+</td>
+<td style="text-align:right;">
+80
+</td>
+<td style="text-align:right;">
+75
+</td>
+<td style="text-align:right;">
+80
+</td>
+<td style="text-align:right;">
+76
+</td>
+<td style="text-align:right;">
+80
+</td>
+<td style="text-align:right;">
+78
+</td>
+<td style="text-align:right;">
+80
+</td>
+<td style="text-align:right;">
+80
+</td>
+<td style="text-align:right;">
+75
+</td>
+<td style="text-align:right;">
+78
+</td>
+<td style="text-align:right;">
+78
+</td>
+<td style="text-align:right;">
+4389
+</td>
+<td style="text-align:right;">
+0.0348599
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+breast_tumor_MDAMB231
+</td>
+<td style="text-align:right;">
+58
+</td>
+<td style="text-align:right;">
+120
+</td>
+<td style="text-align:right;">
+59
+</td>
+<td style="text-align:right;">
+58
+</td>
+<td style="text-align:right;">
+60
+</td>
+<td style="text-align:right;">
+56
+</td>
+<td style="text-align:right;">
+60
+</td>
+<td style="text-align:right;">
+59
+</td>
+<td style="text-align:right;">
+60
+</td>
+<td style="text-align:right;">
+59
+</td>
+<td style="text-align:right;">
+60
+</td>
+<td style="text-align:right;">
+60
+</td>
+<td style="text-align:right;">
+60
+</td>
+<td style="text-align:right;">
+60
+</td>
+<td style="text-align:right;">
+60
+</td>
+<td style="text-align:right;">
+251
+</td>
+<td style="text-align:right;">
+0.4780876
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+prostate_tumor_PC3
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+4060
+</td>
+<td style="text-align:right;">
+0.0017241
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+breast_tumor_SKBR3
+</td>
+<td style="text-align:right;">
+60
+</td>
+<td style="text-align:right;">
+123
+</td>
+<td style="text-align:right;">
+58
+</td>
+<td style="text-align:right;">
+57
+</td>
+<td style="text-align:right;">
+62
+</td>
+<td style="text-align:right;">
+57
+</td>
+<td style="text-align:right;">
+62
+</td>
+<td style="text-align:right;">
+62
+</td>
+<td style="text-align:right;">
+62
+</td>
+<td style="text-align:right;">
+61
+</td>
+<td style="text-align:right;">
+62
+</td>
+<td style="text-align:right;">
+62
+</td>
+<td style="text-align:right;">
+62
+</td>
+<td style="text-align:right;">
+62
+</td>
+<td style="text-align:right;">
+62
+</td>
+<td style="text-align:right;">
+265
+</td>
+<td style="text-align:right;">
+0.4641509
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+prostate_tumor_VCAP
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+12
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+5071
+</td>
+<td style="text-align:right;">
+0.0023664
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Below are UMAP projections of selected cell types that represent patterns of data distribution between controls and treatments that we see in the CMap data. BT20 is a breast tumour line where very few ligands were tested, but they were tested in depth, and thus there are more treated samples (as a whole) than controls. VCAP is a prostate tumour line where many ligands were minimally tested, with many controls. The MCF7 breast tumour line is unique in that many ligands were tested in depth, so as a whole there is a balance between treated and control samples.</p>
+<p><img src="CmapDataSummary_files/figure-html/lvl3_umap_ct-1.png" width="864" /></p>
+<p>So it seems the plate effect is strong in this data. Might consider using the plate-based Z-scores from Cmap level 5 instead of the quantile normalized transcriptomes from level 3 that are shown here. For now, continuing with level 3 data.</p>
+<hr />
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

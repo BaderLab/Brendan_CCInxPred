@@ -1,0 +1,12 @@
+name: "CCinxPred - can it be done?"
+output_dir: "docs"
+navbar:
+  title: "CCinxPred?"
+  left:
+  - text: "CMap data summary"
+    href: CmapDataSummary.html
+  - text: "Predicting cell stimulation"
+    href: CellStimPred.html
+output:
+  html_document:
+    theme: cosmo

@@ -1,0 +1,12 @@
+---
+title: "CCInxPred?"
+---
+
+# Abstract
+Can intercellular signals be identified by transcriptional changes?
+
+****
+
+This should be where I outline the why and how of this project.
+
+****
