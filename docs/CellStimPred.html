@@ -300,6 +300,7 @@ $(document).ready(function () {
 <p>Here we are training random forest models to distinguish between cells treated with a ligand and their respective controls. This should be a pretty easy task, but later we’ll see if the models can generalize to cell types they haven’t seen.</p>
 <div id="training-on-all-cell-types" class="section level2">
 <h2>Training on all cell types</h2>
+<p><a href="https://github.com/BaderLab/Brendan_CCInxPred/200326_lvl3_mixall.R">Random forest model source code</a></p>
 <div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:4in; overflow-x: scroll; width:9in; ">
 <table class="table" style="margin-left: auto; margin-right: auto;">
 <thead>
@@ -824,49 +825,7 @@ IL6
 </div>
 <div id="generalizing-to-novel-cell-types" class="section level2">
 <h2>Generalizing to novel cell types</h2>
-<pre class="r"><code>if (file.exists(&quot;../CMapCorr_files/200327_leaveout1_PM.RData&quot;)) {
-  temp &lt;- load(&quot;../CMapCorr_files/200327_leaveout1_PM.RData&quot;)
-} else {
-  source(&quot;200327_lvl3_leaveout1_PlateMatched.R&quot;)
-}
-
-par(mfrow=c(2,2),mar=c(3,3,2,1),mgp=2:0)
-plot(NA,NA,xlim=c(0,1),ylim=c(0,1),xlab=&quot;Recall&quot;,ylab=&quot;Precision&quot;,main=&quot;Coloured by Cell Type&quot;)
-temp_col &lt;- qualitative_hcl(length(test_results),palette=&quot;dark3&quot;,alpha=0.7)
-temp_farts &lt;- sapply(names(test_results),function(X) {
-  points(mapply(fx_rec,L=test_labels[[X]],P=test_results[[X]]),
-         mapply(fx_pre,L=test_labels[[X]],P=test_results[[X]]),
-         pch=20,col=temp_col[which(names(test_results) == X)])
-})
-plot(NA,NA,xlim=c(0,1),ylim=c(0,1),xlab=&quot;Recall&quot;,ylab=&quot;Precision&quot;,main=&quot;Coloured by Ligand&quot;)
-temp_col &lt;- qualitative_hcl(length(test_results[[1]]),palette=&quot;dark3&quot;,alpha=0.7)
-temp_farts &lt;- sapply(names(test_results),function(X) {
-  points(mapply(fx_rec,L=test_labels[[X]],P=test_results[[X]]),
-         mapply(fx_pre,L=test_labels[[X]],P=test_results[[X]]),
-         pch=20,col=temp_col)
-})
-
-par(mar=c(6,3,1,1),mgp=2:0)
-boxplot(sapply(names(test_results),function(X) 
-  mapply(fx_F1,
-         PRE=mapply(fx_pre,L=test_labels[[X]],P=test_results[[X]]),
-         REC=mapply(fx_rec,L=test_labels[[X]],P=test_results[[X]]))
-),las=3,ylab=&quot;F1 Score&quot;)
-boxplot(t(sapply(names(test_results),function(X) 
-  mapply(fx_F1,
-         PRE=mapply(fx_pre,L=test_labels[[X]],P=test_results[[X]]),
-         REC=mapply(fx_rec,L=test_labels[[X]],P=test_results[[X]]))
-)),las=3,ylab=&quot;F1 Score&quot;)
-
-
-temp_metrics &lt;- as.data.frame(sapply(names(test_results),function(X) 
-  mapply(fx_F1,
-         PRE=mapply(fx_pre,L=test_labels[[X]],P=test_results[[X]]),
-         REC=mapply(fx_rec,L=test_labels[[X]],P=test_results[[X]]))
-))
-kable(temp_metrics,format=&quot;html&quot;)  %&gt;%
-  kable_styling() %&gt;%
-  scroll_box(width = &quot;9in&quot;, height = &quot;4in&quot;)</code></pre>
+<p><a href="https://github.com/BaderLab/Brendan_CCInxPred/200327_lvl3_leaveout1_PlateMatched.R">Random forest model source code</a></p>
 <div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:4in; overflow-x: scroll; width:9in; ">
 <table class="table" style="margin-left: auto; margin-right: auto;">
 <thead>
@@ -1626,123 +1585,10 @@ NaN
 </tbody>
 </table>
 </div>
-<pre class="r"><code>rm(list=temp)
-rm(list=grep(&quot;^temp&quot;,ls(),value=T))</code></pre>
 <p><img src="CellStimPred_files/figure-html/RF_leaveout1-1.png" width="768" /></p>
-<pre class="r"><code>if (file.exists(&quot;../CMapCorr_files/200328_ctpmUMAP.RData&quot;) &amp; !exists(&quot;ctUMAPpm&quot;)) {
-  load(&quot;../CMapCorr_files/200328_ctpmUMAP.RData&quot;) 
-} else {
-  source(&quot;200326_lvl3_pca_umap.R&quot;)
-}
-
-for (Z in names(ctUMAPpm)) {
-  temp_tx &lt;- rownames(ctUMAPpm[[Z]]$layout)[rownames(ctUMAPpm[[Z]]$layout) %in% 
-                                               colnames(lvl3_data@mat)]
-  temp_ctl &lt;- rownames(ctUMAPpm[[Z]]$layout)[!rownames(ctUMAPpm[[Z]]$layout) %in% temp_tx]
-  par(mfrow=c(1,2),mar=c(1,1,1,0.5),mgp=c(0,0,0))
-  plot(ctUMAPpm[[Z]]$layout[temp_ctl,],
-       xlim=range(ctUMAPpm[[Z]]$layout[,1]),
-       ylim=range(ctUMAPpm[[Z]]$layout[,2]),
-       pch=20,xlab=&quot;UMAP1&quot;,ylab=&quot;UMAP2&quot;,xaxt=&quot;n&quot;,yaxt=&quot;n&quot;,
-       main=paste(Z,&quot;coloured by ligand&quot;))
-  points(ctUMAPpm[[Z]]$layout[temp_tx,],pch=20,
-         col=qualitative_hcl(
-           length(unique(lvl3_data@cdesc[temp_tx,&quot;pert_iname&quot;])),
-           palette=&quot;dark3&quot;,alpha=0.7)[as.factor(lvl3_data@cdesc[temp_tx,&quot;pert_iname&quot;])])
-  
-  temp_plate &lt;- rep(NA,nrow(ctUMAPpm[[Z]]$layout))
-  names(temp_plate) &lt;- rownames(ctUMAPpm[[Z]]$layout)
-  temp_plate[temp_ctl] &lt;- lvl3_data_ctl@cdesc[temp_ctl,&quot;rna_plate&quot;]
-  temp_plate[temp_tx] &lt;- lvl3_data@cdesc[temp_tx,&quot;rna_plate&quot;]
-  temp_plate &lt;- as.factor(temp_plate)
-  plot(ctUMAPpm[[Z]]$layout,
-       pch=20,xlab=&quot;UMAP1&quot;,ylab=&quot;UMAP2&quot;,xaxt=&quot;n&quot;,yaxt=&quot;n&quot;,
-       main=paste(Z,&quot;coloured by plate&quot;),
-       col=qualitative_hcl(length(levels(temp_plate)),
-                           palette=&quot;dark3&quot;,alpha=0.7)[temp_plate])
-}
-
-rm(list=c(&quot;Z&quot;,grep(&quot;^temp&quot;,ls(),value=T)))</code></pre>
 <p><img src="CellStimPred_files/figure-html/tx_vs_ctl_umap_ct-1.png" width="768" /><img src="CellStimPred_files/figure-html/tx_vs_ctl_umap_ct-2.png" width="768" /><img src="CellStimPred_files/figure-html/tx_vs_ctl_umap_ct-3.png" width="768" /><img src="CellStimPred_files/figure-html/tx_vs_ctl_umap_ct-4.png" width="768" /></p>
-<pre class="r"><code>if (file.exists(&quot;200328_ctpmUMAP.RData&quot;) &amp; !exists(&quot;ligUMAPpm&quot;)) {
-  load(&quot;200328_ctpmUMAP.RData&quot;) 
-} else {
-  source(&quot;200326_lvl3_pca_umap.R&quot;)
-}
-
-for (Z in names(ligUMAPpm)) {
-  temp_tx &lt;- rownames(ligUMAPpm[[Z]]$layout)[rownames(ligUMAPpm[[Z]]$layout) %in% 
-                                               colnames(lvl3_data@mat)]
-  temp_ctl &lt;- rownames(ligUMAPpm[[Z]]$layout)[!rownames(ligUMAPpm[[Z]]$layout) %in% temp_tx]
-  
-  par(mfrow=c(1,3),mar=c(1,1,1,0.5),mgp=c(0,0,0))
-  plot(ligUMAPpm[[Z]]$layout[c(temp_ctl,temp_tx),],pch=20,cex=0.5,
-       xlab=&quot;UMAP1&quot;,ylab=&quot;UMAP2&quot;,xaxt=&quot;n&quot;,yaxt=&quot;n&quot;,
-       main=paste(Z,&quot;control (red) vs ligand (blue)&quot;),
-       col=scales::alpha(c(&quot;red&quot;,&quot;blue&quot;),
-                         alpha=0.5)[c(rep(1,length(temp_ctl)),
-                                      rep(2,length(temp_tx)))])
-  
-  temp_ct &lt;- rep(NA,nrow(ligUMAPpm[[Z]]$layout))
-  names(temp_ct) &lt;- rownames(ligUMAPpm[[Z]]$layout)
-  temp_ct[temp_ctl] &lt;- lvl3_data_ctl@cdesc[temp_ctl,&quot;cell_id&quot;]
-  temp_ct[temp_tx] &lt;- lvl3_data@cdesc[temp_tx,&quot;cell_id&quot;]
-  temp_ct &lt;- as.factor(temp_ct)
-  plot(ligUMAPpm[[Z]]$layout,pch=20,cex=0.5,
-       xlab=&quot;UMAP1&quot;,ylab=&quot;UMAP2&quot;,xaxt=&quot;n&quot;,yaxt=&quot;n&quot;,
-       main=paste(Z,&quot;coloured by cell type&quot;),
-       col=qualitative_hcl(length(levels(temp_ct)),
-                           palette=&quot;dark3&quot;,alpha=0.7)[temp_ct])
-  
-  temp_plate &lt;- rep(NA,nrow(ligUMAPpm[[Z]]$layout))
-  names(temp_plate) &lt;- rownames(ligUMAPpm[[Z]]$layout)
-  temp_plate[temp_ctl] &lt;- lvl3_data_ctl@cdesc[temp_ctl,&quot;rna_plate&quot;]
-  temp_plate[temp_tx] &lt;- lvl3_data@cdesc[temp_tx,&quot;rna_plate&quot;]
-  temp_plate &lt;- as.factor(temp_plate)
-  plot(ligUMAPpm[[Z]]$layout,pch=20,cex=0.5,
-       xlab=&quot;UMAP1&quot;,ylab=&quot;UMAP2&quot;,xaxt=&quot;n&quot;,yaxt=&quot;n&quot;,
-       main=paste(Z,&quot;coloured by plate&quot;),
-       col=qualitative_hcl(length(levels(temp_plate)),
-                           palette=&quot;dark3&quot;,alpha=0.7)[temp_plate])
-  
-}
-
-rm(list=c(&quot;Z&quot;,grep(&quot;^temp&quot;,ls(),value=T)))</code></pre>
 <p><img src="CellStimPred_files/figure-html/tx_vs_ctl_umap_lig-1.png" width="864" /><img src="CellStimPred_files/figure-html/tx_vs_ctl_umap_lig-2.png" width="864" /><img src="CellStimPred_files/figure-html/tx_vs_ctl_umap_lig-3.png" width="864" /><img src="CellStimPred_files/figure-html/tx_vs_ctl_umap_lig-4.png" width="864" /></p>
 <p>Looks like transcriptomes are entirely delineated by cell type from the ligand perspective.</p>
-<pre class="r"><code>if (file.exists(&quot;200328_ligUMAP.RData&quot;) &amp; !exists(&quot;ligUMAP&quot;)) {
-  load(&quot;200328_ligUMAP.RData&quot;) 
-} else {
-  source(&quot;200326_lvl3_pca_umap.R&quot;)
-}
-
-par(mfrow=c(1,2),mar=c(1,1,1,0.5),mgp=c(0,0,0))
-# for (Z in names(ligUMAP)) {
-Z &lt;- &quot;HGF&quot;
-temp_ct &lt;- as.factor(lvl3_data@cdesc[rownames(ligUMAP[[Z]]$layout),&quot;cell_id&quot;])
-plot(ligUMAP[[Z]]$layout,pch=20,
-     xlab=&quot;UMAP1&quot;,ylab=&quot;UMAP2&quot;,xaxt=&quot;n&quot;,yaxt=&quot;n&quot;,
-     main=paste(Z,&quot;coloured by cell type&quot;),
-     col=qualitative_hcl(length(levels(temp_ct)),
-                         palette=&quot;dark3&quot;,alpha=0.7)[temp_ct])
-text(tapply(ligUMAP[[Z]]$layout[,1],temp_ct,mean),
-     tapply(ligUMAP[[Z]]$layout[,2],temp_ct,mean),
-     labels=levels(temp_ct),cex=0.7)
-
-temp_plate &lt;- as.factor(lvl3_data@cdesc[rownames(ligUMAP[[Z]]$layout),&quot;rna_plate&quot;])
-plot(ligUMAP[[Z]]$layout,pch=20,
-     xlab=&quot;UMAP1&quot;,ylab=&quot;UMAP2&quot;,xaxt=&quot;n&quot;,yaxt=&quot;n&quot;,
-     main=paste(Z,&quot;coloured by cell type&quot;),
-     col=qualitative_hcl(length(levels(temp_plate)),
-                         palette=&quot;dark3&quot;,alpha=0.7)[temp_plate])
-text(tapply(ligUMAP[[Z]]$layout[,1],temp_ct,mean),
-     tapply(ligUMAP[[Z]]$layout[,2],temp_ct,mean),
-     labels=sub(&quot;_.+$&quot;,&quot;&quot;,sapply(levels(temp_ct),
-                                 function(X) names(ct14)[ct14 == X])),
-     cex=0.7)
-# }
-
-rm(list=c(&quot;Z&quot;,grep(&quot;^temp&quot;,ls(),value=T)))</code></pre>
 <p><img src="CellStimPred_files/figure-html/lvl3_umap_lig-1.png" width="768" /></p>
 <hr />
 </div>

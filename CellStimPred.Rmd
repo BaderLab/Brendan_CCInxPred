@@ -25,6 +25,8 @@ Here we are training random forest models to distinguish between cells treated w
 
 ## Training on all cell types
 
+[Random forest model source code](https://github.com/BaderLab/Brendan_CCInxPred/200326_lvl3_mixall.R)  
+
 ```{r RF_mix_all_cells, echo=FALSE, message=FALSE, warning=FALSE, fig.height=5, fig.width=8, fig.show='hold'}
 fx_acc <- function(L,P) { sum(P == L) / length(P) }
 fx_pre <- function(L,P) { sum(P == "yes" & L == "yes") / sum(P == "yes") }
@@ -91,7 +93,9 @@ Using each of the 15 ligands tested in all cells as a test case, we trained a ra
 
 ## Generalizing to novel cell types
 
-```{r RF_leaveout1, echo=TRUE, message=FALSE, warning=FALSE, fig.height=8, fig.width=8, fig.show='hold'}
+[Random forest model source code](https://github.com/BaderLab/Brendan_CCInxPred/200327_lvl3_leaveout1_PlateMatched.R)  
+
+```{r RF_leaveout1, echo=FALSE, message=FALSE, warning=FALSE, fig.height=8, fig.width=8, fig.show='hold'}
 if (file.exists("../CMapCorr_files/200327_leaveout1_PM.RData")) {
   temp <- load("../CMapCorr_files/200327_leaveout1_PM.RData")
 } else {
@@ -141,7 +145,7 @@ rm(list=temp)
 rm(list=grep("^temp",ls(),value=T))
 ```
 
-```{r tx_vs_ctl_umap_ct, echo=TRUE, message=FALSE, warning=FALSE, fig.height=4, fig.width=8, fig.show='hold'}
+```{r tx_vs_ctl_umap_ct, echo=FALSE, message=FALSE, warning=FALSE, fig.height=4, fig.width=8, fig.show='hold'}
 if (file.exists("../CMapCorr_files/200328_ctpmUMAP.RData") & !exists("ctUMAPpm")) {
   load("../CMapCorr_files/200328_ctpmUMAP.RData") 
 } else {
@@ -178,7 +182,7 @@ for (Z in names(ctUMAPpm)) {
 rm(list=c("Z",grep("^temp",ls(),value=T)))
 ```
 
-```{r tx_vs_ctl_umap_lig, echo=TRUE, message=FALSE, warning=FALSE, fig.height=3, fig.width=9, fig.show='hold'}
+```{r tx_vs_ctl_umap_lig, echo=FALSE, message=FALSE, warning=FALSE, fig.height=3, fig.width=9, fig.show='hold'}
 if (file.exists("200328_ctpmUMAP.RData") & !exists("ligUMAPpm")) {
   load("200328_ctpmUMAP.RData") 
 } else {
@@ -227,7 +231,7 @@ rm(list=c("Z",grep("^temp",ls(),value=T)))
 
 Looks like transcriptomes are entirely delineated by cell type from the ligand perspective.
 
-```{r lvl3_umap_lig, echo=TRUE, message=FALSE, warning=FALSE, fig.height=4, fig.width=8, fig.show='hold'}
+```{r lvl3_umap_lig, echo=FALSE, message=FALSE, warning=FALSE, fig.height=4, fig.width=8, fig.show='hold'}
 if (file.exists("200328_ligUMAP.RData") & !exists("ligUMAP")) {
   load("200328_ligUMAP.RData") 
 } else {

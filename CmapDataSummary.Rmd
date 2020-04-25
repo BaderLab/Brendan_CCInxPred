@@ -51,6 +51,7 @@ upset(fromList(temp_ct),
 
 rm(list=grep("^temp",ls(),value=T))
 ```
+
 In the Connectivity Map data, there are 15 ligands assayed in all 14 cell lines, and 300 ligands assayed in 8 cell lines.
 
 
