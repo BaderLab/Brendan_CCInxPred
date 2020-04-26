@@ -11,7 +11,7 @@
 
 
 
-<title>Cmap data summary</title>
+<title>Ligand transcriptome perturbations from Connectivity Map</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -273,10 +273,16 @@ $(document).ready(function () {
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
         <li>
-  <a href="CmapDataSummary.html">CMap data summary</a>
+  <a href="CmapDataSummary_lvl3.html">CMap data summary (Lvl3)</a>
 </li>
 <li>
-  <a href="CellStimPred.html">Predicting cell stimulation</a>
+  <a href="CellStimPred_lvl3.html">Predicting perturbed cells (Lvl3)</a>
+</li>
+<li>
+  <a href="CmapDataSummary_lvl5.html">CMap data summary (Lvl5)</a>
+</li>
+<li>
+  <a href="CellStimPred_lvl5.html">Predicting perturbed cells (Lvl5)</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
@@ -290,22 +296,20 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Cmap data summary</h1>
+<h1 class="title toc-ignore">Ligand transcriptome perturbations from Connectivity Map</h1>
 
 </div>
 
 
-<div id="ligand-transcriptome-perturbations-from-connectivity-map" class="section level1">
-<h1>Ligand transcriptome perturbations from Connectivity Map</h1>
-<div id="ligands-cell-lines-assayed" class="section level2">
-<h2>Ligands / cell lines assayed</h2>
-<p><img src="CmapDataSummary_files/figure-html/data_summary-1.png" width="768" /></p>
+<div id="ligands-cell-lines-assayed" class="section level1">
+<h1>Ligands / cell lines assayed</h1>
+<p><img src="CmapDataSummary_lvl3_files/figure-html/data_summary-1.png" width="768" /></p>
 <p>In the Connectivity Map data, there are 15 ligands assayed in all 14 cell lines, and 300 ligands assayed in 8 cell lines.</p>
 </div>
-<div id="distribution-of-samples-between-cell-types-and-ligands" class="section level2">
-<h2>Distribution of samples between cell types and ligands</h2>
-<p><img src="CmapDataSummary_files/figure-html/lvl3_pca-1.png" width="864" /></p>
-<p><img src="CmapDataSummary_files/figure-html/lvl3_umap-1.png" width="864" /></p>
+<div id="distribution-of-samples-between-cell-types-and-ligands" class="section level1">
+<h1>Distribution of samples between cell types and ligands</h1>
+<p><img src="CmapDataSummary_lvl3_files/figure-html/lvl3_pca-1.png" width="864" /></p>
+<p><img src="CmapDataSummary_lvl3_files/figure-html/lvl3_umap-1.png" width="864" /></p>
 <p>Above are PCA and UMAP projections of all Connectivity Map ligand-treated and control data coloured by cell type.</p>
 <div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:4in; overflow-x: scroll; width:9in; ">
 <table class="table" style="margin-left: auto; margin-right: auto;">
@@ -1155,10 +1159,9 @@ prostate_tumor_VCAP
 </table>
 </div>
 <p>Below are UMAP projections of selected cell types that represent patterns of data distribution between controls and treatments that we see in the CMap data. BT20 is a breast tumour line where very few ligands were tested, but they were tested in depth, and thus there are more treated samples (as a whole) than controls. VCAP is a prostate tumour line where many ligands were minimally tested, with many controls. The MCF7 breast tumour line is unique in that many ligands were tested in depth, so as a whole there is a balance between treated and control samples.</p>
-<p><img src="CmapDataSummary_files/figure-html/lvl3_umap_ct-1.png" width="864" /></p>
+<p><img src="CmapDataSummary_lvl3_files/figure-html/lvl3_umap_ct-1.png" width="864" /></p>
 <p>So it seems the plate effect is strong in this data. Might consider using the plate-based Z-scores from Cmap level 5 instead of the quantile normalized transcriptomes from level 3 that are shown here. For now, continuing with level 3 data.</p>
 <hr />
-</div>
 </div>
 
 

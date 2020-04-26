@@ -1,5 +1,5 @@
 ---
-title: "Cmap data summary"
+title: "Ligand transcriptome perturbations from Connectivity Map"
 ---
 
 ```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
@@ -19,9 +19,7 @@ if (file.exists("../CMapCorr_files/lvl3_inputs.RData") & !exists("lvl3_data")) {
 ```
 
 
-# Ligand transcriptome perturbations from Connectivity Map
-
-## Ligands / cell lines assayed
+# Ligands / cell lines assayed
 
 ```{r data_summary, echo=FALSE, message=FALSE, warning=FALSE, fig.height=5, fig.width=8, fig.show='hold'}
 temp_ct <- sapply(unique(lvl3_data@cdesc$cell_id),function(X) 
@@ -55,7 +53,7 @@ rm(list=grep("^temp",ls(),value=T))
 In the Connectivity Map data, there are 15 ligands assayed in all 14 cell lines, and 300 ligands assayed in 8 cell lines.
 
 
-## Distribution of samples between cell types and ligands
+# Distribution of samples between cell types and ligands
 
 ```{r lvl3_pca, echo=FALSE, message=FALSE, warning=FALSE, fig.height=9,fig.width=9, fig.show='hold'}
 if (file.exists("../CMapCorr_files/200326_lvl3pca.RData") & !exists("lvl3pca")) {

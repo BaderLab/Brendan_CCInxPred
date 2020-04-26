@@ -1,5 +1,5 @@
 ---
-title: "Predicting cell stimulation"
+title: "Identifying stimulated cells"
 ---
 
 ```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
@@ -19,11 +19,11 @@ if (file.exists("../CMapCorr_files/lvl3_inputs.RData") & !exists("lvl3_data")) {
 ```
 
 
-# Identifying stimulated cells
-
 Here we are training random forest models to distinguish between cells treated with a ligand and their respective controls.  This should be a pretty easy task, but later we'll see if the models can generalize to cell types they haven't seen.
 
-## Training on all cell types
+# Training on all cell types
+
+This is more of a positive control - can we train a random forest model to differentiate between treatment and control for each ligand perturbation, irrespective of cell type?  As long as the perturbation causes some transcriptional deviation from each cell type's untreated transcriptome, we'd expect this to work.
 
 [Random forest model source code](https://github.com/BaderLab/Brendan_CCInxPred/200326_lvl3_mixall.R)  
 
@@ -89,9 +89,14 @@ rm(list=temp)
 rm(list=grep("^temp",ls(),value=T))
 ```
 
-Using each of the 15 ligands tested in all cells as a test case, we trained a random forest classifier to classify treated vs untreated cells. The data for each ligand consisted of all treated and control samples from all cell types in which that ligand was tested, split at random into equally-sized training and test sets. The data was very unbalanced, with many more controls than ligand-treated samples.  Upweighting the minor class didn't seem to make a difference, so randomly downsampling of control samples in the training data was used to make the data balanced.  Testing input was not balanced.
+Using each of the 15 ligands tested in all cells as a test case, we trained a random forest classifier to classify treated vs untreated cells. The data for each ligand consisted of all treated and control samples from all cell types in which that ligand was tested, split at random into equally-sized training and test sets. The data was very unbalanced, with many more controls than ligand-treated samples.  Upweighting the minor class didn't seem to make a difference, so randomly downsampling of control samples in the training data was used to make the data balanced.  Testing input was not balanced.  
 
-## Generalizing to novel cell types
+So this works pretty well, as expected.
+
+
+# Generalizing to novel cell types
+
+Now we'll start to get into the real question.  We're still just asking the model to differentiate between treatment and control (for each ligand individually), but now we're holding out single cell type and training on the others, then testing the model's ability to differentiate between treatment and control based on the transcriptome of a cell type it hasn't seen.  Since it doesn't know what the unperturbed transcriptome is supposed to look like, it will probably have to learn what the ligand-treated transcriptome looks like in the other cell types, and extrapolate to the novel cell type's ligand-treated transcriptome.  If there are consistent transcriptional responses to ligand exposure, this should work, otherwise it seems unlikely to perform well.
 
 [Random forest model source code](https://github.com/BaderLab/Brendan_CCInxPred/200327_lvl3_leaveout1_PlateMatched.R)  
 
@@ -144,6 +149,8 @@ kable(temp_metrics,format="html")  %>%
 rm(list=temp)
 rm(list=grep("^temp",ls(),value=T))
 ```
+
+*Note that only plate-matched data was used, in an attempt to reduce noise.*
 
 ```{r tx_vs_ctl_umap_ct, echo=FALSE, message=FALSE, warning=FALSE, fig.height=4, fig.width=8, fig.show='hold'}
 if (file.exists("../CMapCorr_files/200328_ctpmUMAP.RData") & !exists("ctUMAPpm")) {

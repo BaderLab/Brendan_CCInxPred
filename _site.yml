@@ -3,10 +3,14 @@ output_dir: "docs"
 navbar:
   title: "CCinxPred?"
   left:
-  - text: "CMap data summary"
-    href: CmapDataSummary.html
-  - text: "Predicting cell stimulation"
-    href: CellStimPred.html
+  - text: "CMap data summary (Lvl3)"
+    href: CmapDataSummary_lvl3.html
+  - text: "Predicting perturbed cells (Lvl3)"
+    href: CellStimPred_lvl3.html
+  - text: "CMap data summary (Lvl5)"
+    href: CmapDataSummary_lvl5.html
+  - text: "Predicting perturbed cells (Lvl5)"
+    href: CellStimPred_lvl5.html
 output:
   html_document:
     theme: cosmo

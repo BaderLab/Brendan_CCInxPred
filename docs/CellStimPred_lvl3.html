@@ -11,7 +11,7 @@
 
 
 
-<title>Predicting cell stimulation</title>
+<title>Identifying stimulated cells</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -273,10 +273,16 @@ $(document).ready(function () {
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
         <li>
-  <a href="CmapDataSummary.html">CMap data summary</a>
+  <a href="CmapDataSummary_lvl3.html">CMap data summary (Lvl3)</a>
 </li>
 <li>
-  <a href="CellStimPred.html">Predicting cell stimulation</a>
+  <a href="CellStimPred_lvl3.html">Predicting perturbed cells (Lvl3)</a>
+</li>
+<li>
+  <a href="CmapDataSummary_lvl5.html">CMap data summary (Lvl5)</a>
+</li>
+<li>
+  <a href="CellStimPred_lvl5.html">Predicting perturbed cells (Lvl5)</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
@@ -290,16 +296,15 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Predicting cell stimulation</h1>
+<h1 class="title toc-ignore">Identifying stimulated cells</h1>
 
 </div>
 
 
-<div id="identifying-stimulated-cells" class="section level1">
-<h1>Identifying stimulated cells</h1>
 <p>Here we are training random forest models to distinguish between cells treated with a ligand and their respective controls. This should be a pretty easy task, but later we’ll see if the models can generalize to cell types they haven’t seen.</p>
-<div id="training-on-all-cell-types" class="section level2">
-<h2>Training on all cell types</h2>
+<div id="training-on-all-cell-types" class="section level1">
+<h1>Training on all cell types</h1>
+<p>This is more of a positive control - can we train a random forest model to differentiate between treatment and control for each ligand perturbation, irrespective of cell type? As long as the perturbation causes some transcriptional deviation from each cell type’s untreated transcriptome, we’d expect this to work.</p>
 <p><a href="https://github.com/BaderLab/Brendan_CCInxPred/200326_lvl3_mixall.R">Random forest model source code</a></p>
 <div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:4in; overflow-x: scroll; width:9in; ">
 <table class="table" style="margin-left: auto; margin-right: auto;">
@@ -820,11 +825,13 @@ IL6
 </tbody>
 </table>
 </div>
-<p><img src="CellStimPred_files/figure-html/RF_mix_all_cells-1.png" width="768" /></p>
+<p><img src="CellStimPred_lvl3_files/figure-html/RF_mix_all_cells-1.png" width="768" /></p>
 <p>Using each of the 15 ligands tested in all cells as a test case, we trained a random forest classifier to classify treated vs untreated cells. The data for each ligand consisted of all treated and control samples from all cell types in which that ligand was tested, split at random into equally-sized training and test sets. The data was very unbalanced, with many more controls than ligand-treated samples. Upweighting the minor class didn’t seem to make a difference, so randomly downsampling of control samples in the training data was used to make the data balanced. Testing input was not balanced.</p>
+<p>So this works pretty well, as expected.</p>
 </div>
-<div id="generalizing-to-novel-cell-types" class="section level2">
-<h2>Generalizing to novel cell types</h2>
+<div id="generalizing-to-novel-cell-types" class="section level1">
+<h1>Generalizing to novel cell types</h1>
+<p>Now we’ll start to get into the real question. We’re still just asking the model to differentiate between treatment and control (for each ligand individually), but now we’re holding out single cell type and training on the others, then testing the model’s ability to differentiate between treatment and control based on the transcriptome of a cell type it hasn’t seen. Since it doesn’t know what the unperturbed transcriptome is supposed to look like, it will probably have to learn what the ligand-treated transcriptome looks like in the other cell types, and extrapolate to the novel cell type’s ligand-treated transcriptome. If there are consistent transcriptional responses to ligand exposure, this should work, otherwise it seems unlikely to perform well.</p>
 <p><a href="https://github.com/BaderLab/Brendan_CCInxPred/200327_lvl3_leaveout1_PlateMatched.R">Random forest model source code</a></p>
 <div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:4in; overflow-x: scroll; width:9in; ">
 <table class="table" style="margin-left: auto; margin-right: auto;">
@@ -1585,13 +1592,13 @@ NaN
 </tbody>
 </table>
 </div>
-<p><img src="CellStimPred_files/figure-html/RF_leaveout1-1.png" width="768" /></p>
-<p><img src="CellStimPred_files/figure-html/tx_vs_ctl_umap_ct-1.png" width="768" /><img src="CellStimPred_files/figure-html/tx_vs_ctl_umap_ct-2.png" width="768" /><img src="CellStimPred_files/figure-html/tx_vs_ctl_umap_ct-3.png" width="768" /><img src="CellStimPred_files/figure-html/tx_vs_ctl_umap_ct-4.png" width="768" /></p>
-<p><img src="CellStimPred_files/figure-html/tx_vs_ctl_umap_lig-1.png" width="864" /><img src="CellStimPred_files/figure-html/tx_vs_ctl_umap_lig-2.png" width="864" /><img src="CellStimPred_files/figure-html/tx_vs_ctl_umap_lig-3.png" width="864" /><img src="CellStimPred_files/figure-html/tx_vs_ctl_umap_lig-4.png" width="864" /></p>
+<p><img src="CellStimPred_lvl3_files/figure-html/RF_leaveout1-1.png" width="768" /></p>
+<p><em>Note that only plate-matched data was used, in an attempt to reduce noise.</em></p>
+<p><img src="CellStimPred_lvl3_files/figure-html/tx_vs_ctl_umap_ct-1.png" width="768" /><img src="CellStimPred_lvl3_files/figure-html/tx_vs_ctl_umap_ct-2.png" width="768" /><img src="CellStimPred_lvl3_files/figure-html/tx_vs_ctl_umap_ct-3.png" width="768" /><img src="CellStimPred_lvl3_files/figure-html/tx_vs_ctl_umap_ct-4.png" width="768" /></p>
+<p><img src="CellStimPred_lvl3_files/figure-html/tx_vs_ctl_umap_lig-1.png" width="864" /><img src="CellStimPred_lvl3_files/figure-html/tx_vs_ctl_umap_lig-2.png" width="864" /><img src="CellStimPred_lvl3_files/figure-html/tx_vs_ctl_umap_lig-3.png" width="864" /><img src="CellStimPred_lvl3_files/figure-html/tx_vs_ctl_umap_lig-4.png" width="864" /></p>
 <p>Looks like transcriptomes are entirely delineated by cell type from the ligand perspective.</p>
-<p><img src="CellStimPred_files/figure-html/lvl3_umap_lig-1.png" width="768" /></p>
+<p><img src="CellStimPred_lvl3_files/figure-html/lvl3_umap_lig-1.png" width="768" /></p>
 <hr />
-</div>
 </div>
 
 
