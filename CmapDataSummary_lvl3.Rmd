@@ -11,7 +11,8 @@ library(kableExtra)
 ```
 
 ```{r load_data_lvl3, message=FALSE, warning=FALSE, include=FALSE}
-if (file.exists("../CMapCorr_files/lvl3_inputs.RData") & !exists("lvl3_data")) {
+if (exists("lvl3_data")) {
+} else if (file.exists("../CMapCorr_files/lvl3_inputs.RData")) {
   load("../CMapCorr_files/lvl3_inputs.RData") 
 } else {
   source("lvl3_inputs.R")
@@ -25,8 +26,10 @@ if (file.exists("../CMapCorr_files/lvl3_inputs.RData") & !exists("lvl3_data")) {
 temp_ct <- sapply(unique(lvl3_data@cdesc$cell_id),function(X) 
   unique(lvl3_data@cdesc$pert_iname[lvl3_data@cdesc$cell_id == X]),
   simplify=F)
+temp_ct <- temp_ct[order(names(temp_ct))]
 temp_ctype <- apply(cell_info[unique(lvl3_data@cdesc$cell_id),c("primary_site","sample_type")],1,
                     function(X) paste(X,collapse=" "))
+temp_ctype <- temp_ctype[order(names(temp_ctype))]
 temp_md <- data.frame(sets=names(temp_ctype),source.tissue=temp_ctype)
 temp_col <- qualitative_hcl(length(unique(temp_ctype)),palette="dark3")
 names(temp_col) <- unique(temp_md$source.tissue)
@@ -51,6 +54,24 @@ rm(list=grep("^temp",ls(),value=T))
 ```
 
 In the Connectivity Map data, there are 15 ligands assayed in all 14 cell lines, and 300 ligands assayed in 8 cell lines.
+
+
+```{r data_dist, echo=FALSE, message=FALSE, warning=FALSE, fig.show='hold'}
+temp <- as.data.frame(cbind(sapply(lig15,function(X)
+  table(lvl3_data@cdesc$cell_id[lvl3_data@cdesc$pert_iname == X])),
+  ctrl=table(lvl3_data_ctl@cdesc$cell_id)))
+temp <- temp[ct14,]
+rownames(temp) <- sapply(rownames(temp),function(X) names(ct14)[ct14 == X])
+temp$min.ctrl.ratio <- apply(temp[,colnames(temp) != "ctrl"],1,max) / temp$ctrl
+kable(temp,format="html")  %>%
+  kable_styling() %>%
+  scroll_box(width = "9in", height = "4in")
+# ct_strat <- ct14[rownames(temp)[temp$min.ctrl.ratio < 0.4]]
+
+rm(list=grep("^temp",ls(),value=T))
+```
+
+In a subset of cell lines, ligands were tested over a variety of doses and times (and EGF was especially rigorously assayed), while in most cell lines ligands were tested at a single concentration over two time points.  Note that the number of control samples per cell type is much greater than the number of treatments.
 
 
 # Distribution of samples between cell types and ligands
@@ -138,19 +159,6 @@ rm(list=grep("^temp",ls(),value=T))
 
 Above are PCA and UMAP projections of all Connectivity Map ligand-treated and control data coloured by cell type.
 
-```{r data_dist, echo=FALSE, message=FALSE, warning=FALSE, fig.show='hold'}
-temp <- as.data.frame(cbind(sapply(lig15,function(X)
-  table(lvl3_data@cdesc$cell_id[lvl3_data@cdesc$pert_iname == X])),
-  ctrl=table(lvl3_data_ctl@cdesc$cell_id)))
-rownames(temp) <- sapply(rownames(temp),function(X) names(ct14)[ct14 == X])
-temp$min.ctrl.ratio <- apply(temp[,colnames(temp) != "ctrl"],1,max) / temp$ctrl
-kable(temp,format="html")  %>%
-  kable_styling() %>%
-  scroll_box(width = "9in", height = "4in")
-# ct_strat <- ct14[rownames(temp)[temp$min.ctrl.ratio < 0.4]]
-
-rm(list=grep("^temp",ls(),value=T))
-```
 
 Below are UMAP projections of selected cell types that represent patterns of data distribution between controls and treatments that we see in the CMap data. BT20 is a breast tumour line where very few ligands were tested, but they were tested in depth, and thus there are more treated samples (as a whole) than controls.  VCAP is a prostate tumour line where many ligands were minimally tested, with many controls.  The MCF7 breast tumour line is unique in that many ligands were tested in depth, so as a whole there is a balance between treated and control samples.  
 

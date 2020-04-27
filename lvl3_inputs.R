@@ -1,5 +1,6 @@
 library(cmapR)
 
+rm(list=ls())
 setwd("~/Dropbox/GDB/CMapCorr/")
 temp_cmap_path <- "~/Data_LINCS/phase1"
 temp_coldata <- read.table(file.path(temp_cmap_path,"GSE92742_Broad_LINCS_inst_info.txt"),

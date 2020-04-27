@@ -7,7 +7,8 @@ Can intercellular signals be identified by transcriptional changes?
 
 ****
 
-This should be where I outline the why and how of this project.
+This should be where I outline the why and how of this project.  
+https://clue.io/connectopedia/data_levels for information on the input data.
 
 ****
 

@@ -10,12 +10,12 @@ library(kableExtra)
 ```
 
 ```{r load_data_lvl3, message=FALSE, warning=FALSE, include=FALSE}
-if (file.exists("../CMapCorr_files/lvl3_inputs.RData") & !exists("lvl3_data")) {
+if (exists("lvl3_data")) {
+} else if (file.exists("../CMapCorr_files/lvl3_inputs.RData")) {
   load("../CMapCorr_files/lvl3_inputs.RData") 
 } else {
   source("lvl3_inputs.R")
 }
-
 ```
 
 
