@@ -45,9 +45,9 @@ temp_confusion <- table(true=lvl5_data@cdesc[testIDs,"pert_iname"],
 temp_acc <- sweep(temp_confusion,1,rowSums(temp_confusion),"/")
 
 par(mar=c(1,5,5,1),mgp=2:0,las=2)
-image(z=t(temp_acc)[,seq(nrow(temp_acc),1)],
+image(z=t(temp_acc * 100)[,seq(nrow(temp_acc),1)],
       x=1:nrow(temp_acc),y=1:ncol(temp_acc),
-      col=sequential_hcl(100,palette="inferno",rev=T),
+      col=sequential_hcl(100,palette="inferno",rev=T),breaks=0:100,
       xaxt="n",yaxt="n",xlab=NA,ylab=NA)
 mtext(rev(colnames(temp_acc)),side=2,at=1:nrow(temp_acc),adj=1.1)
 mtext("Truth",side=2,line=3.5,at=((nrow(temp_acc)-1)/2)+1,las=0,font=2,cex=1.5)
@@ -62,7 +62,7 @@ rm(list=temp)
 rm(list=grep("^temp",ls(),value=T))
 ```
 
-**Average accuracy was `r paste0(round(mean(acc_unbalanced) * 100,2),"%")`.**  Clearly the fact that EGF was tested more than the other ligands caused an imbalance in the training data, leading to a bias towards classifying samples as EGF-treated.  
+**Average accuracy was `r paste0(round(mean(acc_unbalanced) * 100,2),"%")`.**  This is perhaps unexpectedly bad, given that the model is seeing all the data, not trying to extrapolate to withheld cell lines.  Clearly the fact that EGF was tested more than the other ligands caused an imbalance in the training data, leading to a bias towards classifying samples as EGF-treated.  
 
 
 ## Balanced training data
@@ -92,9 +92,9 @@ temp_acc <- sweep(temp_confusion,1,rowSums(temp_confusion),"/")
 
 layout(rbind(1:2),widths=c(7,2))
 par(mar=c(1,5,5,1),mgp=2:0,las=2)
-image(z=t(temp_acc)[,seq(nrow(temp_acc),1)],
+image(z=t(temp_acc * 100)[,seq(nrow(temp_acc),1)],
       x=1:nrow(temp_acc),y=1:ncol(temp_acc),
-      col=sequential_hcl(100,palette="inferno",rev=T),
+      col=sequential_hcl(100,palette="inferno",rev=T),breaks=0:100,
       xaxt="n",yaxt="n",xlab=NA,ylab=NA)
 mtext(rev(colnames(temp_acc)),side=2,at=1:nrow(temp_acc),adj=1.1)
 mtext("Truth",side=2,line=3.5,at=((nrow(temp_acc)-1)/2)+1,las=0,font=2,cex=1.5)
@@ -111,13 +111,81 @@ boxplot(list(Unbalanced=acc_unbalanced,
 axis(side=4); mtext("Accuracy",side=4,line=2,at=0.5)
 mtext(c("Unbalanced","Balanced"),side=3,at=c(1,2),las=2,font=2)
 
-rm(list=temp)
+#rm(list=temp)
 rm(list=grep("^temp",ls(),value=T))
 ```
 
-**Average accuracy was `r paste0(round(mean(acc_balanced) * 100,2),"%")`.**
+**Average accuracy was `r paste0(round(mean(acc_balanced) * 100,2),"%")`.**  This is still worse than one might expect.  Given that this is serving as the positive control for the use of the level 5 data, I'd like to explore why its working well for a few ligands, and poorly for the rest.  
+
+Below are UMAP projections of all cells used in these models, coloured by cell type with each ligand treatment highlighted.  The ligands are ordered by the accuracy of their prediction, and plots are outlined per the colour scheme above.
+
+```{r UMAP_mixall,echo=FALSE,message=FALSE,warning=FALSE,fig.height=5.5,fig.width=9,fig.show='hold'}
+if (exists("UMAPmixall")) {
+  temp <- NULL
+} else if (file.exists("../CMapCorr_files/200427_lvl5_UMAPmixall.RData")) {
+  load("../CMapCorr_files/200427_lvl5_UMAPmixall.RData") 
+} else {
+  source("200426_lvl5_pca_umap.R")
+}
+
+temp_allcol <- as.factor(lvl5_data@cdesc[rownames(UMAPmixall$layout),"cell_id"])
+temp_boxcol <- cut(acc_balanced * 100, breaks=0:100,labels=F)
+names(temp_boxcol) <- names(acc_balanced)
+par(mfrow=c(3,5),mar=c(1,1,1,0.5),mgp=c(0,0,0))
+for (L in names(sort(acc_balanced,decreasing=T))) {
+  plot(UMAPmixall$layout,pch=".",cex=2,
+       xaxt="n",yaxt="n",xlab="UMAP1",ylab="UMAP2",
+       main=paste0(L," (",round(acc_balanced[L] * 100,1),"%)"),
+       col=qualitative_hcl(length(levels(temp_allcol)),
+                           palette="dark3",alpha=.7)[temp_allcol])
+  temp_col <- temp_allcol[lvl5_data@cdesc[rownames(UMAPmixall$layout),"pert_iname"] == L]
+  points(UMAPmixall$layout[lvl5_data@cdesc[rownames(UMAPmixall$layout),"pert_iname"] == L,],
+         pch=19,col=qualitative_hcl(length(levels(temp_col)),
+                                    palette="dark3",alpha=1)[temp_col])
+  box(col=sequential_hcl(100,palette="inferno",rev=T)[temp_boxcol[L]])
+}
+
+```
+
+It is clear from this view that the model learns the transcriptional changes caused by the ligand well when those changes are consistent across a majority of cell lines, as with TNF and IFNG.  
+
+Are there specific genes marking these changes?  Here 
+
+```{r lig_zscores,echo=FALSE,message=FALSE,warning=FALSE,fig.height=15,fig.width=9,fig.show='hold'}
+temp_mean <- sapply(names(sort(acc_balanced,decreasing=T)),function(L)
+  rowMeans(lvl5_data@mat[,lvl5_data@cdesc$pert_iname == L]),
+  simplify=T)
+temp_sd <- sapply(names(sort(acc_balanced,decreasing=T)),function(L)
+  apply(lvl5_data@mat[,lvl5_data@cdesc$pert_iname == L],1,sd),
+  simplify=T)
+temp_meansd <- sapply(colnames(temp_mean),function(X) temp_mean[,X] / temp_sd[,X])
+temp_col <- matrix(cut(abs(temp_meansd),breaks=100,labels=F),
+                   nrow=nrow(temp_meansd),ncol=ncol(temp_meansd),
+                   dimnames=list(rownames(temp_meansd),
+                                 colnames(temp_meansd)))
+
+par(mfrow=c(5,3),mar=c(3,3,1,1),mgp=2:0)
+for (L in colnames(temp_mean)) {
+  plot(temp_mean[,L],temp_sd[,L],pch=20,
+       xlab="mean",ylab="sd",main=L,
+       col=sequential_hcl(100,palette="inferno",rev=T)[temp_col[,L]])
+  temp_top <- rownames(temp_col)[which.max(temp_col[,L])]
+  text(temp_mean[temp_top,L],temp_sd[temp_top,L],
+       labels=gene_info[temp_top,"pr_gene_symbol"],
+       col="dodgerblue",pos=2)
+}
+```
 
 ### Tumour necrosis factor alpha (TNF)
+
+TNF binds to two receptors, TNFR1 and TNFR2, neither of which are present in the CMap data (neither assayed nor inferred).  This is probably because they are (at least TNFR1) ubiquitously expressed, and thus their expression profiles are not informative or easily inferred.  That may also explain why the transcriptional response to TNF treatment is so consistent - the may be receptor is present on all cell types.  However, downstream of TNF receptor activation, the multiple signaling pathways with conflicting phenotypes can be activated, which doesn't seem to be reflected by our findings here.
+
+```{r}
+
+```
+
+
+
 
 
 ### Interferon gamma (IFNG)

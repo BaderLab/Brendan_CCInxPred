@@ -76,6 +76,7 @@ In a subset of cell lines, ligands were tested over a variety of doses and times
 
 ```{r lvl5_umap, echo=FALSE, message=FALSE, warning=FALSE, fig.height=9, fig.width=9, fig.show='hold'}
 if (exists("lvl5umap")) {
+  temp <- NULL
 } else if (file.exists("../CMapCorr_files/200426_lvl5umap.RData")) {
   load("../CMapCorr_files/200426_lvl5umap.RData") 
 } else {
@@ -97,6 +98,7 @@ plot(lvl5umap$layout,xaxt="n",yaxt="n",pch=".",cex=2,
        palette="dark3",alpha=.7)[as.factor(lvl5_data@cdesc$pert_iname)])
 
 if (exists("lvl5umap_raw")) {
+  temp <- NULL
 } else if (file.exists("../CMapCorr_files/200426_lvl5umap_raw.RData")) {
   load("../CMapCorr_files/200426_lvl5umap_raw.RData") 
 } else {
@@ -170,6 +172,7 @@ UMAP projections from the ~1000 assayed genes for each of the 15 ligands assayed
 
 ```{r lvl5_umap_lig,echo=FALSE,message=FALSE,warning=FALSE,fig.height=7.5,fig.width=9,fig.show='hold'}
 if (exists("ligUMAP")) {
+  temp <- NULL
 } else if (file.exists("../CMapCorr_files/200426_lvl5_ligUMAP.RData")) {
   load("../CMapCorr_files/200426_lvl5_ligUMAP.RData") 
 } else {
