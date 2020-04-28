@@ -25,7 +25,7 @@ Here we are training random forest models to distinguish between cells treated w
 
 This is more of a positive control - can we train a random forest model to differentiate between treatment and control for each ligand perturbation, irrespective of cell type?  As long as the perturbation causes some transcriptional deviation from each cell type's untreated transcriptome, we'd expect this to work.
 
-[Random forest model source code](https://github.com/BaderLab/Brendan_CCInxPred/200326_lvl3_mixall.R)  
+[Random forest model source code](https://github.com/BaderLab/Brendan_CCInxPred/blob/master/200326_lvl3_mixall.R)  
 
 ```{r RF_mix_all_cells, echo=FALSE, message=FALSE, warning=FALSE, fig.height=5, fig.width=8, fig.show='hold'}
 fx_acc <- function(L,P) { sum(P == L) / length(P) }
@@ -51,8 +51,7 @@ temp_metrics <- data.frame(
   rec_bal=round(mapply(fx_rec,L=test_labels,P=test_resultsB),3)
 )
 kable(temp_metrics,format="html")  %>%
-  kable_styling() %>%
-  scroll_box(width = "9in", height = "4in")
+  kable_styling()
 
 layout(matrix(c(3,1,3,2),nrow=2),widths=c(5,3),heights=c(1,9))
 par(mar=c(3,3,0,1),mgp=2:0)
@@ -98,7 +97,7 @@ So this works pretty well, as expected.
 
 Now we'll start to get into the real question.  We're still just asking the model to differentiate between treatment and control (for each ligand individually), but now we're holding out single cell type and training on the others, then testing the model's ability to differentiate between treatment and control based on the transcriptome of a cell type it hasn't seen.  Since it doesn't know what the unperturbed transcriptome is supposed to look like, it will probably have to learn what the ligand-treated transcriptome looks like in the other cell types, and extrapolate to the novel cell type's ligand-treated transcriptome.  If there are consistent transcriptional responses to ligand exposure, this should work, otherwise it seems unlikely to perform well.
 
-[Random forest model source code](https://github.com/BaderLab/Brendan_CCInxPred/200327_lvl3_leaveout1_PlateMatched.R)  
+[Random forest model source code](https://github.com/BaderLab/Brendan_CCInxPred/blob/master/200327_lvl3_leaveout1_PlateMatched.R)  
 
 ```{r RF_leaveout1, echo=FALSE, message=FALSE, warning=FALSE, fig.height=8, fig.width=8, fig.show='hold'}
 if (file.exists("../CMapCorr_files/200327_leaveout1_PM.RData")) {
@@ -142,8 +141,7 @@ temp_metrics <- as.data.frame(sapply(names(test_results),function(X)
          REC=mapply(fx_rec,L=test_labels[[X]],P=test_results[[X]]))
 ))
 kable(temp_metrics,format="html")  %>%
-  kable_styling() %>%
-  scroll_box(width = "9in", height = "4in")
+  kable_styling()
 
 
 rm(list=temp)

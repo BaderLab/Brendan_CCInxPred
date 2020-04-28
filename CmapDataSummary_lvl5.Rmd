@@ -56,15 +56,15 @@ rm(list=grep("^temp",ls(),value=T))
 In the Connectivity Map data, there are 15 ligands assayed in all 14 cell lines, and 300 ligands assayed in 8 cell lines.
 
 ```{r data_dist, echo=FALSE, message=FALSE, warning=FALSE, fig.show='hold'}
-temp <- as.data.frame(sapply(lig15,function(X)
-  table(lvl5_data@cdesc$cell_id[lvl5_data@cdesc$pert_iname == X])))
-temp <- temp[ct14,]
-rownames(temp) <- sapply(rownames(temp),function(X) names(ct14)[ct14 == X])
+temp <- sapply(lig15,function(X)
+  table(lvl5_data@cdesc$cell_id[lvl5_data@cdesc$pert_iname == X]))
+temp <- as.data.frame(rbind(temp,Totals=colSums(temp)))
+temp <- temp[c(ct14,"Total"),]
+rownames(temp)[seq_along(ct14)] <- sapply(rownames(temp)[seq_along(ct14)],
+                                          function(X) names(ct14)[ct14 == X])
 
 kable(temp,format="html")  %>%
-  kable_styling() %>%
-  scroll_box(width = "9in", height = "4in")
-# ct_strat <- ct14[rownames(temp)[temp$min.ctrl.ratio < 0.4]]
+  kable_styling()
 
 rm(list=grep("^temp",ls(),value=T))
 ```

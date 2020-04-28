@@ -1,0 +1,126 @@
+---
+title: "Differentiating ligand-perturbed transcriptomes"
+---
+  
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
+library(cmapR)
+library(ranger)
+library(colorspace)
+library(kableExtra)
+```
+
+```{r load_data_lvl5, message=FALSE, warning=FALSE, include=FALSE}
+if (exists("lvl5_data")) {
+} else if (file.exists("../CMapCorr_files/lvl5_inputs.RData")) {
+  load("../CMapCorr_files/lvl5_inputs.RData") 
+} else {
+  source("lvl5_inputs.R")
+}
+```
+
+
+# Training on all cell types
+
+Since the replicate-aggregated Z-scores incorporate both ligand-treated and untreated transcriptomes into a single difference measure, testing for the ability to distinguish between treatment and control is not possible in this data.  Instead, the random forest model will be trained to distinguish changes in transcriptome caused by different ligand treatments across a mix of all cell lines.  This is done by training the model on a random sample of all 15 ligand treatments across all 14 cell types, with ligand labels provided.  The distribution of training and test data is shown in the table below.
+
+[Random forest model source code](https://github.com/BaderLab/Brendan_CCInxPred/blob/master/200427_lvl5_mixall.R)  
+
+```{r RFmixall_unbalanced,echo=FALSE,message=FALSE,warning=FALSE,fig.height=7,fig.width=7,fig.show='hold'}
+if (file.exists("../CMapCorr_files/200427_lvl5_mixall.RData")) {
+  temp <- load("../CMapCorr_files/200427_lvl5_mixall.RData")
+} else {
+  source("200427_lvl5_mixall.R")
+}
+
+tempdf <- as.data.frame(
+  rbind(training=table(lvl5_data@cdesc[trainIDs,"pert_iname"]),
+        testing=table(lvl5_data@cdesc[testIDs,"pert_iname"]),
+        total=table(lvl5_data@cdesc[c(trainIDs,testIDs),"pert_iname"]))
+)
+kable(tempdf,format="html")  %>%
+  kable_styling()
+
+temp_confusion <- table(true=lvl5_data@cdesc[testIDs,"pert_iname"],
+                        predicted=rfresults$predictions)
+temp_acc <- sweep(temp_confusion,1,rowSums(temp_confusion),"/")
+
+par(mar=c(1,5,5,1),mgp=2:0,las=2)
+image(z=t(temp_acc)[,seq(nrow(temp_acc),1)],
+      x=1:nrow(temp_acc),y=1:ncol(temp_acc),
+      col=sequential_hcl(100,palette="inferno",rev=T),
+      xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+mtext(rev(colnames(temp_acc)),side=2,at=1:nrow(temp_acc),adj=1.1)
+mtext("Truth",side=2,line=3.5,at=((nrow(temp_acc)-1)/2)+1,las=0,font=2,cex=1.5)
+mtext(rownames(temp_acc),side=3,at=1:nrow(temp_acc),adj=-0.1)
+mtext("Prediction",side=3,line=3.5,at=((nrow(temp_acc)-1)/2)+1,las=0,font=2,cex=1.5)
+text(x=seq(1,nrow(temp_acc)),y=seq(nrow(temp_acc),1),
+     labels=round(diag(temp_acc),2),font=2,col="dodgerblue")
+
+acc_unbalanced <- diag(temp_acc)
+
+rm(list=temp)
+rm(list=grep("^temp",ls(),value=T))
+```
+
+**Average accuracy was `r paste0(round(mean(acc_unbalanced) * 100,2),"%")`.**  Clearly the fact that EGF was tested more than the other ligands caused an imbalance in the training data, leading to a bias towards classifying samples as EGF-treated.  
+
+
+## Balanced training data
+
+To address the balancing issue, the training set was adjusted to ensure equal sampling of all ligands (leaving the remainder as the *unbalanced* test set). The distribution of training and test data is shown in the table below.
+
+[Random forest model source code](https://github.com/BaderLab/Brendan_CCInxPred/blob/master/200427_lvl5_mixall.R)  
+
+```{r RFmixall_balanced,echo=FALSE,message=FALSE,warning=FALSE,fig.height=7,fig.width=9,fig.show='hold'}
+if (file.exists("../CMapCorr_files/200427_lvl5_mixall_balanced.RData")) {
+  temp <- load("../CMapCorr_files/200427_lvl5_mixall_balanced.RData")
+} else {
+  source("200427_lvl5_mixall.R")
+}
+
+tempdf <- as.data.frame(
+  rbind(training=table(lvl5_data@cdesc[trainIDs,"pert_iname"]),
+        testing=table(lvl5_data@cdesc[testIDs,"pert_iname"]),
+        total=table(lvl5_data@cdesc[c(trainIDs,testIDs),"pert_iname"]))
+)
+kable(tempdf,format="html")  %>%
+  kable_styling()
+
+temp_confusion <- table(true=lvl5_data@cdesc[testIDs,"pert_iname"],
+                        predicted=rfresults$predictions)
+temp_acc <- sweep(temp_confusion,1,rowSums(temp_confusion),"/")
+
+layout(rbind(1:2),widths=c(7,2))
+par(mar=c(1,5,5,1),mgp=2:0,las=2)
+image(z=t(temp_acc)[,seq(nrow(temp_acc),1)],
+      x=1:nrow(temp_acc),y=1:ncol(temp_acc),
+      col=sequential_hcl(100,palette="inferno",rev=T),
+      xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+mtext(rev(colnames(temp_acc)),side=2,at=1:nrow(temp_acc),adj=1.1)
+mtext("Truth",side=2,line=3.5,at=((nrow(temp_acc)-1)/2)+1,las=0,font=2,cex=1.5)
+mtext(rownames(temp_acc),side=3,at=1:nrow(temp_acc),adj=-0.1)
+mtext("Prediction",side=3,line=3.5,at=((nrow(temp_acc)-1)/2)+1,las=0,font=2,cex=1.5)
+text(x=seq(1,nrow(temp_acc)),y=seq(nrow(temp_acc),1),
+     labels=round(diag(temp_acc),2),font=2,col="dodgerblue")
+
+acc_balanced <- diag(temp_acc)
+par(mar=c(1,1,5,3),mgp=2:0,las=0,bty="n")
+boxplot(list(Unbalanced=acc_unbalanced,
+             Balanced=acc_balanced),
+        ylim=c(0,1),names=NA,xaxt="n",yaxs="i",yaxt="n")
+axis(side=4); mtext("Accuracy",side=4,line=2,at=0.5)
+mtext(c("Unbalanced","Balanced"),side=3,at=c(1,2),las=2,font=2)
+
+rm(list=temp)
+rm(list=grep("^temp",ls(),value=T))
+```
+
+**Average accuracy was `r paste0(round(mean(acc_balanced) * 100,2),"%")`.**
+
+### Tumour necrosis factor alpha (TNF)
+
+
+### Interferon gamma (IFNG)
+
+
+****

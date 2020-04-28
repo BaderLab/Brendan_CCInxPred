@@ -25,7 +25,9 @@ if (file.exists("~/Dropbox/GDB/CMapCorr_files/200426_lvl5umap.RData")) {
   temp_param <- umap.defaults
   temp_param$n_neighbors <- 30
   temp_param$metric <- "cosine"
-  temp_param$min_dist <- 0.3
+  temp_param$min_dist <- 0.2
+  temp_param$n_epochs <- 500
+
   lvl5umap <- umap(lvl5pca$x[,1:50],config=temp_param)
   save(lvl5umap,file="~/Dropbox/GDB/CMapCorr_files/200426_lvl5umap.RData")
 }
@@ -36,7 +38,9 @@ if (file.exists("~/Dropbox/GDB/CMapCorr_files/200426_lvl5umap_raw.RData")) {
   temp_param <- umap.defaults
   temp_param$n_neighbors <- 30
   temp_param$metric <- "cosine"
-  temp_param$min_dist <- 0.3
+  temp_param$min_dist <- 0.2
+  temp_param$n_epochs <- 500
+
   lvl5umap_raw <- umap(t(lvl5_data@mat),config=temp_param)
   save(lvl5umap_raw,file="~/Dropbox/GDB/CMapCorr_files/200426_lvl5umap_raw.RData")
 }
@@ -48,8 +52,9 @@ if (file.exists("~/Dropbox/GDB/CMapCorr_files/200426_lvl5_ctUMAP.RData")) {
   temp_param <- umap.defaults
   temp_param$n_neighbors <- 30
   temp_param$metric <- "cosine"
-  temp_param$min_dist <- 0.3
-
+  temp_param$min_dist <- 0.2
+  temp_param$n_epochs <- 500
+  
   ctUMAP <- ctUMAPraw <- list()
   for (CT in ct14) {
     temp_pca <- prcomp(t(lvl5_data@mat[,lvl5_data@cdesc$cell_id == CT]))
@@ -67,7 +72,8 @@ if (file.exists("~/Dropbox/GDB/CMapCorr_files/200426_lvl5_ctligUMAP.RData")) {
   temp_param <- umap.defaults
   temp_param$n_neighbors <- 5  #because many individual cell types only have ~5 samples per cell type.
   temp_param$metric <- "cosine"
-  temp_param$min_dist <- 0.3
+  temp_param$min_dist <- 0.2
+  temp_param$n_epochs <- 500
   
   temp_ct <- ct14[sapply(ct14,function(CT) 
     ncol(lvl5_data@mat[,lvl5_data@cdesc$cell_id == CT & 
@@ -89,7 +95,8 @@ if (file.exists("~/Dropbox/GDB/CMapCorr_files/200426_lvl5_ligUMAP.RData")) {
   temp_param <- umap.defaults
   temp_param$n_neighbors <- 5  #because many individual cell types only have ~5 samples.
   temp_param$metric <- "cosine"
-  temp_param$min_dist <- 0.3
+  temp_param$min_dist <- 0.2
+  temp_param$n_epochs <- 500
   
   ligUMAP <- list()
   for (L in lig15) {
@@ -99,5 +106,21 @@ if (file.exists("~/Dropbox/GDB/CMapCorr_files/200426_lvl5_ligUMAP.RData")) {
                          config=temp_param)
   }
   save(ligUMAP,file="~/Dropbox/GDB/CMapCorr_files/200426_lvl5_ligUMAP.RData") 
+}
+
+
+# UMAP of LigPred_mixall ----
+if (file.exists("~/Dropbox/GDB/CMapCorr_files/200427_lvl5_UMAPmixall.RData")) {
+  load("~/Dropbox/GDB/CMapCorr_files/200427_lvl5_UMAPmixall.RData") 
+} else {
+  temp_param <- umap.defaults
+  temp_param$n_neighbors <- 5  #because many individual cell types only have ~5 samples.
+  temp_param$metric <- "cosine"
+  temp_param$min_dist <- 0.2
+  temp_param$n_epochs <- 500
+  
+  UMAPmixall <- umap(t(lvl5_data@mat[,lvl5_data@cdesc$pert_iname %in% lig15]),
+                     config=temp_param)
+  save(UMAPmixall,file="~/Dropbox/GDB/CMapCorr_files/200427_lvl5_UMAPmixall.RData")
 }
 

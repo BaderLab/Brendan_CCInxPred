@@ -9,8 +9,8 @@ navbar:
     href: CellStimPred_lvl3.html
   - text: "CMap data summary (Lvl5)"
     href: CmapDataSummary_lvl5.html
-  - text: "Predicting perturbed cells (Lvl5)"
-    href: CellStimPred_lvl5.html
+  - text: "Predicting ligand response (Lvl5)"
+    href: LigPred_lvl5.html
 output:
   html_document:
     theme: cosmo

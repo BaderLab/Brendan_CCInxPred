@@ -282,7 +282,7 @@ $(document).ready(function () {
   <a href="CmapDataSummary_lvl5.html">CMap data summary (Lvl5)</a>
 </li>
 <li>
-  <a href="CellStimPred_lvl5.html">Predicting perturbed cells (Lvl5)</a>
+  <a href="LigPred_lvl5.html">Predicting ligand response (Lvl5)</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
@@ -305,61 +305,60 @@ $(document).ready(function () {
 <h1>Ligands / cell lines assayed</h1>
 <p><img src="CmapDataSummary_lvl3_files/figure-html/data_summary-1.png" width="768" /></p>
 <p>In the Connectivity Map data, there are 15 ligands assayed in all 14 cell lines, and 300 ligands assayed in 8 cell lines.</p>
-<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:4in; overflow-x: scroll; width:9in; ">
 <table class="table" style="margin-left: auto; margin-right: auto;">
 <thead>
 <tr>
-<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+<th style="text-align:left;">
 </th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+<th style="text-align:right;">
 BTC
 </th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+<th style="text-align:right;">
 EGF
 </th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+<th style="text-align:right;">
 GDNF
 </th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+<th style="text-align:right;">
 HGF
 </th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+<th style="text-align:right;">
 INS
 </th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+<th style="text-align:right;">
 TNF
 </th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+<th style="text-align:right;">
 FGF1
 </th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+<th style="text-align:right;">
 GAS6
 </th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+<th style="text-align:right;">
 HBEGF
 </th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+<th style="text-align:right;">
 IFNG
 </th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+<th style="text-align:right;">
 IGF1
 </th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+<th style="text-align:right;">
 IGF2
 </th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+<th style="text-align:right;">
 IL17A
 </th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+<th style="text-align:right;">
 IL4
 </th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+<th style="text-align:right;">
 IL6
 </th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+<th style="text-align:right;">
 ctrl
 </th>
-<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+<th style="text-align:right;">
 min.ctrl.ratio
 </th>
 </tr>
@@ -1149,9 +1148,64 @@ prostate_tumor_PC3
 0.0017241
 </td>
 </tr>
+<tr>
+<td style="text-align:left;">
+Totals
+</td>
+<td style="text-align:right;">
+431
+</td>
+<td style="text-align:right;">
+824
+</td>
+<td style="text-align:right;">
+428
+</td>
+<td style="text-align:right;">
+475
+</td>
+<td style="text-align:right;">
+440
+</td>
+<td style="text-align:right;">
+422
+</td>
+<td style="text-align:right;">
+438
+</td>
+<td style="text-align:right;">
+426
+</td>
+<td style="text-align:right;">
+438
+</td>
+<td style="text-align:right;">
+432
+</td>
+<td style="text-align:right;">
+439
+</td>
+<td style="text-align:right;">
+440
+</td>
+<td style="text-align:right;">
+418
+</td>
+<td style="text-align:right;">
+433
+</td>
+<td style="text-align:right;">
+435
+</td>
+<td style="text-align:right;">
+24779
+</td>
+<td style="text-align:right;">
+0.0332540
+</td>
+</tr>
 </tbody>
 </table>
-</div>
 <p>In a subset of cell lines, ligands were tested over a variety of doses and times (and EGF was especially rigorously assayed), while in most cell lines ligands were tested at a single concentration over two time points. Note that the number of control samples per cell type is much greater than the number of treatments.</p>
 </div>
 <div id="distribution-of-samples-between-cell-types-and-ligands" class="section level1">
