@@ -11,7 +11,7 @@
 
 
 
-<title>Differentiating ligand-perturbed transcriptomes by training on all cell types</title>
+<title>Differentiating ligand-perturbed transcriptomes   by training on all cell types</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -296,7 +296,7 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Differentiating ligand-perturbed transcriptomes by training on all cell types</h1>
+<h1 class="title toc-ignore">Differentiating ligand-perturbed transcriptomes <br> by training on all cell types</h1>
 
 </div>
 
@@ -724,6 +724,7 @@ total
 </div>
 <div id="data-saturation" class="section level1">
 <h1>Data saturation</h1>
+<p><a href="https://github.com/BaderLab/Brendan_CCInxPred/blob/master/200427_lvl5_mixall.R">Random forest model source code</a></p>
 <p><img src="LigPred_lvl5_files/figure-html/RF_saturated-1.png" width="672" /></p>
 <p>Training the random forest model was repeated with increasing data, from one sample per ligand (randomly sampled from the 14 cell types) to 98 samples per ligand (all but one sample for most ligands, except EGF which has 195 samples). Improvements in accuracy from increased training data level off after half the data is used, as was done in the previous models.</p>
 </div>
@@ -741,6 +742,7 @@ Given that nearly all highlighted genes are from the two most predictable ligand
 <div id="cell-type-biases-in-accuracy" class="section level1">
 <h1>Cell-type biases in accuracy</h1>
 <p>Are there differences in the model’s ability to classify ligand treatments between cell types? In order to ask this, the model was repeatedly trained on a leave-one-out basis per ligand treatment such that each sample in a ligand treatment was tested for model classification accuracy at least 10 times. This data was used to colour the UMAP projections in the top row of the previous figure, and results are summarized in the matrix below, with darker colour representing higher rates of correct classification (ranging from 0% to 100% accuracy) across &gt;10 tests for each sample. The number of samples of each ligand tested in a cell type is indicated in blue.</p>
+<p><a href="https://github.com/BaderLab/Brendan_CCInxPred/blob/master/200524_lvl5_mixall_leave1out.R">Random forest model source code</a></p>
 <p><img src="LigPred_lvl5_files/figure-html/RF_leave1out_ct-1.png" width="672" /></p>
 <p>The ligands were tested in multiple contexts (time / dose) in the breast tumour lines, so they have more training data available per cell line. This may improve classification tasks by allowing the model to learn cell-type specific gene expression changes. However, some ligands (eg. FGF1, EGF) proved challenging to predict even in breast lines with increased sampling.</p>
 <div id="response-genes-per-cell-type" class="section level2">
