@@ -1,5 +1,5 @@
 ---
-title: "Differentiating ligand-perturbed transcriptomes"
+title: "Differentiating ligand-perturbed transcriptomes by training on all cell types"
 ---
   
 ```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
@@ -19,13 +19,11 @@ if (exists("lvl5_data")) {
 ```
 
 
-# Training on all cell types
-
 Since the replicate-aggregated Z-scores incorporate both ligand-treated and untreated transcriptomes into a single difference measure, testing for the ability to distinguish between treatment and control is not possible in this data.  Instead, the random forest model will be trained to distinguish changes in transcriptome caused by different ligand treatments across a mix of all cell lines.  This is done by training the model on a random sample of all 15 ligand treatments across all 14 cell types, with ligand labels provided.  The distribution of training and test data is shown in the table below.
 
 [Random forest model source code](https://github.com/BaderLab/Brendan_CCInxPred/blob/master/200427_lvl5_mixall.R)  
 
-```{r RFmixall_unbalanced,echo=FALSE,message=FALSE,warning=FALSE,fig.height=7,fig.width=7,fig.show='hold'}
+```{r RF_unbalanced,echo=FALSE,message=FALSE,warning=FALSE,fig.height=7,fig.width=7,fig.show='hold'}
 if (file.exists("../CMapCorr_files/200427_lvl5_mixall.RData")) {
   temp <- load("../CMapCorr_files/200427_lvl5_mixall.RData")
 } else {
@@ -65,13 +63,13 @@ rm(list=grep("^temp",ls(),value=T))
 **Average accuracy was `r paste0(round(mean(acc_unbalanced) * 100,2),"%")`.**  This is perhaps unexpectedly bad, given that the model is seeing all the data, not trying to extrapolate to withheld cell lines.  Clearly the fact that EGF was tested more than the other ligands caused an imbalance in the training data, leading to a bias towards classifying samples as EGF-treated.  
 
 
-## Balanced training data
+# Balanced training data
 
 To address the balancing issue, the training set was adjusted to ensure equal sampling of all ligands (leaving the remainder as the *unbalanced* test set). The distribution of training and test data is shown in the table below.
 
 [Random forest model source code](https://github.com/BaderLab/Brendan_CCInxPred/blob/master/200427_lvl5_mixall.R)  
 
-```{r RFmixall_balanced,echo=FALSE,message=FALSE,warning=FALSE,fig.height=7,fig.width=9,fig.show='hold'}
+```{r RF_balanced,echo=FALSE,message=FALSE,warning=FALSE,fig.height=7,fig.width=9,fig.show='hold'}
 if (file.exists("../CMapCorr_files/200427_lvl5_mixall_balanced.RData")) {
   temp <- load("../CMapCorr_files/200427_lvl5_mixall_balanced.RData")
 } else {
@@ -117,9 +115,46 @@ rm(list=grep("^temp",ls(),value=T))
 
 **Average accuracy was `r paste0(round(mean(acc_balanced) * 100,2),"%")`.**  This is still worse than one might expect.  Given that this is serving as the positive control for the use of the level 5 data, I'd like to explore why its working well for a few ligands, and poorly for the rest.  
 
+
+# Data saturation
+
+```{r RF_saturated,echo=FALSE,message=FALSE,warning=FALSE,fig.height=3,fig.width=7,fig.show='hold'}
+if (file.exists("../CMapCorr_files/200427_lvl5_mixall_balanced_saturated.RData")) {
+  temp <- load("../CMapCorr_files/200427_lvl5_mixall_balanced_saturated.RData")
+} else {
+  source("200427_lvl5_mixall.R")
+}
+
+temp_confusion <- list()
+temp_acc <- list()
+for (N in seq_along(rfresults)) {
+  temp_confusion[[N]] <- table(true=lvl5_data@cdesc[testIDs[[N]],"pert_iname"],
+                               predicted=rfresults[[N]]$predictions)
+  temp_acc[[N]] <- sweep(temp_confusion[[N]],1,rowSums(temp_confusion[[N]]),"/")
+}
+acc_saturating <- sapply(temp_acc,diag)
+
+par(mar=c(3,3,1,1),mgp=2:0)
+boxplot(acc_saturating,pch=".",
+        ylab="Accuracy per ligand",
+        xlab="Number of training samples per ligand")
+points(1:ncol(acc_saturating),colMeans(acc_saturating),
+       type="l",lwd=2,col="red")
+legend("topleft",legend="Mean accuracy",
+       bty="n",lwd=2,col="red",cex=0.8)
+
+rm(list=temp)
+rm(list=grep("^temp",ls(),value=T))
+```
+
+Training the random forest model was repeated with increasing data, from one sample per ligand (randomly sampled from the 14 cell types) to 98 samples per ligand (all but one sample for most ligands, except EGF which has 195 samples).  Improvements in accuracy from increased training data level off after half the data is used, as was done in the previous models.
+
+
+# Ligand-specific differences in accuracy
+
 Below are UMAP projections of all cells used in these models, coloured by cell type with each ligand treatment highlighted.  The ligands are ordered by the accuracy of their prediction, and plots are outlined per the colour scheme above.
 
-```{r UMAP_mixall,echo=FALSE,message=FALSE,warning=FALSE,fig.height=5.5,fig.width=9,fig.show='hold'}
+```{r UMAP_ct,echo=FALSE,message=FALSE,warning=FALSE,fig.height=5.5,fig.width=9,fig.show='hold'}
 if (exists("UMAPmixall")) {
   temp <- NULL
 } else if (file.exists("../CMapCorr_files/200427_lvl5_UMAPmixall.RData")) {
@@ -127,7 +162,6 @@ if (exists("UMAPmixall")) {
 } else {
   source("200426_lvl5_pca_umap.R")
 }
-
 temp_allcol <- as.factor(lvl5_data@cdesc[rownames(UMAPmixall$layout),"cell_id"])
 temp_boxcol <- cut(acc_balanced * 100, breaks=0:100,labels=F)
 names(temp_boxcol) <- names(acc_balanced)
@@ -144,51 +178,345 @@ for (L in names(sort(acc_balanced,decreasing=T))) {
                                     palette="dark3",alpha=1)[temp_col])
   box(col=sequential_hcl(100,palette="inferno",rev=T)[temp_boxcol[L]])
 }
-
+rm(list=c("L",grep("^temp",ls(),value=T)))
 ```
 
 It is clear from this view that the model learns the transcriptional changes caused by the ligand well when those changes are consistent across a majority of cell lines, as with TNF and IFNG.  
 
-Are there specific genes marking these changes?  Here 
+Are there specific genes marking these changes?  Here are the mean and standard deviations of z-scores per gene for each ligand treatment across all cell lines.  *Note that this only included measured "landmark" genes.*  Genes with mean Z-score magnitudes larger than the standard deviation of their Z-scores are highlighted.  
+Given that nearly all highlighted genes are from the two most predictable ligand treatments, it seems that the model performs best when the ligand-induced changes in gene expression are common across all cell lines.  
 
-```{r lig_zscores,echo=FALSE,message=FALSE,warning=FALSE,fig.height=15,fig.width=9,fig.show='hold'}
+```{r lig_zscores,echo=FALSE,message=FALSE,warning=FALSE,fig.height=5,fig.width=7,fig.show='hold'}
 temp_mean <- sapply(names(sort(acc_balanced,decreasing=T)),function(L)
   rowMeans(lvl5_data@mat[,lvl5_data@cdesc$pert_iname == L]),
   simplify=T)
 temp_sd <- sapply(names(sort(acc_balanced,decreasing=T)),function(L)
   apply(lvl5_data@mat[,lvl5_data@cdesc$pert_iname == L],1,sd),
   simplify=T)
-temp_meansd <- sapply(colnames(temp_mean),function(X) temp_mean[,X] / temp_sd[,X])
+temp_meansd <- sapply(colnames(temp_mean),function(X) abs(temp_mean[,X]) > temp_sd[,X])
 temp_col <- matrix(cut(abs(temp_meansd),breaks=100,labels=F),
                    nrow=nrow(temp_meansd),ncol=ncol(temp_meansd),
                    dimnames=list(rownames(temp_meansd),
                                  colnames(temp_meansd)))
 
-par(mfrow=c(5,3),mar=c(3,3,1,1),mgp=2:0)
-for (L in colnames(temp_mean)) {
-  plot(temp_mean[,L],temp_sd[,L],pch=20,
-       xlab="mean",ylab="sd",main=L,
-       col=sequential_hcl(100,palette="inferno",rev=T)[temp_col[,L]])
-  temp_top <- rownames(temp_col)[which.max(temp_col[,L])]
-  text(temp_mean[temp_top,L],temp_sd[temp_top,L],
-       labels=gene_info[temp_top,"pr_gene_symbol"],
-       col="dodgerblue",pos=2)
+temp_ct <- as.factor(sapply(colnames(temp_mean),rep,times=nrow(temp_mean)))
+par(mar=c(3,3,2,1),mgp=2:0)
+plot(NA,NA,xlim=range(temp_mean),ylim=range(temp_sd),
+     xlab="Mean Z-score",ylab="SD of Z-scores",
+     main="Gene expression Z-scores per ligand treatment across all cell types")
+points(as.vector(temp_mean)[!as.vector(temp_meansd)],
+     as.vector(temp_sd)[!as.vector(temp_meansd)],
+     pch=".",cex=2,
+     col=qualitative_hcl(ncol(temp_mean),
+                         palette="dark3",
+                         alpha=0.5)[temp_ct[!as.vector(temp_meansd)]])
+points(as.vector(temp_mean)[as.vector(temp_meansd)],
+       as.vector(temp_sd)[as.vector(temp_meansd)],
+       pch=20,col=qualitative_hcl(ncol(temp_mean),
+                                  palette="dark3")[temp_ct[as.vector(temp_meansd)]])
+legend("bottomright",bty="n",pch=20,
+       title="Mean / SD > 1",
+       legend=unique(temp_ct[as.vector(temp_meansd)]),
+       col=qualitative_hcl(ncol(temp_mean),
+                           palette="dark3")[unique(temp_ct[as.vector(temp_meansd)])])
+text(scClustViz::spreadLabels2(
+  as.vector(temp_mean)[as.vector(temp_meansd)],
+  as.vector(temp_sd)[as.vector(temp_meansd)],
+  gene_info[rep(rownames(temp_sd),ncol(temp_sd))[as.vector(temp_meansd)],"pr_gene_symbol"],
+  str.cex=0.8),cex=0.8,
+  labels=gene_info[rep(rownames(temp_sd),ncol(temp_sd))[as.vector(temp_meansd)],"pr_gene_symbol"],
+  col=qualitative_hcl(ncol(temp_sd),palette="dark3")[temp_ct[as.vector(temp_meansd)]])
+
+# par(mfrow=c(5,3),mar=c(3,3,1,1),mgp=2:0)
+# for (L in colnames(temp_mean)) {
+#   plot(temp_mean[,L],temp_sd[,L],pch=20,
+#        xlab="mean",ylab="sd",main=L,
+#        col=sequential_hcl(100,palette="inferno",rev=T)[temp_col[,L]])
+#   temp_top <- rownames(temp_col)[which.max(temp_col[,L])]
+#   text(temp_mean[temp_top,L],temp_sd[temp_top,L],
+#        labels=gene_info[temp_top,"pr_gene_symbol"],
+#        col="dodgerblue",pos=2)
+# }
+
+rm(list=grep("^temp",ls(),value=T))
+```
+
+```{r RF_leave1out,echo=FALSE,message=FALSE,warning=FALSE}
+if (file.exists("../CMapCorr_files/200524_lvl5_mixall_balanced_leave1out_results.RData")) {
+  temp <- load("../CMapCorr_files/200524_lvl5_mixall_balanced_leave1out_results.RData")
+} else {
+  source("200524_lvl5_mixall_leave1out.R")
+}
+
+test_results <- data.frame(
+  IDs=as.vector(testIDs),
+  Labels=as.vector(t(sapply(rfresults,function(X) X$predictions))),
+  stringsAsFactors=F
+)
+test_hits <- vector("list",sum(lvl5_data@cdesc$pert_iname %in% lig15))
+names(test_hits) <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname %in% lig15]
+
+for (X in 1:nrow(test_results)) {
+  test_hits[[test_results[X,"IDs"]]] <- append(test_hits[[test_results[X,"IDs"]]],
+                                               test_results[X,"Labels"])
+}
+
+acc_leave1out <- sapply(names(test_hits),function(X) 
+  sum(test_hits[[X]] == lvl5_data@cdesc[X,"pert_iname"]) / 
+    length(test_hits[[X]]))
+acc_leave1out_totals <- sapply(lig15,function(X) {
+  Y <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname == X]
+  return(sum(unlist(test_hits[Y]) == X) / 
+           length(unlist(test_hits[Y])))
+})
+
+rm(X)
+```
+
+
+```{r UMAP_marker_gene,echo=FALSE,message=FALSE,warning=FALSE,fig.height=11,fig.width=9,fig.show='hold'}
+if (exists("UMAPmixall")) {
+  temp <- NULL
+} else if (file.exists("../CMapCorr_files/200427_lvl5_UMAPmixall.RData")) {
+  load("../CMapCorr_files/200427_lvl5_UMAPmixall.RData") 
+} else {
+  source("200426_lvl5_pca_umap.R")
+}
+
+temp_allcol <- cut(acc_leave1out * 100,breaks=0:100,labels=F,include.lowest=T)
+names(temp_allcol) <- names(acc_leave1out)
+temp_allcol <- temp_allcol[rownames(UMAPmixall$layout)]
+layout(rbind(1:3,matrix(4:9,ncol=3),matrix(10:15,ncol=3)),
+       heights=c(3,3,1,3,1))
+par(mar=c(1.5,1,1,0.5),mgp=c(0,0,0))
+for (L in c("TNF","IFNG","BTC")) {
+  plot(NA,NA,xlim=range(UMAPmixall$layout[,1]),ylim=range(UMAPmixall$layout[,2]),
+       xaxt="n",yaxt="n",xlab="UMAP1",ylab="UMAP2",
+       main=paste0(L," (",round(acc_leave1out_totals[L] * 100,1),"%)"))
+  points(UMAPmixall$layout[lvl5_data@cdesc[rownames(UMAPmixall$layout),"pert_iname"] != L,],
+       pch=".",cex=2,col=sequential_hcl(100,palette="inferno",rev=T,alpha=0.7)[temp_allcol])
+  temp_col <- temp_allcol[lvl5_data@cdesc[names(temp_allcol),"pert_iname"] == L]
+  points(UMAPmixall$layout[lvl5_data@cdesc[rownames(UMAPmixall$layout),"pert_iname"] == L,],
+         pch=19,col=sequential_hcl(100,palette="inferno",rev=T,alpha=0.7)[temp_col])
+}
+
+temp_genes <- c("NFKBIA","STAT1","DUSP4","RELB","PSMB8","ICAM1")
+temp_lig <- list("TNF","IFNG","BTC","TNF","IFNG",c("TNF","IFNG"))
+par(mar=c(1,1,1,0.5),mgp=c(0,0,0))
+temp_par <- par(c("mar","mgp","bty","las"))
+for (N in seq_along(temp_genes)) {
+  temp_z <- lvl5_data@mat[
+    rownames(gene_info)[gene_info$pr_gene_symbol == temp_genes[N]],
+    rownames(UMAPmixall$layout)
+    ]
+  temp_down <- cut(c(0,max(abs(range(temp_z))) * -1,temp_z[temp_z <= 0]),
+                   50,labels=F)[c(-1,-2)]
+  temp_up <- cut(c(0,max(abs(range(temp_z))),temp_z[temp_z > 0]),
+                 50,labels=F)[c(-1,-2)]
+  temp_col <- rep(NA, length(temp_z))
+  temp_col[temp_z <= 0] <- temp_down
+  temp_col[temp_z > 0] <- temp_up + 50
+  temp_big <- rownames(UMAPmixall$layout) %in% 
+    rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname %in% temp_lig[[N]]]
+  
+  par(temp_par)
+  plot(NA,NA,xlim=range(UMAPmixall$layout[,1]),ylim=range(UMAPmixall$layout[,2]),
+       xaxt="n",yaxt="n",xlab="UMAP1",ylab="UMAP2",main=temp_genes[N])
+  points(UMAPmixall$layout[!temp_big,],pch=20,
+         col=colorspace::diverge_hcl(100, palette = "Purple-Green",alpha=.8)[temp_col])
+  points(UMAPmixall$layout[temp_big,],pch=19,
+         col=colorspace::diverge_hcl(100, palette = "Purple-Green",alpha=.8)[temp_col][temp_big])
+  
+  temp_bp <- list(
+    Rest=temp_z[!names(temp_z) %in% 
+                    rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname %in% temp_lig[[N]]]]
+  )
+  temp_bp <- append(temp_bp,
+                    sapply(temp_lig[[N]],function(X) 
+                      temp_z[names(temp_z) %in% 
+                               rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname %in% X]],
+                      simplify=F))
+  names(temp_bp)[names(temp_bp) == ""] <- temp_lig[[N]]
+  
+  par(mar=c(3.5,3,0,0.5),mgp=2:0,bty="n",las=1)
+  boxplot(temp_bp,horizontal=T,yaxt="n",xaxs="i",xaxt="n")
+  mtext(names(temp_bp),side=2,at=seq_along(temp_bp),cex=0.8)
+  temp_leg <- round(seq(min(temp_col),max(temp_col),length.out=1000) * 10)
+  segments(xpd=NA,lwd=1,y0=rep(par("usr")[3],1000),
+           y1=rep(par("usr")[3] - (0.11 * (par("usr")[4] - par("usr")[3])),1000),
+           x0=seq(min(unlist(temp_bp)),max(unlist(temp_bp)),length.out=1000),
+           x1=seq(min(unlist(temp_bp)),max(unlist(temp_bp)),length.out=1000),
+           col=colorspace::diverge_hcl(1000, palette = "Purple-Green")[temp_leg])
+  axis(1)
+  mtext("Z-score",side=1,cex=0.8,line=2)
+}
+
+rm(list=c("N","L",grep("^temp",ls(),value=T)))
+```
+
+The above figure shows classification accuracy per cell (top row, darker indicates higher frequency of correct classification) and Z-scores of a selection of genes that strongly respond to the indicated ligand.
+
+# Cell-type biases in accuracy
+
+Are there differences in the model's ability to classify ligand treatments between cell types?  In order to ask this, the model was repeatedly trained on a leave-one-out basis per ligand treatment such that each sample in a ligand treatment was tested for model classification accuracy at least 10 times.  This data was used to colour the UMAP projections in the top row of the previous figure, and results are summarized in the matrix below, with darker colour representing higher rates of correct classification (ranging from 0% to 100% accuracy) across >10 tests for each sample.  The number of samples of each ligand tested in a cell type is indicated in blue.
+
+```{r RF_leave1out_ct,echo=FALSE,message=FALSE,warning=FALSE,fig.height=5,fig.width=7,fig.show='hold'}
+
+acc_leave1out_ct <- sapply(lig15,function(X) {
+  sapply(ct14,function(Y) {
+    Z <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname == X &
+                                     lvl5_data@cdesc$cell_id == Y]
+    return(sum(unlist(test_hits[Z]) == X) / 
+             length(unlist(test_hits[Z])))
+  })
+})
+temp_counts <- sapply(lig15,function(X) {
+  sapply(ct14,function(Y) {
+    sum(lvl5_data@cdesc$pert_iname == X &
+          lvl5_data@cdesc$cell_id == Y)
+  })
+})
+
+
+par(mar=c(1,13,5,1),mgp=2:0,las=2)
+image(z=t(acc_leave1out_ct * 100)[,seq(nrow(acc_leave1out_ct),1)],
+      x=1:ncol(acc_leave1out_ct),y=1:nrow(acc_leave1out_ct),
+      col=sequential_hcl(100,palette="inferno",rev=T),breaks=0:100,
+      xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+mtext(colnames(acc_leave1out_ct),side=3,at=1:ncol(acc_leave1out_ct),adj=0,line=0.1)
+mtext("Ligands",side=3,line=3.5,at=((ncol(acc_leave1out_ct)-1)/2)+1,las=0,font=2,cex=1.5)
+mtext(rev(rownames(acc_leave1out_ct)),
+      side=2,at=1:nrow(acc_leave1out_ct),adj=1,line=0.1)
+mtext("Cell Types",side=3,line=0.1,at=0.2,adj=1,las=0,font=2,cex=1.5)
+mtext("Sample number",side=1,line=0,at=ncol(acc_leave1out_ct) + 0.5,adj=1,las=0,col="dodgerblue")
+text(as.vector(sapply(1:ncol(temp_counts),function(X) rep(X,nrow(temp_counts)))),
+     as.vector(sapply(1:ncol(temp_counts),function(X) nrow(temp_counts):1)),
+     labels=as.vector(temp_counts),cex=0.8,col="dodgerblue")
+
+```
+
+The ligands were tested in multiple contexts (time / dose) in the breast tumour lines, so they have more training data available per cell line.  This may improve classification tasks by allowing the model to learn cell-type specific gene expression changes.  However, some ligands (eg. FGF1, EGF) proved challenging to predict even in breast lines with increased sampling.
+
+## Response genes per cell type
+
+```{r lig_genes_per_ct,echo=FALSE,message=FALSE,warning=FALSE}
+if (!file.exists("output_figs/TNF.png")) {
+  for (LIG in lig15) {
+    temp_lig <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname == LIG &
+                                            lvl5_data@cdesc$cell_id %in% ct14]
+    temp_ct <- factor(lvl5_data@cdesc[temp_lig,"cell_id"],levels=ct14)
+    levels(temp_ct) <- names(ct14)
+    
+    tempZ <- apply(lvl5_data@mat[,temp_lig],1,function(X) lm(X ~ 0 + temp_ct))
+    tempZM <- t(sapply(tempZ,function(X) summary(X)$coefficients[,1]))
+    tempZT <- t(sapply(tempZ,function(X) summary(X)$coefficients[,3]))
+    colnames(tempZM) <- colnames(tempZT) <- sub("temp_ct","",colnames(tempZT))
+    
+    tempZTtophits <- apply(tempZT,2,function(X) names(X)[order(abs(X),decreasing=T)][1:10])
+    tempZTtop <- tempZT[unique(as.vector(tempZTtophits)),]
+    tempZTtop <- tempZTtop[hclust(dist(tempZTtop),"complete")$order,
+                           hclust(dist(t(tempZTtop)),"complete")$order]
+    
+    temp_col <- as.vector(tempZTtop)
+    temp_down <- cut(c(0,max(abs(range(temp_col))) * -1,temp_col[temp_col <= 0]),
+                     50,labels=F)[c(-1,-2)]
+    temp_up <- cut(c(0,max(abs(range(temp_col))),temp_col[temp_col > 0]),
+                   50,labels=F)[c(-1,-2)]
+    temp_heat <- rep(NA,length(temp_col))
+    temp_heat[temp_col <= 0] <- temp_down
+    temp_heat[temp_col > 0] <- temp_up + 50
+    temp_heat <- matrix(temp_heat,ncol=14)
+    colnames(temp_heat) <- colnames(tempZT)
+    rownames(temp_heat) <- gene_info[rownames(tempZTtop),"pr_gene_symbol"]
+    temp_heat <- t(temp_heat)
+    
+    png(paste0("output_figs/",LIG,".png"),width=10,height=5,units="in",res=300)
+    par(mar=c(1,13,5,1),mgp=2:0,las=2)
+    image(z=t(temp_heat)[,seq(nrow(temp_heat),1)],
+          x=1:ncol(temp_heat),y=1:nrow(temp_heat),
+          col=colorspace::diverge_hcl(100, palette = "Purple-Green"),
+          breaks=0:100,xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+    mtext(colnames(temp_heat),side=3,at=1:ncol(temp_heat),adj=0,line=0.1,cex=0.5)
+    rect(rep(par("usr")[1] - 1.5,nrow(temp_heat)),
+         seq(par("usr")[4] - 1,par("usr")[1],-1),
+         rep(par("usr")[1] - 0.5,nrow(temp_heat)),
+         seq(par("usr")[4],par("usr")[1] + 1,-1),
+         xpd=NA,border=NA,
+         col=sequential_hcl(100,
+                            palette="inferno",
+                            rev=T)[cut(c(0,1,acc_leave1out_ct[,LIG]),
+                                       breaks=100,labels=F)[-1:-2]])
+    mtext(rev(rownames(temp_heat)),
+          side=2,at=1:nrow(temp_heat),adj=1,line=1)
+    mtext(paste(paste(LIG,"Z-score"),"T-statistics",sep="\n"),
+          side=3,line=1.5,at=par("usr")[1] - par("cxy")[1] * 3,adj=1,las=0,font=2,cex=1.5)
+    segments(x0=seq(par("usr")[1] - par("cxy")[1] * 3 - strwidth(paste(LIG,"Z-score"),cex=1.5,font=2),
+                    par("usr")[1] - par("cxy")[1] * 3,
+                    length.out=500),
+             x1=seq(par("usr")[1] - par("cxy")[1] * 3 - strwidth(paste(LIG,"Z-score"),cex=1.5,font=2),
+                    par("usr")[1] - par("cxy")[1] * 3,
+                    length.out=500),
+             y0=rep(par("usr")[4] + par("cxy")[2] * 1.2,500),
+             y1=rep(par("usr")[4] + par("cxy")[2] * 1.5,500),
+             xpd=NA,lwd=2,col=colorspace::diverge_hcl(500, palette = "Purple-Green"))
+    text(c(par("usr")[1] - par("cxy")[1] * 3,
+           par("usr")[1] - par("cxy")[1] * 3 - strwidth(paste(LIG,"Z-score"),cex=1.5,font=2),
+           par("usr")[1] - par("cxy")[1] * 3 - strwidth(paste(LIG,"Z-score"),cex=1.5,font=2) * 0.5),
+         rep(par("usr")[4] + par("cxy")[2] * 1.2,3),
+         labels=c(round(max(abs(tempZTtop)),1),
+                  round(max(abs(tempZTtop)),1) * -1,
+                  0),
+         pos=1,xpd=NA,cex=0.8)
+    dev.off()
+    
+    png(paste0("output_figs/",LIG,"_sm.png"),width=180,height=90,units="px")
+    par(mar=c(.2,.5,.2,.2),mgp=2:0,las=2)
+    image(z=t(temp_heat)[,seq(nrow(temp_heat),1)],
+          x=1:ncol(temp_heat),y=1:nrow(temp_heat),
+          col=colorspace::diverge_hcl(100, palette = "Purple-Green"),
+          breaks=0:100,xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+    rect(rep(par("usr")[1] - 3,nrow(temp_heat)),
+         seq(par("usr")[4] - 1,par("usr")[1],-1),
+         rep(par("usr")[1] - 1,nrow(temp_heat)),
+         seq(par("usr")[4],par("usr")[1] + 1,-1),
+         xpd=NA,border=NA,
+         col=sequential_hcl(100,
+                            palette="inferno",
+                            rev=T)[cut(c(0,1,acc_leave1out_ct[,LIG]),
+                                       breaks=100,labels=F)[-1:-2]])
+    text(par("usr")[1] + (par("usr")[2] - par("usr")[1]) * 0.5,
+         par("usr")[3] + (par("usr")[4] - par("usr")[3]) * 0.5,
+         labels=LIG,font=2,cex=3.5)
+    dev.off()
+  }
 }
 ```
 
-### Tumour necrosis factor alpha (TNF)
+To determine which genes had Z-scores (treated vs. control) with consistently high magnitudes within a cell type, one-way analyses of variance were performed with cell types as the independent variable and each gene's Z-scores as the dependent variable.  The T-statistic from each coefficient was used to summarize the Z-score distributions for each gene.  The ten T-statistics with the highest magnitude per cell type are shown in the heatmaps below, with cell type prediction accuracies from above included as coloured bars next to each row.
 
-TNF binds to two receptors, TNFR1 and TNFR2, neither of which are present in the CMap data (neither assayed nor inferred).  This is probably because they are (at least TNFR1) ubiquitously expressed, and thus their expression profiles are not informative or easily inferred.  That may also explain why the transcriptional response to TNF treatment is so consistent - the may be receptor is present on all cell types.  However, downstream of TNF receptor activation, the multiple signaling pathways with conflicting phenotypes can be activated, which doesn't seem to be reflected by our findings here.
-
-```{r}
-
+```{r lig_genes_per_ct_out,echo=F,results="asis"}
+temp <- matrix(lig15,nrow=3,byrow=T)
+for (L in 1:nrow(temp)) {
+  cat("<p>")
+  for (LIG in temp[L,]) {
+    cat(paste0('<a href="output_figs/',LIG,'.png">',
+               '<img src="output_figs/',LIG,'_sm.png"/>',
+               '</a>'))
+  }
+  cat("</p>")
+  cat("\n")
+}
 ```
 
 
 
+# Biological factors affecting prediction accuracy
 
+### Tumour necrosis factor alpha (TNF)
 
-### Interferon gamma (IFNG)
+TNF binds to two receptors, TNFR1 and TNFR2, neither of which are present in the CMap data (neither assayed nor inferred).  This is probably because they are (at least TNFR1) ubiquitously expressed, and thus their expression profiles are not informative or easily inferred.  That may also explain why the transcriptional response to TNF treatment is so consistent - the may be receptor is present on all cell types.  Downstream of TNF receptor activation, the multiple signaling pathways with conflicting phenotypes can be activated, though our data shows robust increases in expression of a common subset of genes across cell lines (see above).
+
+### IL17A
 
 
 ****
