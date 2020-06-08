@@ -509,7 +509,8 @@ total
 </tbody>
 </table>
 <p><img src="LigPred_lvl5_files/figure-html/RF_unbalanced-1.png" width="672" /></p>
-<p><strong>Average accuracy was 32.62%.</strong> This is perhaps unexpectedly bad, given that the model is seeing all the data, not trying to extrapolate to withheld cell lines. Clearly the fact that EGF was tested more than the other ligands caused an imbalance in the training data, leading to a bias towards classifying samples as EGF-treated.</p>
+<p><strong>Average accuracy was 32.62%.</strong> This is perhaps unexpectedly bad, given that the model is seeing all the data, not trying to extrapolate to withheld cell lines.<br />
+Clearly the fact that EGF was tested more than the other ligands caused an imbalance in the training data, leading to a bias towards classifying samples as EGF-treated.</p>
 <div id="balanced-training-data" class="section level1">
 <h1>Balanced training data</h1>
 <p>To address the balancing issue, the training set was adjusted to ensure equal sampling of all ligands (leaving the remainder as the <em>unbalanced</em> test set). The distribution of training and test data is shown in the table below.</p>
@@ -726,28 +727,37 @@ total
 <h1>Data saturation</h1>
 <p><a href="https://github.com/BaderLab/Brendan_CCInxPred/blob/master/200427_lvl5_mixall.R">Random forest model source code</a></p>
 <p><img src="LigPred_lvl5_files/figure-html/RF_saturated-1.png" width="672" /></p>
-<p>Training the random forest model was repeated with increasing data, from one sample per ligand (randomly sampled from the 14 cell types) to 98 samples per ligand (all but one sample for most ligands, except EGF which has 195 samples). Improvements in accuracy from increased training data level off after half the data is used, as was done in the previous models.</p>
+<p>Training the random forest model was repeated with increasing data, from one sample per ligand (randomly sampled from the 14 cell types) to 98 samples per ligand (all but one sample for most ligands, except EGF which has 195 samples).<br />
+Improvements in accuracy from increased training data level off after half the data is used, as was done in the previous models.</p>
 </div>
 <div id="ligand-specific-differences-in-accuracy" class="section level1">
 <h1>Ligand-specific differences in accuracy</h1>
 <p>Below are UMAP projections of all cells used in these models, coloured by cell type with each ligand treatment highlighted. The ligands are ordered by the accuracy of their prediction, and plots are outlined per the colour scheme above.</p>
 <p><img src="LigPred_lvl5_files/figure-html/UMAP_ct-1.png" width="864" /></p>
 <p>It is clear from this view that the model learns the transcriptional changes caused by the ligand well when those changes are consistent across a majority of cell lines, as with TNF and IFNG.</p>
-<p>Are there specific genes marking these changes? Here are the mean and standard deviations of z-scores per gene for each ligand treatment across all cell lines. <em>Note that this only included measured “landmark” genes.</em> Genes with mean Z-score magnitudes larger than the standard deviation of their Z-scores are highlighted.<br />
-Given that nearly all highlighted genes are from the two most predictable ligand treatments, it seems that the model performs best when the ligand-induced changes in gene expression are common across all cell lines.</p>
+<p>Are there specific genes marking these changes? Here are the mean and standard deviations of z-scores per gene for each ligand treatment across all cell lines. <em>Note that this only included measured “landmark” genes.</em> Genes with mean Z-score magnitudes larger than the standard deviation of their Z-scores are highlighted.</p>
 <p><img src="LigPred_lvl5_files/figure-html/lig_zscores-1.png" width="672" /></p>
+<p>Given that nearly all highlighted genes are from the two most predictable ligand treatments, it seems that the model performs best when the ligand-induced changes in gene expression are common across all cell lines.</p>
+<p>The following figure shows classification accuracy per cell (top row, darker indicates higher frequency of correct classification) and Z-scores of a selection of genes that strongly respond to the indicated ligand (from the above figure).</p>
 <p><img src="LigPred_lvl5_files/figure-html/UMAP_marker_gene-1.png" width="864" /></p>
-<p>The above figure shows classification accuracy per cell (top row, darker indicates higher frequency of correct classification) and Z-scores of a selection of genes that strongly respond to the indicated ligand.</p>
+<p>The model seems to do well when there are strong marker genes to aid in the classification, but a single weak marker gene like <em>DUSP4</em> that has occasional high differential expression out of class is not sufficient to accurately classify ligand-treated cells in multiple cell types.</p>
 </div>
 <div id="cell-type-biases-in-accuracy" class="section level1">
 <h1>Cell-type biases in accuracy</h1>
-<p>Are there differences in the model’s ability to classify ligand treatments between cell types? In order to ask this, the model was repeatedly trained on a leave-one-out basis per ligand treatment such that each sample in a ligand treatment was tested for model classification accuracy at least 10 times. This data was used to colour the UMAP projections in the top row of the previous figure, and results are summarized in the matrix below, with darker colour representing higher rates of correct classification (ranging from 0% to 100% accuracy) across &gt;10 tests for each sample. The number of samples of each ligand tested in a cell type is indicated in blue.</p>
+<p>Are there differences in the model’s ability to classify ligand treatments between cell types? In order to ask this, the model was repeatedly trained on a leave-one-out basis per ligand treatment such that each sample in a ligand treatment was tested for model classification accuracy at least 10 times.<br />
+This data was used to colour the UMAP projections in the top row of the previous figure, and results are summarized in the matrix below, with darker colour representing higher rates of correct classification (ranging from 0% to 100% accuracy) across &gt;10 tests for each sample. The number of samples of each ligand tested in a cell type is indicated in blue.</p>
 <p><a href="https://github.com/BaderLab/Brendan_CCInxPred/blob/master/200524_lvl5_mixall_leave1out.R">Random forest model source code</a></p>
-<p><img src="LigPred_lvl5_files/figure-html/RF_leave1out_ct-1.png" width="672" /></p>
+<p><img src="LigPred_lvl5_files/figure-html/leave1out_acc_ct-1.png" width="672" /></p>
 <p>The ligands were tested in multiple contexts (time / dose) in the breast tumour lines, so they have more training data available per cell line. This may improve classification tasks by allowing the model to learn cell-type specific gene expression changes. However, some ligands (eg. FGF1, EGF) proved challenging to predict even in breast lines with increased sampling.</p>
-<div id="response-genes-per-cell-type" class="section level2">
-<h2>Response genes per cell type</h2>
-<p>To determine which genes had Z-scores (treated vs. control) with consistently high magnitudes within a cell type, one-way analyses of variance were performed with cell types as the independent variable and each gene’s Z-scores as the dependent variable. The T-statistic from each coefficient was used to summarize the Z-score distributions for each gene. The ten T-statistics with the highest magnitude per cell type are shown in the heatmaps below, with cell type prediction accuracies from above included as coloured bars next to each row.</p>
+<div id="cell-type-misclassification-biases" class="section level2">
+<h2>Cell type misclassification biases</h2>
+<p>This figure shows the distribution of predicted ligands from the experiment above, in order to determine whether ligands were misclassified in a consistent manner.</p>
+<p><img src="LigPred_lvl5_files/figure-html/leave1out_class_ct-1.png" width="864" /></p>
+<p>The exemplar of consistent misclassification is IL17A in VCAP prostate tumour line, where in repeated leave-one-out tests its transcriptional changes were predicted to be due to TNF treatment 100% of the time. By inspecting the most differentially expressed genes in these transcriptomes, we may be able to explain why. In the case of IL17A-treated VCAP cells, ICAM1 and CCL2 are the most positively differentially expressed genes, as seen in the IL17A heatmap below. These genes are also consistently strong markers of TNF treatment in all cell lines, as seen in the volcano plot earlier.</p>
+</div>
+<div id="ligand-response-genes-per-cell-type" class="section level2">
+<h2>Ligand response genes per cell type</h2>
+<p>To determine which genes had Z-scores (treated vs. control) with consistently high magnitudes within a cell type, one-way analyses of variance were performed with cell types as the independent variable and each gene’s Z-scores as the dependent variable. The T-statistic from each coefficient was used to summarize the Z-score distributions for each gene. The ten T-statistics with the highest magnitude per cell type are shown in the heatmaps below, with cell type prediction accuracies from above included as coloured bars next to each row. <strong>Click below for full-size image</strong>.</p>
 <p>
 <a href="output_figs/BTC.png"><img src="output_figs/BTC_sm.png"/></a><a href="output_figs/EGF.png"><img src="output_figs/EGF_sm.png"/></a><a href="output_figs/FGF1.png"><img src="output_figs/FGF1_sm.png"/></a><a href="output_figs/GAS6.png"><img src="output_figs/GAS6_sm.png"/></a><a href="output_figs/GDNF.png"><img src="output_figs/GDNF_sm.png"/></a>
 </p>

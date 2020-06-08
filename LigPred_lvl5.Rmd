@@ -60,7 +60,8 @@ rm(list=temp)
 rm(list=grep("^temp",ls(),value=T))
 ```
 
-**Average accuracy was `r paste0(round(mean(acc_unbalanced) * 100,2),"%")`.**  This is perhaps unexpectedly bad, given that the model is seeing all the data, not trying to extrapolate to withheld cell lines.  Clearly the fact that EGF was tested more than the other ligands caused an imbalance in the training data, leading to a bias towards classifying samples as EGF-treated.  
+**Average accuracy was `r paste0(round(mean(acc_unbalanced) * 100,2),"%")`.**  This is perhaps unexpectedly bad, given that the model is seeing all the data, not trying to extrapolate to withheld cell lines.  
+Clearly the fact that EGF was tested more than the other ligands caused an imbalance in the training data, leading to a bias towards classifying samples as EGF-treated.  
 
 
 # Balanced training data
@@ -149,7 +150,8 @@ rm(list=temp)
 rm(list=grep("^temp",ls(),value=T))
 ```
 
-Training the random forest model was repeated with increasing data, from one sample per ligand (randomly sampled from the 14 cell types) to 98 samples per ligand (all but one sample for most ligands, except EGF which has 195 samples).  Improvements in accuracy from increased training data level off after half the data is used, as was done in the previous models.
+Training the random forest model was repeated with increasing data, from one sample per ligand (randomly sampled from the 14 cell types) to 98 samples per ligand (all but one sample for most ligands, except EGF which has 195 samples).  
+Improvements in accuracy from increased training data level off after half the data is used, as was done in the previous models.
 
 
 # Ligand-specific differences in accuracy
@@ -186,7 +188,6 @@ rm(list=c("L",grep("^temp",ls(),value=T)))
 It is clear from this view that the model learns the transcriptional changes caused by the ligand well when those changes are consistent across a majority of cell lines, as with TNF and IFNG.  
 
 Are there specific genes marking these changes?  Here are the mean and standard deviations of z-scores per gene for each ligand treatment across all cell lines.  *Note that this only included measured "landmark" genes.*  Genes with mean Z-score magnitudes larger than the standard deviation of their Z-scores are highlighted.  
-Given that nearly all highlighted genes are from the two most predictable ligand treatments, it seems that the model performs best when the ligand-induced changes in gene expression are common across all cell lines.  
 
 ```{r lig_zscores,echo=FALSE,message=FALSE,warning=FALSE,fig.height=5,fig.width=7,fig.show='hold'}
 temp_mean <- sapply(names(sort(acc_balanced,decreasing=T)),function(L)
@@ -243,6 +244,10 @@ text(scClustViz::spreadLabels2(
 rm(list=grep("^temp",ls(),value=T))
 ```
 
+Given that nearly all highlighted genes are from the two most predictable ligand treatments, it seems that the model performs best when the ligand-induced changes in gene expression are common across all cell lines.  
+
+The following figure shows classification accuracy per cell (top row, darker indicates higher frequency of correct classification) and Z-scores of a selection of genes that strongly respond to the indicated ligand (from the above figure).  
+
 ```{r RF_leave1out,echo=FALSE,message=FALSE,warning=FALSE}
 if (file.exists("../CMapCorr_files/200524_lvl5_mixall_balanced_leave1out_results.RData")) {
   temp <- load("../CMapCorr_files/200524_lvl5_mixall_balanced_leave1out_results.RData")
@@ -272,9 +277,33 @@ acc_leave1out_totals <- sapply(lig15,function(X) {
            length(unlist(test_hits[Y])))
 })
 
+acc_leave1out_ct <- sapply(lig15,function(X) {
+  sapply(ct14,function(Y) {
+    Z <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname == X &
+                                     lvl5_data@cdesc$cell_id == Y]
+    return(sum(unlist(test_hits[Z]) == X) / 
+             length(unlist(test_hits[Z])))
+  })
+})
+
+test_counts <- sapply(lig15,function(X) {
+  sapply(ct14,function(Y) {
+    sum(lvl5_data@cdesc$pert_iname == X &
+          lvl5_data@cdesc$cell_id == Y)
+  })
+})
+
+test_predictions <- sapply(lig15,function(X) {
+  sapply(ct14,function(Y) {
+    temp <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname == X &
+                                        lvl5_data@cdesc$cell_id == Y]
+    return(table(factor(unlist(test_hits[temp]),levels=lig15)) / 
+             length(unlist(test_hits[temp])))
+  })
+},simplify=F)
+
 rm(X)
 ```
-
 
 ```{r UMAP_marker_gene,echo=FALSE,message=FALSE,warning=FALSE,fig.height=11,fig.width=9,fig.show='hold'}
 if (exists("UMAPmixall")) {
@@ -356,31 +385,17 @@ for (N in seq_along(temp_genes)) {
 rm(list=c("N","L",grep("^temp",ls(),value=T)))
 ```
 
-The above figure shows classification accuracy per cell (top row, darker indicates higher frequency of correct classification) and Z-scores of a selection of genes that strongly respond to the indicated ligand.
+The model seems to do well when there are strong marker genes to aid in the classification, but a single weak marker gene like *DUSP4* that has occasional high differential expression out of class is not sufficient to accurately classify ligand-treated cells in multiple cell types.  
 
 # Cell-type biases in accuracy
 
-Are there differences in the model's ability to classify ligand treatments between cell types?  In order to ask this, the model was repeatedly trained on a leave-one-out basis per ligand treatment such that each sample in a ligand treatment was tested for model classification accuracy at least 10 times.  This data was used to colour the UMAP projections in the top row of the previous figure, and results are summarized in the matrix below, with darker colour representing higher rates of correct classification (ranging from 0% to 100% accuracy) across >10 tests for each sample.  The number of samples of each ligand tested in a cell type is indicated in blue.
+Are there differences in the model's ability to classify ligand treatments between cell types?  In order to ask this, the model was repeatedly trained on a leave-one-out basis per ligand treatment such that each sample in a ligand treatment was tested for model classification accuracy at least 10 times.  
+This data was used to colour the UMAP projections in the top row of the previous figure, and results are summarized in the matrix below, with darker colour representing higher rates of correct classification (ranging from 0% to 100% accuracy) across >10 tests for each sample.  The number of samples of each ligand tested in a cell type is indicated in blue.
 
 [Random forest model source code](https://github.com/BaderLab/Brendan_CCInxPred/blob/master/200524_lvl5_mixall_leave1out.R)  
 
-```{r RF_leave1out_ct,echo=FALSE,message=FALSE,warning=FALSE,fig.height=5,fig.width=7,fig.show='hold'}
-
-acc_leave1out_ct <- sapply(lig15,function(X) {
-  sapply(ct14,function(Y) {
-    Z <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname == X &
-                                     lvl5_data@cdesc$cell_id == Y]
-    return(sum(unlist(test_hits[Z]) == X) / 
-             length(unlist(test_hits[Z])))
-  })
-})
-temp_counts <- sapply(lig15,function(X) {
-  sapply(ct14,function(Y) {
-    sum(lvl5_data@cdesc$pert_iname == X &
-          lvl5_data@cdesc$cell_id == Y)
-  })
-})
-
+```{r leave1out_acc_ct,echo=FALSE,message=FALSE,warning=FALSE,fig.height=5,fig.width=7,fig.show='hold'}
+# see {RF_leave1out} for input code for this figure.
 
 par(mar=c(1,13,5,1),mgp=2:0,las=2)
 image(z=t(acc_leave1out_ct * 100)[,seq(nrow(acc_leave1out_ct),1)],
@@ -393,15 +408,42 @@ mtext(rev(rownames(acc_leave1out_ct)),
       side=2,at=1:nrow(acc_leave1out_ct),adj=1,line=0.1)
 mtext("Cell Types",side=3,line=0.1,at=0.2,adj=1,las=0,font=2,cex=1.5)
 mtext("Sample number",side=1,line=0,at=ncol(acc_leave1out_ct) + 0.5,adj=1,las=0,col="dodgerblue")
-text(as.vector(sapply(1:ncol(temp_counts),function(X) rep(X,nrow(temp_counts)))),
-     as.vector(sapply(1:ncol(temp_counts),function(X) nrow(temp_counts):1)),
-     labels=as.vector(temp_counts),cex=0.8,col="dodgerblue")
-
+text(as.vector(sapply(1:ncol(test_counts),function(X) rep(X,nrow(test_counts)))),
+     as.vector(sapply(1:ncol(test_counts),function(X) nrow(test_counts):1)),
+     labels=as.vector(test_counts),cex=0.8,col="dodgerblue")
 ```
 
 The ligands were tested in multiple contexts (time / dose) in the breast tumour lines, so they have more training data available per cell line.  This may improve classification tasks by allowing the model to learn cell-type specific gene expression changes.  However, some ligands (eg. FGF1, EGF) proved challenging to predict even in breast lines with increased sampling.
 
-## Response genes per cell type
+
+## Cell type misclassification biases
+
+This figure shows the distribution of predicted ligands from the experiment above, in order to determine whether ligands were misclassified in a consistent manner.
+
+```{r leave1out_class_ct,echo=FALSE,message=FALSE,warning=FALSE,fig.height=5,fig.width=9,fig.show='hold'}
+# sapply(colnames(test_predictions[["IL17A"]]),function(X)
+#   sort(test_predictions[["IL17A"]][,X],decreasing=T),simplify=F)
+temp_col <- unlist(lapply(qualitative_hcl(ceiling(length(lig15) / 2),palette="dark3"),
+                          function(X) rep(X,2)))[1:length(lig15)]
+names(temp_col) <- lig15
+layout(rbind(c(16,1:15)),widths=c(2,rep(1,15)))
+par(mar=c(0,0.1,5,0.1),mgp=2:0,las=2)
+for (LIG in lig15) {
+  temp <- barplot(test_predictions[[LIG]][,rev(seq_along(ct14))],axes=F,space=0,horiz=T,
+                  las=3,col=temp_col,density=c(NA,40),angle=45,las=2,axisnames=F)
+  mtext(LIG,side=3,line=0,font=2)#,col=temp_col[LIG])
+  rect(0.25,14.1,0.75,14.5,xpd=NA,col=temp_col[LIG],border="black",
+       density=switch(as.character(which(lig15 == LIG) %% 2),'1'=NA,'0'=40))
+  temp2 <- par("usr")
+}
+par(mar=c(0,0,5,0))
+plot(NA,NA,xlim=0:1,ylim=temp2[3:4],yaxs="i",bty="n",xaxt="n",yaxt="n")
+mtext(rev(ct14),side=4,line=-0.5,at=temp,las=2,adj=1,font=2)
+```
+
+The exemplar of consistent misclassification is IL17A in VCAP prostate tumour line, where in repeated leave-one-out tests its transcriptional changes were predicted to be due to TNF treatment 100% of the time.  By inspecting the most differentially expressed genes in these transcriptomes, we may be able to explain why.  In the case of IL17A-treated VCAP cells, ICAM1 and CCL2 are the most positively differentially expressed genes, as seen in the IL17A heatmap below.  These genes are also consistently strong markers of TNF treatment in all cell lines, as seen in the volcano plot earlier.  
+
+## Ligand response genes per cell type
 
 ```{r lig_genes_per_ct,echo=FALSE,message=FALSE,warning=FALSE}
 if (!file.exists("output_figs/TNF.png")) {
@@ -450,7 +492,7 @@ if (!file.exists("output_figs/TNF.png")) {
            cut(c(0,1,acc_leave1out_ct[rownames(temp_heat),LIG]),
                                        breaks=100,labels=F)[-1:-2]
            ])
-    mtext(rev(paste0(rownames(temp_heat)," (",temp_counts[rownames(temp_heat),LIG],")")),
+    mtext(rev(paste0(rownames(temp_heat)," (",test_counts[rownames(temp_heat),LIG],")")),
           side=2,at=1:nrow(temp_heat),adj=1,line=1)
     mtext(paste(paste(LIG,"Z-score"),"T-statistics",sep="\n"),
           side=3,line=1.5,at=par("usr")[1] - par("cxy")[1] * 3,adj=1,las=0,font=2,cex=1.5)
@@ -496,7 +538,7 @@ if (!file.exists("output_figs/TNF.png")) {
 }
 ```
 
-To determine which genes had Z-scores (treated vs. control) with consistently high magnitudes within a cell type, one-way analyses of variance were performed with cell types as the independent variable and each gene's Z-scores as the dependent variable.  The T-statistic from each coefficient was used to summarize the Z-score distributions for each gene.  The ten T-statistics with the highest magnitude per cell type are shown in the heatmaps below, with cell type prediction accuracies from above included as coloured bars next to each row.
+To determine which genes had Z-scores (treated vs. control) with consistently high magnitudes within a cell type, one-way analyses of variance were performed with cell types as the independent variable and each gene's Z-scores as the dependent variable.  The T-statistic from each coefficient was used to summarize the Z-score distributions for each gene.  The ten T-statistics with the highest magnitude per cell type are shown in the heatmaps below, with cell type prediction accuracies from above included as coloured bars next to each row.  **Click below for full-size image**.
 
 ```{r lig_genes_per_ct_out,echo=F,results="asis"}
 temp <- matrix(lig15,nrow=3,byrow=T)
