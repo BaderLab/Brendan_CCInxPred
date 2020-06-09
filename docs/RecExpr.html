@@ -321,13 +321,18 @@ $(document).ready(function () {
 ## 97% (11%) of IL6 receptors present in CMap data, either inferred or (assayed). 
 ## 94% (25%) of INS receptors present in CMap data, either inferred or (assayed). 
 ## 99% (12%) of TNF receptors present in CMap data, either inferred or (assayed).</code></pre>
-<p>Below is an overview of all potential cognate receptors per ligand present in the data. The left figure shows which ligands (dark purple) each receptor is known to interact with. On the right is a heatmap showing mean normalized gene expression per cell type for each receptor gene, with darker indicating higher expression. Gene names (rows) are ordered by heirarchical clustering of ligand-receptor interaction data, such that receptors common to the same ligand should be together. Ligand names (columns, left) are ordered by heirarchical clustering of ligand-receptor interaction data, such that ligands sharing the same receptors should be proximal. Cell type names (columns, right) are ordered by heirarchical clustering of mean receptor gene expression.</p>
+<p>Below is an overview of all potential cognate receptors per ligand present in the data. The left figure shows which ligands (dark purple) each receptor is known to interact with. On the right is a heatmap showing mean normalized gene expression per cell type for each receptor gene, with darker indicating higher expression. Gene names (rows) are ordered by heirarchical clustering of ligand-receptor interaction data, such that receptors common to the same ligand should be together. <strong>Landmark</strong> gene expression was emperically determined rather than inferred (names indicated in bold). Ligand names (columns, left) are ordered by heirarchical clustering of ligand-receptor interaction data, such that ligands sharing the same receptors should be proximal. Cell type names (columns, right) are ordered by heirarchical clustering of mean receptor gene expression.</p>
 <p><img src="RecExpr_files/figure-html/rec_expr-1.png" width="864" /></p>
+<div id="receptor-availability-affecting-ligand-prediction-accuracy" class="section level2">
+<h2>Receptor availability affecting ligand prediction accuracy</h2>
+<p>Cognate receptor expression for each ligand was compared to the accuracy per cell line of the leave-one-out ligand classification model outlined <a href="https://baderlab.github.io/Brendan_CCInxPred/LigPred_lvl5.html#cell-type-biases-in-accuracy">previously</a>. Lines for each receptor are coloured by the spearman correlation coefficient between expression and accuracy per cell type (purple is negative, green is positive), and the three most correlated receptor genes are labeled.</p>
+<p><img src="RecExpr_files/figure-html/rec_expr_acc_corr-1.png" width="864" /></p>
 <hr />
 <div id="tumour-necrosis-factor-alpha-tnf" class="section level3">
 <h3>Tumour necrosis factor alpha (TNF)</h3>
 <p>TNF binds to two receptors, TNFR1 and TNFR2, neither of which are present in the CMap data (neither assayed nor inferred). This is probably because they are (at least TNFR1) ubiquitously expressed, and thus their expression profiles are not informative or easily inferred. That may also explain why the transcriptional response to TNF treatment is so consistent - the may be receptor is present on all cell types. Downstream of TNF receptor activation, the multiple signaling pathways with conflicting phenotypes can be activated, though our data shows robust increases in expression of a common subset of genes across cell lines (see above).</p>
 <hr />
+</div>
 </div>
 </div>
 
