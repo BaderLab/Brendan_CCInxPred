@@ -11,7 +11,7 @@
 
 
 
-<title>CCInxPred?</title>
+<title>Biological factors affecting prediction accuracy</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -298,20 +298,37 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">CCInxPred?</h1>
+<h1 class="title toc-ignore">Biological factors affecting prediction accuracy</h1>
 
 </div>
 
 
-<div id="abstract" class="section level1">
-<h1>Abstract</h1>
-<p>Can intercellular signals be identified by transcriptional changes?</p>
+<div id="receptor-gene-expression" class="section level1">
+<h1>Receptor gene expression</h1>
+<p>The quantile-normalized transcriptomes per cell type (level 3 data) will be used to determine whether the cognate receptor for each ligand in the previous experiment is present. Ligand-receptor interactions are from the Bader lab database included in <a href="https://baderlab.github.io/CCInx/">CCInx</a>.</p>
+<pre><code>## 100% (40%) of BTC receptors present in CMap data, either inferred or (assayed). 
+## 91% (14%) of EGF receptors present in CMap data, either inferred or (assayed). 
+## 94% (15%) of FGF1 receptors present in CMap data, either inferred or (assayed). 
+## 100% (0%) of GAS6 receptors present in CMap data, either inferred or (assayed). 
+## 89% (11%) of GDNF receptors present in CMap data, either inferred or (assayed). 
+## 100% (31%) of HBEGF receptors present in CMap data, either inferred or (assayed). 
+## 100% (8%) of HGF receptors present in CMap data, either inferred or (assayed). 
+## 93% (9%) of IFNG receptors present in CMap data, either inferred or (assayed). 
+## 100% (15%) of IGF1 receptors present in CMap data, either inferred or (assayed). 
+## 100% (19%) of IGF2 receptors present in CMap data, either inferred or (assayed). 
+## 100% (9%) of IL17A receptors present in CMap data, either inferred or (assayed). 
+## 98% (12%) of IL4 receptors present in CMap data, either inferred or (assayed). 
+## 97% (11%) of IL6 receptors present in CMap data, either inferred or (assayed). 
+## 94% (25%) of INS receptors present in CMap data, either inferred or (assayed). 
+## 99% (12%) of TNF receptors present in CMap data, either inferred or (assayed).</code></pre>
+<p>Below is an overview of all potential cognate receptors per ligand present in the data. The left figure shows which ligands (dark purple) each receptor is known to interact with. On the right is a heatmap showing mean normalized gene expression per cell type for each receptor gene, with darker indicating higher expression. Gene names (rows) are ordered by heirarchical clustering of ligand-receptor interaction data, such that receptors common to the same ligand should be together. Ligand names (columns, left) are ordered by heirarchical clustering of ligand-receptor interaction data, such that ligands sharing the same receptors should be proximal. Cell type names (columns, right) are ordered by heirarchical clustering of mean receptor gene expression.</p>
+<p><img src="RecExpr_files/figure-html/rec_expr-1.png" width="864" /></p>
 <hr />
-<p>This should be where I outline the why and how of this project.<br />
-<a href="https://clue.io/connectopedia/data_levels" class="uri">https://clue.io/connectopedia/data_levels</a> for information on the input data.</p>
+<div id="tumour-necrosis-factor-alpha-tnf" class="section level3">
+<h3>Tumour necrosis factor alpha (TNF)</h3>
+<p>TNF binds to two receptors, TNFR1 and TNFR2, neither of which are present in the CMap data (neither assayed nor inferred). This is probably because they are (at least TNFR1) ubiquitously expressed, and thus their expression profiles are not informative or easily inferred. That may also explain why the transcriptional response to TNF treatment is so consistent - the may be receptor is present on all cell types. Downstream of TNF receptor activation, the multiple signaling pathways with conflicting phenotypes can be activated, though our data shows robust increases in expression of a common subset of genes across cell lines (see above).</p>
 <hr />
-<p><a href="https://github.com/BaderLab/Brendan_CCInxPred">Go to the github repo</a></p>
-<hr />
+</div>
 </div>
 
 

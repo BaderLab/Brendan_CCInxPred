@@ -273,16 +273,19 @@ $(document).ready(function () {
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
         <li>
-  <a href="CmapDataSummary_lvl3.html">CMap data summary (Lvl3)</a>
+  <a href="CmapDataSummary_lvl3.html">Lvl3 data</a>
 </li>
 <li>
-  <a href="CellStimPred_lvl3.html">Predicting perturbed cells (Lvl3)</a>
+  <a href="CellStimPred_lvl3.html">Predicting perturbed cells</a>
 </li>
 <li>
-  <a href="CmapDataSummary_lvl5.html">CMap data summary (Lvl5)</a>
+  <a href="CmapDataSummary_lvl5.html">Lvl5 data</a>
 </li>
 <li>
-  <a href="LigPred_lvl5.html">Predicting ligand treatment (Lvl5)</a>
+  <a href="LigPred_lvl5.html">Predicting ligand treatment</a>
+</li>
+<li>
+  <a href="RecExpr.html">Biology of ligand response</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
@@ -767,16 +770,6 @@ This data was used to colour the UMAP projections in the top row of the previous
 <p>
 <a href="output_figs/IL17A.png"><img src="output_figs/IL17A_sm.png"/></a><a href="output_figs/IL4.png"><img src="output_figs/IL4_sm.png"/></a><a href="output_figs/IL6.png"><img src="output_figs/IL6_sm.png"/></a><a href="output_figs/INS.png"><img src="output_figs/INS_sm.png"/></a><a href="output_figs/TNF.png"><img src="output_figs/TNF_sm.png"/></a>
 </p>
-</div>
-</div>
-<div id="biological-factors-affecting-prediction-accuracy" class="section level1">
-<h1>Biological factors affecting prediction accuracy</h1>
-<div id="tumour-necrosis-factor-alpha-tnf" class="section level3">
-<h3>Tumour necrosis factor alpha (TNF)</h3>
-<p>TNF binds to two receptors, TNFR1 and TNFR2, neither of which are present in the CMap data (neither assayed nor inferred). This is probably because they are (at least TNFR1) ubiquitously expressed, and thus their expression profiles are not informative or easily inferred. That may also explain why the transcriptional response to TNF treatment is so consistent - the may be receptor is present on all cell types. Downstream of TNF receptor activation, the multiple signaling pathways with conflicting phenotypes can be activated, though our data shows robust increases in expression of a common subset of genes across cell lines (see above).</p>
-</div>
-<div id="il17a" class="section level3">
-<h3>IL17A</h3>
 <hr />
 </div>
 </div>

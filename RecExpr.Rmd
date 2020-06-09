@@ -1,0 +1,101 @@
+---
+title: "Biological factors affecting prediction accuracy"
+---
+  
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
+library(cmapR)
+library(ranger)
+library(colorspace)
+library(kableExtra)
+```
+
+
+# Receptor gene expression
+
+The quantile-normalized transcriptomes per cell type (level 3 data) will be used to determine whether the cognate receptor for each ligand in the previous experiment is present.  Ligand-receptor interactions are from the Bader lab database included in [CCInx](https://baderlab.github.io/CCInx/).
+
+```{r load_data_lvl5,echo=FALSE,message=FALSE,warning=FALSE,include=TRUE}
+if (exists("lvl3_ctl")) {
+} else if (file.exists("../CMapCorr_files/lvl3_allgenesctrl.RData")) {
+  load("../CMapCorr_files/lvl3_allgenesctrl.RData") 
+} else {
+  source("lvl3_inputs_allgenesctrl.R")
+}
+
+temp <- load(system.file("LigRecDB_RData/BaderCCIeditedbyBI.RData",package="CCInx"))
+
+lig15R <- sapply(lig15,function(X) {
+  temp <- c(inxDB$nodeB[inxDB$nodeA == X],inxDB$nodeA[inxDB$nodeB == X])
+  return(temp[grepl("Receptor",geneInfo[temp,"protein_type"])])
+},simplify=F)
+lig15R[["GAS6"]] <- c("AXL","TYRO3","MERTK")
+for (LIG in lig15) {
+  temp_in <- lig15R[[LIG]] %in% lvl3_ctl@rdesc$pr_gene_symbol
+  lig15R[[LIG]] <- lig15R[[LIG]][temp_in]
+  names(lig15R[[LIG]]) <- sapply(lig15R[[LIG]],function(X) 
+    lvl3_ctl@rdesc$id[lvl3_ctl@rdesc$pr_gene_symbol == X])
+  cat(paste0(round(sum(temp_in) / length(temp_in) * 100),"% (",
+               round(sum(lvl3_ctl@rdesc[names(lig15R[[LIG]]),"pr_is_lm"] == "1") / length(temp_in) * 100),
+               "%) of ",LIG," receptors present in CMap data, either inferred or (assayed)."),"\n")
+}
+
+rm(list=c("temp",temp))
+```
+
+Below is an overview of all potential cognate receptors per ligand present in the data.  The left figure shows which ligands (dark purple) each receptor is known to interact with.  On the right is a heatmap showing mean normalized gene expression per cell type for each receptor gene, with darker indicating higher expression.  Gene names (rows) are ordered by heirarchical clustering of ligand-receptor interaction data, such that receptors common to the same ligand should be together.  Ligand names (columns, left) are ordered by heirarchical clustering of ligand-receptor interaction data, such that ligands sharing the same receptors should be proximal.  Cell type names (columns, right) are ordered by heirarchical clustering of mean receptor gene expression.
+
+```{r rec_expr,echo=FALSE,message=FALSE,warning=FALSE,fig.height=24,fig.width=9,fig.show='hold'}
+temp_genes <- unique(unlist(lapply(lig15R,names)))
+names(temp_genes) <- lvl3_ctl@rdesc[temp_genes,"pr_gene_symbol"]
+lig15Rmat <- sapply(lig15R,function(X) names(temp_genes) %in% X)
+rownames(lig15Rmat) <- names(temp_genes)
+temp_roworder <- hclust(dist(lig15Rmat))$order
+lig15Rmat <- lig15Rmat[temp_roworder,]
+lig15Rmat <- lig15Rmat[,hclust(dist(t(lig15Rmat)))$order]
+
+temp_mean <- sapply(ct14,function(CT) rowMeans(lvl3_ctl@mat[temp_genes,lvl3_ctl@cdesc$cell_id == CT]))
+rownames(temp_mean) <- names(temp_genes)
+temp_mean <- temp_mean[temp_roworder,]
+temp_mean <- temp_mean[,hclust(dist(t(temp_mean)))$order]
+
+layout(cbind(rep(1,24),rep(2,24),c(rep(3,5),rep(0,19))),widths=c(3,3,1))
+par(mar=c(0.5,0.5,6,5.5),mgp=2:0,las=2)
+image(z=t(lig15Rmat[rev(rownames(lig15Rmat)),]),
+      x=1:ncol(lig15Rmat),y=1:nrow(lig15Rmat),
+      xaxt="n",yaxt="n",xlab=NA,ylab=NA,
+      col=sequential_hcl(10,palette="inferno",rev=T)[c(1,9)])
+mtext(colnames(lig15Rmat),side=3,line=0.2,at=1:ncol(lig15Rmat),cex=0.8)
+title("Ligand interaction with receptors",line=4.5)
+
+par(mar=c(0.5,0,6,0.5),mgp=2:0,las=2)
+image(z=t(temp_mean[rev(rownames(temp_mean)),]),
+      x=1:ncol(temp_mean),y=1:nrow(temp_mean),
+      xaxt="n",yaxt="n",xlab=NA,ylab=NA,
+      col=sequential_hcl(100,palette="inferno",rev=T))
+mtext(ct14[colnames(temp_mean)],side=3,line=0.2,at=1:ncol(temp_mean),cex=0.8)
+mtext(rev(rownames(temp_mean)),xpd=NA,side=2,line=0.2,at=1:nrow(temp_mean),cex=0.7,
+      font=rev(as.integer(lvl3_ctl@rdesc[temp_genes,"pr_is_lm"]) + 1))
+
+par(mar=c(0,3.5,6,0.5),mgp=2:0,las=0)
+temp_hist <- hist(temp_mean,breaks=seq(0,15,length.out=101),plot=F)
+barplot(temp_hist$counts,horiz=T,yaxs="i",axes=F,
+        col=sequential_hcl(100,palette="inferno",rev=T),
+        border=sequential_hcl(100,palette="inferno",rev=T))
+axis(side=2,at=seq(par("usr")[3],par("usr")[4],length.out=4),
+     labels=seq(0,15,length.out=4))
+mtext("Mean normalized receptor expression per cell type",side=2,font=2,line=2)
+mtext("Frequency",side=1,cex=0.7)
+
+
+
+
+```
+
+
+****
+
+### Tumour necrosis factor alpha (TNF)
+
+TNF binds to two receptors, TNFR1 and TNFR2, neither of which are present in the CMap data (neither assayed nor inferred).  This is probably because they are (at least TNFR1) ubiquitously expressed, and thus their expression profiles are not informative or easily inferred.  That may also explain why the transcriptional response to TNF treatment is so consistent - the may be receptor is present on all cell types.  Downstream of TNF receptor activation, the multiple signaling pathways with conflicting phenotypes can be activated, though our data shows robust increases in expression of a common subset of genes across cell lines (see above).
+
+****

@@ -554,15 +554,4 @@ for (L in 1:nrow(temp)) {
 }
 ```
 
-
-
-# Biological factors affecting prediction accuracy
-
-### Tumour necrosis factor alpha (TNF)
-
-TNF binds to two receptors, TNFR1 and TNFR2, neither of which are present in the CMap data (neither assayed nor inferred).  This is probably because they are (at least TNFR1) ubiquitously expressed, and thus their expression profiles are not informative or easily inferred.  That may also explain why the transcriptional response to TNF treatment is so consistent - the may be receptor is present on all cell types.  Downstream of TNF receptor activation, the multiple signaling pathways with conflicting phenotypes can be activated, though our data shows robust increases in expression of a common subset of genes across cell lines (see above).
-
-### IL17A
-
-
 ****
