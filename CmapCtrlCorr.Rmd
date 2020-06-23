@@ -1,0 +1,469 @@
+---
+title: "Sanity-checking Connectivity Map data"
+---
+  
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
+library(cmapR)
+library(colorspace)
+library(kableExtra)
+```
+
+# Data types
+
+```{r load_data, echo=FALSE,message=FALSE,warning=FALSE}
+if (exists("lvl3_data")) {
+} else if (file.exists("../CMapCorr_files/lvl3_inputs.RData")) {
+  load("../CMapCorr_files/lvl3_inputs.RData") 
+} else {
+  source("lvl3_inputs.R")
+}
+
+if (exists("lvl4_data")) {
+} else if (file.exists("../CMapCorr_files/lvl4_inputs.RData")) {
+  load("../CMapCorr_files/lvl4_inputs.RData") 
+} else {
+  source("lvl4_inputs.R")
+}
+
+
+if (exists("lvl5_data")) {
+} else if (file.exists("../CMapCorr_files/lvl5_inputs.RData")) {
+  load("../CMapCorr_files/lvl5_inputs.RData") 
+} else {
+  source("lvl5_inputs.R")
+}
+```
+
+Connectivity Map releases their data at various stages of analysis.  Level 3 data are quantile normalized gene expression data from the Lincs1000 assay, after gene expression inferrence - though we're only considering the ~1000 assayed genes, not the inferred expression of the other ~10000.  Level 3 data thus includes both control and treatment samples.  Level 4 data are robust z-scores for differences in gene expression between treatment and plate-matched control, and level 5 amalgamates the level 4 z-scores to a single score per replicate.
+
+```{r data_view, echo=FALSE,message=FALSE,warning=FALSE,fig.height=6,fig.width=9,fig.show='hold'}
+temp_dens3 <- c(sapply(sample(colnames(lvl3_data@mat),500),
+                      function(X) density(lvl3_data@mat[,X]),
+                      simplify=F),
+               sapply(sample(colnames(lvl3_data_ctl@mat),500),
+                      function(X) density(lvl3_data_ctl@mat[,X]),
+                      simplify=F))
+temp_col3 <- c(rep(scales::alpha("dodgerblue",0.2),500),
+               rep(scales::alpha("red",0.2),500))
+names(temp_col3) <- names(temp_dens3)
+
+temp_dens4 <- c(sapply(sample(colnames(lvl4_data@mat),500),
+                      function(X) density(lvl4_data@mat[,X]),
+                      simplify=F),
+               sapply(sample(colnames(lvl4_data_ctl@mat),500),
+                      function(X) density(lvl4_data_ctl@mat[,X]),
+                      simplify=F))
+temp_col4 <- c(rep(scales::alpha("dodgerblue",0.2),500),
+               rep(scales::alpha("red",0.2),500))
+names(temp_col4) <- names(temp_dens4)
+
+temp_dens4l <- c(sapply(names(temp_dens4)[1:500],
+                      function(X) density(sign(lvl4_data@mat[,X]) * 
+                                            log10(abs(lvl4_data@mat[,X]) + 1)),
+                      simplify=F),
+               sapply(names(temp_dens4)[501:1000],
+                      function(X) density(sign(lvl4_data_ctl@mat[,X]) * 
+                                            log10(abs(lvl4_data_ctl@mat[,X]) + 1)),
+                      simplify=F))
+
+temp_dens5 <- sapply(sample(colnames(lvl5_data@mat),1000),
+                      function(X) density(lvl5_data@mat[,X]),
+                      simplify=F)
+
+
+par(mfrow=c(2,2),mar=c(3,3,2,1),mgp=2:0)
+plot(NA,NA,xlim=range(sapply(temp_dens3,"[[","x")),
+     ylim=range(sapply(temp_dens3,"[[","y")),
+     xlab="Quantile-normalized gene expression",ylab="Density",
+     main="Level 3 (assayed genes only)")
+for (X in sample(names(temp_dens3))) { 
+  points(temp_dens3[[X]],type="l",col=temp_col3[X])
+}
+legend("topleft",legend=c("Ctrl","Tx"),col=c("red","dodgerblue"),lty=1,bty="n")
+
+plot(NA,NA,xlim=range(sapply(temp_dens5,"[[","x")),
+     ylim=range(sapply(temp_dens5,"[[","y")),
+     xlab="Replicate-collapsed z-scores",ylab="Density",
+     main="Level 5 (assayed genes only)")
+for (X in temp_dens5) { 
+  points(X,type="l",col=scales::alpha("black",0.2))
+}
+
+plot(NA,NA,xlim=range(sapply(temp_dens4,"[[","x")),
+     ylim=range(sapply(temp_dens4,"[[","y")),
+     xlab="Robust z-scores relative to plate controls",ylab="Density",
+     main="Level 4 (assayed genes only)")
+for (X in sample(names(temp_dens4))) { 
+  points(temp_dens4[[X]],type="l",col=temp_col4[X])
+}
+legend("topleft",legend=c("Ctrl","Tx"),col=c("red","dodgerblue"),lty=1,bty="n")
+
+plot(NA,NA,xaxt="n",
+     xlim=range(sapply(temp_dens4l,"[[","x")),
+     ylim=range(sapply(temp_dens4l,"[[","y")),
+     xlab="Robust z-scores relative to plate controls (log-scaled)",ylab="Density",
+     main="Level 4 (assayed genes only)")
+axis(side=1,at=seq(-2,2,1),
+     labels=sign(seq(-2,2,1)) * 10^abs(seq(-2,2,1)))
+for (X in sample(names(temp_dens4l))) { 
+  points(temp_dens4l[[X]],type="l",col=temp_col4[X])
+}
+legend("topleft",legend=c("Ctrl","Tx"),col=c("red","dodgerblue"),lty=1,bty="n")
+
+rm(list=c("X",grep("^temp",ls(),value=T)))
+```
+
+Level 3 data (1000 random samples shown above) are normally distributed with a mean of 8 and a range between 1 and 15, while the level 4 & 5 data show Z-score distributions, with the range limited to -10:10 in level 5 data.
+
+
+# Sanity checking between samples
+
+## Level 3
+
+```{r ctl_tx_corr_plot, echo=FALSE,message=FALSE,warning=FALSE,fig.height=4.5,fig.width=9,fig.show='hold'}
+if (exists("lvl3_ctl_corr")) {
+} else if (file.exists("../CMapCorr_files/200615_lvl3ctlcorr.RData")) {
+  temp <- load("../CMapCorr_files/200615_lvl3ctlcorr.RData") 
+} else {
+  source("200615_ctlcorr_inputs.R")
+}
+
+temp_col <- unlist(mapply(rep,
+                          x=qualitative_hcl(length(lvl3_ctl_corr),palette="Set 2"),
+                          times=sapply(lvl3_ctl_corr,length)),use.names=F)
+
+par(mar=c(6,3,1,3),mgp=2:0)
+boxplot(unlist(lvl3_ctl_corr,recursive=F,use.names=F),
+        ylim=c(min(sapply(unlist(lvl3_ctl_corr,recursive=F,use.names=F),min)),1),
+        pch=".",pars=list(xaxs="i",xaxt="n"),outline=T,
+        ylab="Pairwise Pearson correlation coefficients",col=temp_col)
+axis(side=4)
+mtext("Pairwise Pearson correlation coefficients",side=4,line=2)
+mtext(unlist(sapply(lvl3_ctl_corr,names),use.names=F),side=1,line=0.1,las=3,
+      at=1:length(unlist(sapply(lvl3_ctl_corr,names),use.names=F)),cex=0.7)
+temp_i <- 0.5
+temp_line <- rep(c(4.5,3.5),7)
+names(temp_line) <- names(lvl3_ctl_corr)
+for (CT in names(lvl3_ctl_corr)) {
+  temp_l <- length(lvl3_ctl_corr[[CT]]) + temp_i
+  rect(xleft=temp_i,xright=temp_l,ybottom=par("usr")[3],
+       ytop=par("usr")[3] + (par("usr")[4] - par("usr")[3]) * 0.02,
+       col=temp_col[ceiling(temp_i)])
+  mtext(CT,side=1,at=temp_i + (temp_l - temp_i) / 2,line=temp_line[CT],
+        font=2,col=temp_col[ceiling(temp_i)])
+  temp_i <- temp_l
+}
+
+
+corr_ctl_tx <- unlist(
+  unlist(lvl3_ctl_corr,recursive=F,use.names=T)[
+    !grepl("all$",names(unlist(lvl3_ctl_corr,recursive=F,use.names=T)))
+    ]
+,use.names=F)
+
+```
+
+```{r ctl_plate_corr_plot, echo=FALSE,message=FALSE,warning=FALSE,fig.height=4,fig.width=9,fig.show='hold'}
+par(mar=c(2,3,2,3),mgp=2:0)
+boxplot(lvl3_ctl_corr_plate[order(sapply(lvl3_ctl_corr_plate,median))],
+        pch=".",xaxt="n",xlab=NA,
+        ylab="Pairwise Pearson correlation coefficients",
+        main="Correlation between controls by plate per treatment condition")
+points(sort(sapply(lvl3_ctl_corr_plate,median)),type="l",col="red",lwd=2)
+axis(side=4)
+mtext("Pairwise Pearson correlation coefficients",side=4,line=2)
+mtext("Plates, sorted by median PCC",side=1)
+legend("bottomright","Median",lwd=2,col="red",bty="n")
+
+corr_ctl_plate <- unlist(lvl3_ctl_corr_plate,use.names=F)
+
+rm(list=c("CT",temp,grep("^temp",ls())))
+```
+
+Correlation between normalized transcriptomes within each cell type is pretty good, even across different control treatments (water, PBS, or DMSO for varying times).  At the plate level the correlations are even better, for the most part.  Treatments are compared to plate-matched controls, so consistent controls within a plate are important for downstream accuracy.  
+
+```{r lvl3_corr, echo=FALSE,message=FALSE,warning=FALSE}
+if (exists("lvl3_lig_corr_tx")) {
+} else if (file.exists("../CMapCorr_files/200617_lvl3corr.RData")) {
+  load("../CMapCorr_files/200617_lvl3corr.RData") 
+} else {
+  source("200615_ctlcorr_inputs.R")
+}
+
+corr_ct <- unlist(lvl3_ct_corr,use.names=F)
+corr_lig <- unlist(lvl3_lig_corr,use.names=F)
+corr_lig_ct <- unlist(lvl3_lig_corr_ct,use.names=F)
+corr_lig_tx <- unlist(lvl3_lig_corr_tx,use.names=F)
+
+temp_min <- do.call(min,mget(grep("^corr_",ls(),value=T)))
+
+
+# temp_ctVlig <- wilcox.test(dist_ct,dist_lig,conf.int=T)
+# temp_ctVligct <- wilcox.test(dist_ct,dist_lig_ct,conf.int=T)
+```
+
+```{r lvl3_corr_hist, echo=FALSE,message=FALSE,warning=FALSE,fig.height=12,fig.width=9,fig.show='hold'}
+par(mfrow=c(6,1),mar=c(3,3,2,1),mgp=c(2,1,0))
+
+hist(corr_ctl_tx,breaks=100,xlim=c(temp_min,1),
+     xlab="Pairwise Pearson correlation coefficient",
+     main="Correlation between controls by cell type per treatment condition")
+abline(v=median(corr_ctl_tx),lwd=2,col="red")
+legend("topleft",bty="n",lwd=2,col="red",legend="Median PCC")
+
+hist(corr_ctl_plate,breaks=100,xlim=c(temp_min,1),
+     xlab="Pairwise Pearson correlation coefficient",
+     main="Correlation between controls by plate per treatment condition")
+abline(v=median(corr_ctl_plate),lwd=2,col="red")
+legend("topleft",bty="n",lwd=2,col="red",legend="Median PCC")
+
+
+hist(corr_ct,breaks=100,xlim=c(temp_min,1),
+     xlab="Pairwise Pearson correlation coefficient",
+     main="Correlation between treatments by cell type")
+abline(v=median(corr_ct),lwd=2,col="red")
+legend("topleft",bty="n",lwd=2,col="red",legend="Median PCC")
+
+hist(corr_lig,breaks=100,xlim=c(temp_min,1),
+     xlab="Pairwise Pearson correlation coefficient",
+     main="Correlation between treatments by ligand")
+abline(v=median(corr_lig),lwd=2,col="red")
+legend("topleft",bty="n",lwd=2,col="red",legend="Median PCC")
+
+hist(corr_lig_ct,breaks=100,xlim=c(temp_min,1),
+     xlab="Pairwise Pearson correlation coefficient",
+     main="Correlation between treatments by ligand per cell type")
+abline(v=median(corr_lig_ct),lwd=2,col="red")
+legend("topleft",bty="n",lwd=2,col="red",legend="Median PCC")
+
+hist(corr_lig_tx,breaks=100,xlim=c(temp_min,1),
+     xlab="Pairwise Pearson correlation coefficient",
+     main="Correlation between treatments by ligand per treatment condition")
+abline(v=median(corr_lig_tx),lwd=2,col="dodgerblue")
+abline(v=median(corr_ctl_plate),lwd=2,col="red")
+temp_diff <- wilcox.test(corr_ctl_plate,corr_lig_tx)
+legend("topleft",bty="n",lwd=c(2,2,NA),col=c("dodgerblue","red",NA),
+       legend=c("Control median PCC",
+                "Treatment median PCC",
+                paste("Wilcoxon p:",round(temp_diff$p.value,2))))
+
+rm(list=c(grep("^corr_",ls(),value=T),grep("^temp",ls(),value=T)))
+```
+
+```{r tx_corr_plot, echo=FALSE,message=FALSE,warning=FALSE,fig.height=4,fig.width=9,fig.show='hold'}
+par(mar=c(2,3,2,3),mgp=2:0)
+boxplot(lvl3_lig_corr_tx[order(sapply(lvl3_lig_corr_tx,median))],
+        pch=".",xaxt="n",xlab=NA,
+        ylab="Pairwise Pearson correlation coefficients",
+        main="Correlation between treatments by ligand per treatment condition")
+points(sort(sapply(lvl3_lig_corr_tx,median)),type="l",col="dodgerblue",lwd=2)
+axis(side=4)
+mtext("Pairwise Pearson correlation coefficients",side=4,line=2)
+mtext("Ligands, sorted by median PCC",side=1)
+legend("bottomleft","Median",lwd=2,col="dodgerblue",bty="n")
+```
+
+Cell type transcriptomes are similar to each other despite different ligand treatment, as one might expect.  When comparing within each cell type, ligand treated transcriptomes show good consistency, which improves when taking into account dosage and duration of treatment as well.  
+
+
+## Level 4
+
+```{r lvl4_corr, echo=FALSE,message=FALSE,warning=FALSE}
+if (exists("lvl4_ctl_corr_plate")) {
+} else if (file.exists("../CMapCorr_files/200625_lvl4corr.RData")) {
+  temp <- load("../CMapCorr_files/200625_lvl4corr.RData") 
+} else {
+  source("200615_ctlcorr_inputs.R")
+}
+
+for (X in temp) {
+  assign(sub("_$","",sub("lvl4_","corr_",sub("corr_?","",X))),
+         unlist(get(X),use.names=F))
+}
+temp_min <- do.call(min,mget(grep("^corr_",ls(),value=T)))
+
+rm(X,temp)
+```
+
+
+```{r lvl4_corr_hist, echo=FALSE,message=FALSE,warning=FALSE,fig.height=10,fig.width=9,fig.show='hold'}
+par(mfrow=c(5,1),mar=c(3,3,2,1),mgp=c(2,1,0))
+
+hist(corr_ctl_plate,breaks=100,xlim=c(temp_min,1),
+     xlab="Pairwise Spearman correlation coefficient",
+     main="Correlation between controls by plate per treatment condition")
+abline(v=median(corr_ctl_plate),lwd=2,col="red")
+legend("topleft",bty="n",lwd=2,col="red",legend="Median")
+
+
+hist(corr_ct,breaks=100,xlim=c(temp_min,1),
+     xlab="Pairwise Spearman correlation coefficient",
+     main="Correlation between treatments by cell type")
+abline(v=median(corr_ct),lwd=2,col="red")
+legend("topleft",bty="n",lwd=2,col="red",legend="Median")
+
+hist(corr_lig,breaks=100,xlim=c(temp_min,1),
+     xlab="Pairwise Spearman correlation coefficient",
+     main="Correlation between treatments by ligand")
+abline(v=median(corr_lig),lwd=2,col="red")
+legend("topleft",bty="n",lwd=2,col="red",legend="Median")
+
+hist(corr_lig_ct,breaks=100,xlim=c(temp_min,1),
+     xlab="Pairwise Spearman correlation coefficient",
+     main="Correlation between treatments by ligand per cell type")
+abline(v=median(corr_lig_ct),lwd=2,col="red")
+legend("topleft",bty="n",lwd=2,col="red",legend="Median")
+
+hist(corr_lig_tx,breaks=100,xlim=c(temp_min,1),
+     xlab="Pairwise Spearman correlation coefficient",
+     main="Correlation between treatments by ligand per treatment condition")
+abline(v=median(corr_lig_tx),lwd=2,col="dodgerblue")
+abline(v=median(corr_ctl_plate),lwd=2,col="red")
+temp_diff <- wilcox.test(corr_ctl_plate,corr_lig_tx)
+legend("topleft",bty="n",lwd=c(2,2,NA),col=c("dodgerblue","red",NA),
+       legend=c("Control median",
+                "Treatment median",
+                paste("Wilcoxon p:",round(temp_diff$p.value,2))))
+
+rm(list=c(grep("^corr_",ls(),value=T),grep("^temp",ls(),value=T)))
+```
+
+After calculating robust z-scores for the difference between ligand-treated transcriptomes and plate-matched controls (level 4 data), things get a little strange.  One might expect the control z-scores to be poorly correlated, since there shouldn't be any consistent signal - apart from cellular stress response from being handled.  However, the control z-scores show better correlation than treatment z-scores, which are poorly correlated.
+
+```{r lvl4_ctl_corr, echo=FALSE,message=FALSE,warning=FALSE,fig.height=4,fig.width=9,fig.show='hold'}
+par(mar=c(2,3,2,3),mgp=2:0)
+boxplot(lvl4_ctl_corr_plate[order(sapply(lvl4_ctl_corr_plate,median))],
+        pch=".",xaxt="n",xlab=NA,ylim=c(-1,1),
+        ylab="Pairwise Spearman correlation coefficients",
+        main="Correlation between controls by plate per treatment condition")
+points(sort(sapply(lvl4_ctl_corr_plate,median)),type="l",col="red",lwd=2)
+axis(side=4)
+mtext("Pairwise Spearman correlation coefficients",side=4,line=2)
+mtext("Plates, sorted by median",side=1)
+legend("bottomright","Median",lwd=2,col="red",bty="n")
+
+corr_ctl_plate <- unlist(lvl4_ctl_corr_plate,use.names=F)
+
+```
+
+```{r lvl4_tx_corr, echo=FALSE,message=FALSE,warning=FALSE,fig.height=4,fig.width=9,fig.show='hold'}
+par(mar=c(2,3,2,3),mgp=2:0)
+boxplot(lvl4_lig_corr_tx[order(sapply(lvl4_lig_corr_tx,median))],
+        pch=".",xaxt="n",xlab=NA,ylim=c(-1,1),
+        ylab="Pairwise Pearson correlation coefficients",
+        main="Correlation between treatments by ligand per treatment condition")
+points(sort(sapply(lvl4_lig_corr_tx,median)),type="l",col="dodgerblue",lwd=2)
+axis(side=4)
+mtext("Pairwise Pearson correlation coefficients",side=4,line=2)
+mtext("Ligands, sorted by median",side=1)
+legend("bottomright","Median",lwd=2,col="dodgerblue",bty="n")
+```
+
+
+## Level 5
+
+```{r lvl5_corr, echo=FALSE,message=FALSE,warning=FALSE}
+if (exists("lvl5_lig_corr")) {
+} else if (file.exists("../CMapCorr_files/200617_lvl5corr.RData")) {
+  temp <- load("../CMapCorr_files/200617_lvl5corr.RData") 
+} else {
+  source("200615_ctlcorr_inputs.R")
+}
+
+for (X in temp) {
+  assign(sub("_$","",sub("lvl5_","corr_",sub("corr_?","",X))),
+         unlist(get(X),use.names=F))
+}
+temp_min <- do.call(min,mget(grep("^corr_",ls(),value=T)))
+
+rm(X,temp)
+```
+
+```{r lvl5_corr_hist, echo=FALSE,message=FALSE,warning=FALSE,fig.height=8,fig.width=9,fig.show='hold'}
+par(mfrow=c(4,1),mar=c(3,3,2,1),mgp=c(2,1,0))
+
+hist(corr_ct,breaks=100,xlim=c(temp_min,1),
+     xlab="Pairwise Spearman correlation coefficient",
+     main="Correlation between treatments by cell type")
+abline(v=median(corr_ct),lwd=2,col="red")
+legend("topleft",bty="n",lwd=2,col="red",legend="Median")
+
+hist(corr_lig,breaks=100,xlim=c(temp_min,1),
+     xlab="Pairwise Spearman correlation coefficient",
+     main="Correlation between treatments by ligand")
+abline(v=median(corr_lig),lwd=2,col="red")
+legend("topleft",bty="n",lwd=2,col="red",legend="Median")
+
+hist(corr_lig_ct,breaks=100,xlim=c(temp_min,1),
+     xlab="Pairwise Spearman correlation coefficient",
+     main="Correlation between treatments by ligand per cell type")
+abline(v=median(corr_lig_ct),lwd=2,col="red")
+legend("topleft",bty="n",lwd=2,col="red",legend="Median")
+
+hist(corr_lig_tx,breaks=100,xlim=c(temp_min,1),
+     xlab="Pairwise Spearman correlation coefficient",
+     main="Correlation between treatments by ligand per treatment condition")
+abline(v=median(corr_lig_tx),lwd=2,col="red")
+legend("topleft",bty="n",lwd=2,col="red",legend="Median")
+
+rm(list=c(grep("^corr_",ls(),value=T),grep("^temp",ls(),value=T)))
+```
+
+As expected based on the level 4 data, the level 5 z-scores also show poor correlation.
+
+```{r load_pred_results, echo=FALSE,message=FALSE,warning=FALSE}
+if (file.exists("../CMapCorr_files/200524_lvl5_mixall_balanced_leave1out_results.RData")) {
+  temp <- load("../CMapCorr_files/200524_lvl5_mixall_balanced_leave1out_results.RData")
+} else {
+  source("200524_lvl5_mixall_leave1out.R")
+}
+
+test_results <- data.frame(
+  IDs=as.vector(testIDs),
+  Labels=as.vector(t(sapply(rfresults,function(X) X$predictions))),
+  stringsAsFactors=F
+)
+test_hits <- vector("list",sum(lvl5_data@cdesc$pert_iname %in% lig15))
+names(test_hits) <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname %in% lig15]
+
+for (X in 1:nrow(test_results)) {
+  test_hits[[test_results[X,"IDs"]]] <- append(test_hits[[test_results[X,"IDs"]]],
+                                               test_results[X,"Labels"])
+}
+
+acc_leave1out <- sapply(names(test_hits),function(X) 
+  sum(test_hits[[X]] == lvl5_data@cdesc[X,"pert_iname"]) / 
+    length(test_hits[[X]]))
+acc_leave1out_totals <- sapply(lig15,function(X) {
+  Y <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname == X]
+  return(sum(unlist(test_hits[Y]) == X) / 
+           length(unlist(test_hits[Y])))
+})
+```
+
+
+```{r lvl5_ct_plot, echo=FALSE,message=FALSE,warning=FALSE,fig.height=4.5,fig.width=9,fig.show='hold'}
+par(mar=c(3,3,2,3),mgp=2:0)
+temp <- boxplot(lvl5_lig_corr_ct[order(sapply(lvl5_lig_corr_ct,median))],
+        ylim=c(-1,1),pch=".",xaxt="n",
+        ylab="Pairwise Spearman correlation coefficients",
+        main="Correlation between treatments by ligand per cell type")
+axis(4)
+mtext("Pairwise Spearman correlation coefficients",side=4,line=2)
+mtext("Ligands",side=1)
+
+temp_loc <- sapply(names(acc_leave1out_totals),function(X) which(temp$names == X))
+arrows(x0=temp_loc,x1=temp_loc,y0=-1.2,y1=-0.9,length=0.1,lwd=2,
+       col=sequential_hcl(
+         100,palette="inferno",rev=T
+       )[cut(c(0,1,acc_leave1out_totals),breaks=100,labels=F)[c(-1,-2)]])
+mtext(names(acc_leave1out_totals),side=1,line=0.1,las=2,at=temp_loc,font=2,cex=0.8,
+      col=sequential_hcl(
+         100,palette="inferno",rev=T
+       )[cut(c(0,1,acc_leave1out_totals),breaks=100,labels=F)[c(-1,-2)]])
+```
+
+Ligands used in the ligand treatment prediction model earlier are highlighted here, coloured by the accuracy of prediction where darker is higher accuracy.  As one might expect, ligands that were easier to predict generally had more consistent z-scores, though there are exceptions.
+
+****
+

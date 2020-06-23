@@ -16,7 +16,7 @@ library(org.Hs.eg.db)
 ```{r load_data, echo=FALSE, message=FALSE, warning=FALSE}
 load(system.file("LigRecDB_RData/BaderCCIeditedbyBI.RData",package="CCInx"))
 
-cmap_file_path <- "~/Data_LINCS"
+cmap_file_path <- "~/Data_LINCS/phase1/"
 # cmap_file_path <- "D:/temp_data/"
 cmap_coldata <- read.gctx.meta(
   file.path(cmap_file_path,"annotated_GSE92742_Broad_LINCS_Level5_COMPZ_n473647x12328.gctx"),

@@ -1,5 +1,5 @@
 ---
-title: "Ligand transcriptome perturbations from Connectivity Map"
+title: "Replicate-collapsed Z-scores of differences in <br> cell line transcriptomes following ligand treatment"
 ---
 
 ```{r setup, echo=FALSE, message=FALSE, warning=FALSE}

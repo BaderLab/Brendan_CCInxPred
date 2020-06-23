@@ -11,7 +11,7 @@
 
 
 
-<title>CCInxPred?</title>
+<title>Sanity-checking Connectivity Map data</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -301,20 +301,43 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">CCInxPred?</h1>
+<h1 class="title toc-ignore">Sanity-checking Connectivity Map data</h1>
 
 </div>
 
 
-<div id="abstract" class="section level1">
-<h1>Abstract</h1>
-<p>Can intercellular signals be identified by transcriptional changes?</p>
+<div id="data-types" class="section level1">
+<h1>Data types</h1>
+<p>Connectivity Map releases their data at various stages of analysis. Level 3 data are quantile normalized gene expression data from the Lincs1000 assay, after gene expression inferrence - though we’re only considering the ~1000 assayed genes, not the inferred expression of the other ~10000. Level 3 data thus includes both control and treatment samples. Level 4 data are robust z-scores for differences in gene expression between treatment and plate-matched control, and level 5 amalgamates the level 4 z-scores to a single score per replicate.</p>
+<p><img src="CmapCtrlCorr_files/figure-html/data_view-1.png" width="864" /></p>
+<p>Level 3 data (1000 random samples shown above) are normally distributed with a mean of 8 and a range between 1 and 15, while the level 4 &amp; 5 data show Z-score distributions, with the range limited to -10:10 in level 5 data.</p>
+</div>
+<div id="sanity-checking-between-samples" class="section level1">
+<h1>Sanity checking between samples</h1>
+<div id="level-3" class="section level2">
+<h2>Level 3</h2>
+<p><img src="CmapCtrlCorr_files/figure-html/ctl_tx_corr_plot-1.png" width="864" /></p>
+<p><img src="CmapCtrlCorr_files/figure-html/ctl_plate_corr_plot-1.png" width="864" /></p>
+<p>Correlation between normalized transcriptomes within each cell type is pretty good, even across different control treatments (water, PBS, or DMSO for varying times). At the plate level the correlations are even better, for the most part. Treatments are compared to plate-matched controls, so consistent controls within a plate are important for downstream accuracy.</p>
+<p><img src="CmapCtrlCorr_files/figure-html/lvl3_corr_hist-1.png" width="864" /></p>
+<p><img src="CmapCtrlCorr_files/figure-html/tx_corr_plot-1.png" width="864" /></p>
+<p>Cell type transcriptomes are similar to each other despite different ligand treatment, as one might expect. When comparing within each cell type, ligand treated transcriptomes show good consistency, which improves when taking into account dosage and duration of treatment as well.</p>
+</div>
+<div id="level-4" class="section level2">
+<h2>Level 4</h2>
+<p><img src="CmapCtrlCorr_files/figure-html/lvl4_corr_hist-1.png" width="864" /></p>
+<p>After calculating robust z-scores for the difference between ligand-treated transcriptomes and plate-matched controls (level 4 data), things get a little strange. One might expect the control z-scores to be poorly correlated, since there shouldn’t be any consistent signal - apart from cellular stress response from being handled. However, the control z-scores show better correlation than treatment z-scores, which are poorly correlated.</p>
+<p><img src="CmapCtrlCorr_files/figure-html/lvl4_ctl_corr-1.png" width="864" /></p>
+<p><img src="CmapCtrlCorr_files/figure-html/lvl4_tx_corr-1.png" width="864" /></p>
+</div>
+<div id="level-5" class="section level2">
+<h2>Level 5</h2>
+<p><img src="CmapCtrlCorr_files/figure-html/lvl5_corr_hist-1.png" width="864" /></p>
+<p>As expected based on the level 4 data, the level 5 z-scores also show poor correlation.</p>
+<p><img src="CmapCtrlCorr_files/figure-html/lvl5_ct_plot-1.png" width="864" /></p>
+<p>Ligands used in the ligand treatment prediction model earlier are highlighted here, coloured by the accuracy of prediction where darker is higher accuracy. As one might expect, ligands that were easier to predict generally had more consistent z-scores, though there are exceptions.</p>
 <hr />
-<p>This should be where I outline the why and how of this project.<br />
-<a href="https://clue.io/connectopedia/data_levels" class="uri">https://clue.io/connectopedia/data_levels</a> for information on the input data.</p>
-<hr />
-<p><a href="https://github.com/BaderLab/Brendan_CCInxPred">Go to the github repo</a></p>
-<hr />
+</div>
 </div>
 
 

@@ -11,7 +11,7 @@
 
 
 
-<title>Ligand transcriptome perturbations from Connectivity Map</title>
+<title>Quantile-normalized transcriptomes   from control and ligand-treated cell lines</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -273,19 +273,22 @@ $(document).ready(function () {
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
         <li>
-  <a href="CmapDataSummary_lvl3.html">Lvl3 data</a>
+  <a href="CmapDataSummary_lvl3.html">Lvl3 Data</a>
 </li>
 <li>
-  <a href="CellStimPred_lvl3.html">Predicting perturbed cells</a>
+  <a href="CellStimPred_lvl3.html">Predicting Perturbed Cells</a>
 </li>
 <li>
-  <a href="CmapDataSummary_lvl5.html">Lvl5 data</a>
+  <a href="CmapDataSummary_lvl5.html">Lvl5 Data</a>
 </li>
 <li>
-  <a href="LigPred_lvl5.html">Predicting ligand treatment</a>
+  <a href="LigPred_lvl5.html">Predicting Ligand Treatment</a>
 </li>
 <li>
-  <a href="RecExpr.html">Biology of ligand response</a>
+  <a href="RecExpr.html">Biology of Ligand Response</a>
+</li>
+<li>
+  <a href="CmapCtrlCorr.html">Backtrack to Sanity Check</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
@@ -299,7 +302,7 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Ligand transcriptome perturbations from Connectivity Map</h1>
+<h1 class="title toc-ignore">Quantile-normalized transcriptomes <br> from control and ligand-treated cell lines</h1>
 
 </div>
 
@@ -320,25 +323,19 @@ BTC
 EGF
 </th>
 <th style="text-align:right;">
-GDNF
-</th>
-<th style="text-align:right;">
-HGF
-</th>
-<th style="text-align:right;">
-INS
-</th>
-<th style="text-align:right;">
-TNF
-</th>
-<th style="text-align:right;">
 FGF1
 </th>
 <th style="text-align:right;">
 GAS6
 </th>
 <th style="text-align:right;">
+GDNF
+</th>
+<th style="text-align:right;">
 HBEGF
+</th>
+<th style="text-align:right;">
+HGF
 </th>
 <th style="text-align:right;">
 IFNG
@@ -357,6 +354,12 @@ IL4
 </th>
 <th style="text-align:right;">
 IL6
+</th>
+<th style="text-align:right;">
+INS
+</th>
+<th style="text-align:right;">
+TNF
 </th>
 <th style="text-align:right;">
 ctrl
@@ -378,25 +381,19 @@ breast_tumor_MCF7
 153
 </td>
 <td style="text-align:right;">
-79
-</td>
-<td style="text-align:right;">
-83
-</td>
-<td style="text-align:right;">
-80
-</td>
-<td style="text-align:right;">
-75
-</td>
-<td style="text-align:right;">
 80
 </td>
 <td style="text-align:right;">
 76
 </td>
 <td style="text-align:right;">
+79
+</td>
+<td style="text-align:right;">
 80
+</td>
+<td style="text-align:right;">
+83
 </td>
 <td style="text-align:right;">
 78
@@ -415,6 +412,12 @@ breast_tumor_MCF7
 </td>
 <td style="text-align:right;">
 78
+</td>
+<td style="text-align:right;">
+80
+</td>
+<td style="text-align:right;">
+75
 </td>
 <td style="text-align:right;">
 4389
@@ -437,24 +440,18 @@ breast_tumor_BT20
 74
 </td>
 <td style="text-align:right;">
-74
-</td>
-<td style="text-align:right;">
-74
-</td>
-<td style="text-align:right;">
-74
-</td>
-<td style="text-align:right;">
-74
-</td>
-<td style="text-align:right;">
 69
 </td>
 <td style="text-align:right;">
 74
 </td>
 <td style="text-align:right;">
+74
+</td>
+<td style="text-align:right;">
+74
+</td>
+<td style="text-align:right;">
 73
 </td>
 <td style="text-align:right;">
@@ -471,6 +468,12 @@ breast_tumor_BT20
 </td>
 <td style="text-align:right;">
 73
+</td>
+<td style="text-align:right;">
+74
+</td>
+<td style="text-align:right;">
+74
 </td>
 <td style="text-align:right;">
 273
@@ -481,58 +484,58 @@ breast_tumor_BT20
 </tr>
 <tr>
 <td style="text-align:left;">
-breast_tumor_SKBR3
+breast_tumor_HS578T
+</td>
+<td style="text-align:right;">
+57
+</td>
+<td style="text-align:right;">
+120
 </td>
 <td style="text-align:right;">
 60
 </td>
 <td style="text-align:right;">
-123
+59
 </td>
 <td style="text-align:right;">
 58
 </td>
 <td style="text-align:right;">
-57
+60
 </td>
 <td style="text-align:right;">
-62
+58
 </td>
 <td style="text-align:right;">
-57
+58
 </td>
 <td style="text-align:right;">
-62
+60
 </td>
 <td style="text-align:right;">
-62
+60
 </td>
 <td style="text-align:right;">
-62
+60
 </td>
 <td style="text-align:right;">
-61
+59
 </td>
 <td style="text-align:right;">
-62
+60
 </td>
 <td style="text-align:right;">
-62
+59
 </td>
 <td style="text-align:right;">
-62
+55
 </td>
 <td style="text-align:right;">
-62
+232
 </td>
 <td style="text-align:right;">
-62
-</td>
-<td style="text-align:right;">
-265
-</td>
-<td style="text-align:right;">
-0.4641509
+0.5172414
 </td>
 </tr>
 <tr>
@@ -546,18 +549,6 @@ breast_normal_MCF10A
 119
 </td>
 <td style="text-align:right;">
-61
-</td>
-<td style="text-align:right;">
-62
-</td>
-<td style="text-align:right;">
-62
-</td>
-<td style="text-align:right;">
-62
-</td>
-<td style="text-align:right;">
 59
 </td>
 <td style="text-align:right;">
@@ -567,6 +558,12 @@ breast_normal_MCF10A
 61
 </td>
 <td style="text-align:right;">
+61
+</td>
+<td style="text-align:right;">
+62
+</td>
+<td style="text-align:right;">
 60
 </td>
 <td style="text-align:right;">
@@ -583,6 +580,12 @@ breast_normal_MCF10A
 </td>
 <td style="text-align:right;">
 60
+</td>
+<td style="text-align:right;">
+62
+</td>
+<td style="text-align:right;">
+62
 </td>
 <td style="text-align:right;">
 196
@@ -602,43 +605,43 @@ breast_tumor_MDAMB231
 120
 </td>
 <td style="text-align:right;">
+60
+</td>
+<td style="text-align:right;">
 59
 </td>
 <td style="text-align:right;">
+59
+</td>
+<td style="text-align:right;">
+60
+</td>
+<td style="text-align:right;">
 58
+</td>
+<td style="text-align:right;">
+59
+</td>
+<td style="text-align:right;">
+60
+</td>
+<td style="text-align:right;">
+60
+</td>
+<td style="text-align:right;">
+60
+</td>
+<td style="text-align:right;">
+60
+</td>
+<td style="text-align:right;">
+60
 </td>
 <td style="text-align:right;">
 60
 </td>
 <td style="text-align:right;">
 56
-</td>
-<td style="text-align:right;">
-60
-</td>
-<td style="text-align:right;">
-59
-</td>
-<td style="text-align:right;">
-60
-</td>
-<td style="text-align:right;">
-59
-</td>
-<td style="text-align:right;">
-60
-</td>
-<td style="text-align:right;">
-60
-</td>
-<td style="text-align:right;">
-60
-</td>
-<td style="text-align:right;">
-60
-</td>
-<td style="text-align:right;">
-60
 </td>
 <td style="text-align:right;">
 251
@@ -649,58 +652,58 @@ breast_tumor_MDAMB231
 </tr>
 <tr>
 <td style="text-align:left;">
-breast_tumor_HS578T
+breast_tumor_SKBR3
+</td>
+<td style="text-align:right;">
+60
+</td>
+<td style="text-align:right;">
+123
+</td>
+<td style="text-align:right;">
+62
+</td>
+<td style="text-align:right;">
+62
+</td>
+<td style="text-align:right;">
+58
+</td>
+<td style="text-align:right;">
+62
 </td>
 <td style="text-align:right;">
 57
 </td>
 <td style="text-align:right;">
-120
+61
 </td>
 <td style="text-align:right;">
-58
+62
 </td>
 <td style="text-align:right;">
-58
+62
 </td>
 <td style="text-align:right;">
-59
+62
 </td>
 <td style="text-align:right;">
-55
+62
 </td>
 <td style="text-align:right;">
-60
+62
 </td>
 <td style="text-align:right;">
-59
+62
 </td>
 <td style="text-align:right;">
-60
+57
 </td>
 <td style="text-align:right;">
-58
+265
 </td>
 <td style="text-align:right;">
-60
-</td>
-<td style="text-align:right;">
-60
-</td>
-<td style="text-align:right;">
-60
-</td>
-<td style="text-align:right;">
-59
-</td>
-<td style="text-align:right;">
-60
-</td>
-<td style="text-align:right;">
-232
-</td>
-<td style="text-align:right;">
-0.5172414
+0.4641509
 </td>
 </tr>
 <tr>
@@ -717,22 +720,16 @@ prostate_tumor_VCAP
 6
 </td>
 <td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
 12
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-6
 </td>
 <td style="text-align:right;">
 6
@@ -753,6 +750,12 @@ prostate_tumor_VCAP
 6
 </td>
 <td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
 5071
 </td>
 <td style="text-align:right;">
@@ -761,99 +764,19 @@ prostate_tumor_VCAP
 </tr>
 <tr>
 <td style="text-align:left;">
-liver_tumor_HEPG2
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-6
+prostate_tumor_PC3
 </td>
 <td style="text-align:right;">
 5
 </td>
 <td style="text-align:right;">
-12
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-780
-</td>
-<td style="text-align:right;">
-0.0153846
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-lung_tumor_A549
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-12
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-6
+5
 </td>
 <td style="text-align:right;">
 5
 </td>
 <td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-6
-</td>
-<td style="text-align:right;">
-6
+4
 </td>
 <td style="text-align:right;">
 3
@@ -862,13 +785,37 @@ lung_tumor_A549
 5
 </td>
 <td style="text-align:right;">
-6
+7
 </td>
 <td style="text-align:right;">
-2847
+5
 </td>
 <td style="text-align:right;">
-0.0042150
+4
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+4060
+</td>
+<td style="text-align:right;">
+0.0017241
 </td>
 </tr>
 <tr>
@@ -885,6 +832,15 @@ skin_tumor_A375
 5
 </td>
 <td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
 10
 </td>
 <td style="text-align:right;">
@@ -897,22 +853,13 @@ skin_tumor_A375
 5
 </td>
 <td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
 3
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
 </td>
 <td style="text-align:right;">
 5
@@ -929,7 +876,72 @@ skin_tumor_A375
 </tr>
 <tr>
 <td style="text-align:left;">
+lung_tumor_A549
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+12
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+2847
+</td>
+<td style="text-align:right;">
+0.0042150
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
 kidney_normal_HA1E
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
 </td>
 <td style="text-align:right;">
 5
@@ -953,22 +965,13 @@ kidney_normal_HA1E
 5
 </td>
 <td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
 3
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
 </td>
 <td style="text-align:right;">
 5
@@ -997,6 +1000,15 @@ lung_normal_HCC515
 5
 </td>
 <td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
 10
 </td>
 <td style="text-align:right;">
@@ -1009,22 +1021,13 @@ lung_normal_HCC515
 5
 </td>
 <td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
 3
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
 </td>
 <td style="text-align:right;">
 5
@@ -1041,6 +1044,62 @@ lung_normal_HCC515
 </tr>
 <tr>
 <td style="text-align:left;">
+liver_tumor_HEPG2
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+12
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+780
+</td>
+<td style="text-align:right;">
+0.0153846
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
 large_intestine_tumor_HT29
 </td>
 <td style="text-align:right;">
@@ -1050,25 +1109,19 @@ large_intestine_tumor_HT29
 5
 </td>
 <td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
 4
-</td>
-<td style="text-align:right;">
-10
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-5
 </td>
 <td style="text-align:right;">
 4
 </td>
 <td style="text-align:right;">
 4
+</td>
+<td style="text-align:right;">
+10
 </td>
 <td style="text-align:right;">
 5
@@ -1084,6 +1137,12 @@ large_intestine_tumor_HT29
 </td>
 <td style="text-align:right;">
 4
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+5
 </td>
 <td style="text-align:right;">
 5
@@ -1097,62 +1156,6 @@ large_intestine_tumor_HT29
 </tr>
 <tr>
 <td style="text-align:left;">
-prostate_tumor_PC3
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-3
-</td>
-<td style="text-align:right;">
-7
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-5
-</td>
-<td style="text-align:right;">
-4
-</td>
-<td style="text-align:right;">
-4060
-</td>
-<td style="text-align:right;">
-0.0017241
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
 Totals
 </td>
 <td style="text-align:right;">
@@ -1162,25 +1165,19 @@ Totals
 824
 </td>
 <td style="text-align:right;">
-428
-</td>
-<td style="text-align:right;">
-475
-</td>
-<td style="text-align:right;">
-440
-</td>
-<td style="text-align:right;">
-422
-</td>
-<td style="text-align:right;">
 438
 </td>
 <td style="text-align:right;">
 426
 </td>
 <td style="text-align:right;">
+428
+</td>
+<td style="text-align:right;">
 438
+</td>
+<td style="text-align:right;">
+475
 </td>
 <td style="text-align:right;">
 432
@@ -1199,6 +1196,12 @@ Totals
 </td>
 <td style="text-align:right;">
 435
+</td>
+<td style="text-align:right;">
+440
+</td>
+<td style="text-align:right;">
+422
 </td>
 <td style="text-align:right;">
 24779

@@ -3,16 +3,20 @@ output_dir: "docs"
 navbar:
   title: "CCinxPred?"
   left:
-  - text: "Lvl3 data"
+  - text: "Lvl3 Data"
     href: CmapDataSummary_lvl3.html
-  - text: "Predicting perturbed cells"
+  - text: "Predicting Perturbed Cells"
     href: CellStimPred_lvl3.html
-  - text: "Lvl5 data"
+  - text: "Lvl5 Data"
     href: CmapDataSummary_lvl5.html
-  - text: "Predicting ligand treatment"
+  - text: "Predicting Ligand Treatment"
     href: LigPred_lvl5.html
-  - text: "Biology of ligand response"
+  - text: "Biology of Ligand Response"
     href: RecExpr.html
+  - text: "Backtrack to Sanity Check"
+    href: CmapCtrlCorr.html
+  - text: "Predicting Ligand Treatment v2"
+    href: LigPred_lvl4.html
 output:
   html_document:
     theme: cosmo

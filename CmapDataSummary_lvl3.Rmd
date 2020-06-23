@@ -1,5 +1,5 @@
 ---
-title: "Ligand transcriptome perturbations from Connectivity Map"
+title: "Quantile-normalized transcriptomes <br> from control and ligand-treated cell lines"
 ---
 
 ```{r setup, echo=FALSE, message=FALSE, warning=FALSE}

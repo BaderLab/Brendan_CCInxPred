@@ -204,6 +204,105 @@ for (LIG in lig15) {
 rm(list=c("LIG","GENE",grep("^temp",ls(),value=T)))
 ```
 
+```{r temp_IFNG, eval=FALSE,echo=FALSE,message=FALSE,warning=FALSE}
+LIG <- "IFNG"
+par(mar=c(4,6.5,1,3.5),mgp=2:0)
+plot(NA,NA,xlim=range(acc_leave1out_ct[,LIG]),ylim=c(0,15),bty="n",yaxt="n",
+     xlab="Prediction accuracy per cell type",ylab=NA)
+axis(2,line=3.5)
+mtext("Receptor expression per cell type",
+      side=2,line=5.5,cex=0.7)
+title(LIG,line=0)
+segments(x0=seq(0,1,length.out=1000),
+         x1=seq(0,1,length.out=1000),
+         y0=rep(par("usr")[3],1000),
+         y1=rep(par("usr")[3] + (par("usr")[4] - par("usr")[3]) * 0.02,1000),
+         lwd=2,col=sequential_hcl(1000,palette="inferno",rev=T))
+
+temp_order <- rownames(acc_leave1out_ct)[order(acc_leave1out_ct[,LIG])]
+temp_corr <- apply(meanR[lig15R[[LIG]],temp_order],1,function(X)
+  cor(acc_leave1out_ct[temp_order,LIG],X,method="spearman"))
+temp_col <- diverge_hcl(100,palette="Purple-Green")[cut(c(-1,1,temp_corr),100,labels=F)[c(-1,-2)]]
+names(temp_col) <- lig15R[[LIG]]
+for (GENE in lig15R[[LIG]][order(temp_corr)]) {
+  points(acc_leave1out_ct[temp_order,LIG],
+         meanR[GENE,temp_order],
+         type="b",pch=20,col=temp_col[GENE],lwd=2)
+}
+temp_top <- c("IFNGR1","IFNGR2")
+for (GENE in temp_top) {
+  points(acc_leave1out_ct[temp_order,LIG],
+         meanR[GENE,temp_order],
+         type="b",pch=20,col="red",lwd=2)
+}
+
+text(acc_leave1out_ct[temp_order[length(temp_order)],LIG],
+     meanR[temp_top,temp_order[length(temp_order)]],
+     labels=temp_top,col=temp_col[temp_top],
+     pos=4,xpd=NA,offset=0.4,
+     font=as.integer(sapply(temp_top,function(X) 
+       lvl3_ctl@rdesc[lvl3_ctl@rdesc$pr_gene_symbol == X,"pr_is_lm"])) + 1)
+text(acc_leave1out_ct[temp_order[1],LIG],
+     meanR[temp_top,temp_order[1]],
+     labels=temp_top,col=temp_col[temp_top],
+     pos=2,xpd=NA,offset=0.4,
+     font=as.integer(sapply(temp_top,function(X) 
+       lvl3_ctl@rdesc[lvl3_ctl@rdesc$pr_gene_symbol == X,"pr_is_lm"])) + 1)
+
+
+```
+
+```{r temp_EGF, eval=FALSE,echo=FALSE,message=FALSE,warning=FALSE}
+LIG <- "EGF"
+
+# grep("EGFR",lvl3_ctl@rdesc$pr_gene_symbol,value=TRUE)
+
+par(mar=c(4,6.5,1,3.5),mgp=2:0)
+plot(NA,NA,xlim=range(acc_leave1out_ct[,LIG]),ylim=c(0,15),bty="n",yaxt="n",
+     xlab="Prediction accuracy per cell type",ylab=NA)
+axis(2,line=3.5)
+mtext("Receptor expression per cell type",
+      side=2,line=5.5,cex=0.7)
+title(LIG,line=0)
+segments(x0=seq(0,1,length.out=1000),
+         x1=seq(0,1,length.out=1000),
+         y0=rep(par("usr")[3],1000),
+         y1=rep(par("usr")[3] + (par("usr")[4] - par("usr")[3]) * 0.02,1000),
+         lwd=2,col=sequential_hcl(1000,palette="inferno",rev=T))
+
+temp_order <- rownames(acc_leave1out_ct)[order(acc_leave1out_ct[,LIG])]
+temp_corr <- apply(meanR[lig15R[[LIG]],temp_order],1,function(X)
+  cor(acc_leave1out_ct[temp_order,LIG],X,method="spearman"))
+temp_col <- diverge_hcl(100,palette="Purple-Green")[cut(c(-1,1,temp_corr),100,labels=F)[c(-1,-2)]]
+names(temp_col) <- lig15R[[LIG]]
+for (GENE in lig15R[[LIG]][order(temp_corr)]) {
+  points(acc_leave1out_ct[temp_order,LIG],
+         meanR[GENE,temp_order],
+         type="b",pch=20,col=temp_col[GENE],lwd=2)
+}
+temp_top <- c("EGFR")
+for (GENE in temp_top) {
+  points(acc_leave1out_ct[temp_order,LIG],
+         meanR[GENE,temp_order],
+         type="b",pch=20,col="red",lwd=2)
+}
+
+text(acc_leave1out_ct[temp_order[length(temp_order)],LIG],
+     meanR[temp_top,temp_order[length(temp_order)]],
+     labels=temp_top,col=temp_col[temp_top],
+     pos=4,xpd=NA,offset=0.4,
+     font=as.integer(sapply(temp_top,function(X) 
+       lvl3_ctl@rdesc[lvl3_ctl@rdesc$pr_gene_symbol == X,"pr_is_lm"])) + 1)
+text(acc_leave1out_ct[temp_order[1],LIG],
+     meanR[temp_top,temp_order[1]],
+     labels=temp_top,col=temp_col[temp_top],
+     pos=2,xpd=NA,offset=0.4,
+     font=as.integer(sapply(temp_top,function(X) 
+       lvl3_ctl@rdesc[lvl3_ctl@rdesc$pr_gene_symbol == X,"pr_is_lm"])) + 1)
+
+
+```
+
 
 
 ****
