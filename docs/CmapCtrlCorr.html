@@ -272,22 +272,31 @@ $(document).ready(function () {
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
         <li>
-  <a href="CmapDataSummary_lvl3.html">Lvl3 Data</a>
+  <a href="CmapDataSummary.html">CMap Data</a>
 </li>
 <li>
-  <a href="CellStimPred_lvl3.html">Predicting Perturbed Cells</a>
+  <a href="CmapCtrlCorr.html">Sanity Check</a>
 </li>
 <li>
-  <a href="CmapDataSummary_lvl5.html">Lvl5 Data</a>
+  <a href="CellStimPred_lvl3.html">Tx pred</a>
 </li>
 <li>
-  <a href="LigPred_lvl5.html">Predicting Ligand Treatment</a>
+  <a href="LigPred_lvl5.html">Lvl5 lig pred</a>
 </li>
 <li>
-  <a href="RecExpr.html">Biology of Ligand Response</a>
+  <a href="RecExpr.html">Lvl5 followup</a>
 </li>
 <li>
-  <a href="CmapCtrlCorr.html">Backtrack to Sanity Check</a>
+  <a href="LigPred_lvl4.html">Lvl4 lig pred</a>
+</li>
+<li>
+  <a href="LigPred_lvl4new.html">Lvl4new lig pred</a>
+</li>
+<li>
+  <a href="LigPred_lvl4pca.html">Lvl4 PCA lig pred</a>
+</li>
+<li>
+  <a href="LigPred_extrapolate.html">Lig pred on new CT</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
@@ -322,6 +331,7 @@ $(document).ready(function () {
 <p><img src="CmapCtrlCorr_files/figure-html/lvl3_corr_hist-1.png" width="864" /></p>
 <p><img src="CmapCtrlCorr_files/figure-html/tx_corr_plot-1.png" width="864" /></p>
 <p>Cell type transcriptomes are similar to each other despite different ligand treatment, as one might expect. When comparing within each cell type, ligand treated transcriptomes show good consistency, which improves when taking into account dosage and duration of treatment as well.</p>
+<hr />
 </div>
 <div id="level-4" class="section level2">
 <h2>Level 4</h2>
@@ -329,6 +339,13 @@ $(document).ready(function () {
 <p>After calculating robust z-scores for the difference between ligand-treated transcriptomes and plate-matched controls (level 4 data), things get a little strange. One might expect the control z-scores to be poorly correlated, since there shouldn’t be any consistent signal - apart from cellular stress response from being handled. However, the control z-scores show better correlation than treatment z-scores, which are poorly correlated.</p>
 <p><img src="CmapCtrlCorr_files/figure-html/lvl4_ctl_corr-1.png" width="864" /></p>
 <p><img src="CmapCtrlCorr_files/figure-html/lvl4_tx_corr-1.png" width="864" /></p>
+<div id="differentially-expressed-gene-overlap" class="section level3">
+<h3>Differentially expressed gene overlap</h3>
+<p>Differentially expressed genes are identified as those with z-scores &gt; 1.645, corresponding to the 95th percentile of normally-distributed data and therefore a 5% chance of having a positive difference from plate-matched controls by chance alone.</p>
+<p><img src="CmapCtrlCorr_files/figure-html/lvl4_de_jaccard_hist-1.png" width="864" /></p>
+<p><img src="CmapCtrlCorr_files/figure-html/lvl4_de_overlap-1.png" width="864" /></p>
+<hr />
+</div>
 </div>
 <div id="level-5" class="section level2">
 <h2>Level 5</h2>
@@ -336,7 +353,26 @@ $(document).ready(function () {
 <p>As expected based on the level 4 data, the level 5 z-scores also show poor correlation.</p>
 <p><img src="CmapCtrlCorr_files/figure-html/lvl5_ct_plot-1.png" width="864" /></p>
 <p>Ligands used in the ligand treatment prediction model earlier are highlighted here, coloured by the accuracy of prediction where darker is higher accuracy. As one might expect, ligands that were easier to predict generally had more consistent z-scores, though there are exceptions.</p>
+<div id="differentially-expressed-gene-overlap-1" class="section level3">
+<h3>Differentially expressed gene overlap</h3>
+<p>Differentially expressed genes are identified as those with z-scores &gt; 1.645, corresponding to the 95th percentile of normally-distributed data and therefore a 5% chance of having a positive difference from plate-matched controls by chance alone.</p>
+<p><img src="CmapCtrlCorr_files/figure-html/lvl5_de_jaccard_hist-1.png" width="864" /></p>
+<p><img src="CmapCtrlCorr_files/figure-html/lvl5_de_overlap-1.png" width="864" /></p>
 <hr />
+</div>
+</div>
+<div id="level-4-recalculated" class="section level2">
+<h2>Level 4 recalculated</h2>
+<p><img src="CmapCtrlCorr_files/figure-html/lvl4new_load-1.png" width="576" /></p>
+<p><img src="CmapCtrlCorr_files/figure-html/lvl4new_corr_hist-1.png" width="864" /></p>
+<p>After calculating robust z-scores for the difference between ligand-treated transcriptomes and plate-matched controls (level 4 data), things get a little strange.</p>
+<p><img src="CmapCtrlCorr_files/figure-html/lvl4new_tx_corr-1.png" width="864" /></p>
+<div id="differentially-expressed-gene-overlap-2" class="section level3">
+<h3>Differentially expressed gene overlap</h3>
+<p>Differentially expressed genes are identified as those with z-scores &gt; 1.645, corresponding to the 95th percentile of normally-distributed data and therefore a 5% chance of having a positive difference from plate-matched controls by chance alone.</p>
+<p><img src="CmapCtrlCorr_files/figure-html/lvl4new_de_jaccard_hist-1.png" width="864" /></p>
+<p><img src="CmapCtrlCorr_files/figure-html/lvl4new_de_overlap-1.png" width="864" /></p>
+</div>
 </div>
 </div>
 

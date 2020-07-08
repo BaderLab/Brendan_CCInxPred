@@ -150,7 +150,7 @@ rm(list=grep("^temp",ls(),value=T))
 
 *Note that only plate-matched data was used, in an attempt to reduce noise.*
 
-```{r tx_vs_ctl_umap_ct, echo=FALSE, message=FALSE, warning=FALSE, fig.height=4, fig.width=8, fig.show='hold'}
+```{r tx_vs_ctl_umap_ct, eval=F,echo=FALSE,message=FALSE,warning=FALSE,fig.height=4,fig.width=8,fig.show='hold'}
 if (file.exists("../CMapCorr_files/200328_ctpmUMAP.RData") & !exists("ctUMAPpm")) {
   load("../CMapCorr_files/200328_ctpmUMAP.RData") 
 } else {
@@ -187,7 +187,7 @@ for (Z in names(ctUMAPpm)) {
 rm(list=c("Z",grep("^temp",ls(),value=T)))
 ```
 
-```{r tx_vs_ctl_umap_lig, echo=FALSE, message=FALSE, warning=FALSE, fig.height=3, fig.width=9, fig.show='hold'}
+```{r tx_vs_ctl_umap_lig, eval=F,echo=FALSE,message=FALSE,warning=FALSE,fig.height=3,fig.width=9,fig.show='hold'}
 if (file.exists("200328_ctpmUMAP.RData") & !exists("ligUMAPpm")) {
   load("200328_ctpmUMAP.RData") 
 } else {
@@ -234,9 +234,8 @@ for (Z in names(ligUMAPpm)) {
 rm(list=c("Z",grep("^temp",ls(),value=T)))
 ```
 
-Looks like transcriptomes are entirely delineated by cell type from the ligand perspective.
 
-```{r lvl3_umap_lig, echo=FALSE, message=FALSE, warning=FALSE, fig.height=4, fig.width=8, fig.show='hold'}
+```{r lvl3_umap_lig, eval=F,echo=FALSE,message=FALSE,warning=FALSE,fig.height=4,fig.width=8,fig.show='hold'}
 if (file.exists("200328_ligUMAP.RData") & !exists("ligUMAP")) {
   load("200328_ligUMAP.RData") 
 } else {

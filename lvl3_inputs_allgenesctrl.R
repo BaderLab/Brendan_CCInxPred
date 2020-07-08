@@ -3,7 +3,7 @@ library(cmapR)
 rm(list=ls())
 setwd("~/Dropbox/GDB/CMapCorr/")
 temp <- load("~/Dropbox/GDB/CMapCorr_files/lvl5_inputs.RData")
-rm(list=c("temp",temp[!temp %in% c("lig15","ct14")]))
+rm(list=c("temp",temp[!temp %in% c("lig16","ct14")]))
 
 temp_cmap_path <- "~/Data_LINCS/phase1"
 temp_coldata <- read.table(file.path(temp_cmap_path,"GSE92742_Broad_LINCS_inst_info.txt"),
@@ -19,6 +19,8 @@ lvl3_ctl <- parse.gctx(
                                temp_coldata$cell_id %in% ct14])
 temp_id <- lvl3_ctl@cdesc$id
 lvl3_ctl@cdesc <- temp_coldata[temp_id,]
+#fixing fucked-up ligand names (except NRG/ALPHA/BETA)
+lvl3_ctl@cdesc$pert_iname <- toupper(lvl3_ctl@cdesc$pert_iname)
 # fixing floating-point bullshit
 lvl3_ctl@cdesc$pert_dose[lvl3_ctl@cdesc$pert_dose == "0.10000000149"] <- "0.1"
 lvl3_ctl@cdesc$pert_dose <- sub("\\.?0+$","",lvl3_ctl@cdesc$pert_dose)

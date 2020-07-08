@@ -12,7 +12,7 @@ temp_geneinfo <- read.table(file.path(temp_cmap_path,"GSE92742_Broad_LINCS_gene_
 # Only going to use the landmark genes, because those were actually measured.
 # This reduces the number of features, such that features don't massively outnumber samples.
 
-cell_info <- read.table("~/Data_LINCS/phase1/GSE92742_Broad_LINCS_cell_info.txt",
+temp_cell_info <- read.table("~/Data_LINCS/phase1/GSE92742_Broad_LINCS_cell_info.txt",
                         header=T,sep="\t",row.names=1,colClasses="character",quote="\"")
 
 lvl3_data <- parse.gctx(
@@ -21,6 +21,8 @@ lvl3_data <- parse.gctx(
   rid=rownames(temp_geneinfo)[temp_geneinfo$pr_is_lm == "1"])
 temp_id <- lvl3_data@cdesc$id
 lvl3_data@cdesc <- temp_coldata[temp_id,]
+#fixing fucked-up ligand names (except NRG/ALPHA/BETA)
+lvl3_data@cdesc$pert_iname <- toupper(lvl3_data@cdesc$pert_iname)
 # fixing floating-point bullshit
 lvl3_data@cdesc$pert_dose[lvl3_data@cdesc$pert_dose == "0.00999999977648"] <- "0.01"
 lvl3_data@cdesc$pert_dose[lvl3_data@cdesc$pert_dose == "0.029999999329400003"] <- "0.03"
@@ -54,6 +56,8 @@ lvl3_data_ctl <- parse.gctx(
   rid=rownames(temp_geneinfo)[temp_geneinfo$pr_is_lm == "1"])
 temp_id <- lvl3_data_ctl@cdesc$id
 lvl3_data_ctl@cdesc <- temp_coldata[temp_id,]
+#fixing fucked-up ligand names
+lvl3_data_ctl@cdesc$pert_iname <- toupper(lvl3_data_ctl@cdesc$pert_iname)
 # fixing floating-point bullshit
 lvl3_data_ctl@cdesc$pert_dose[lvl3_data_ctl@cdesc$pert_dose == "0.10000000149"] <- "0.1"
 lvl3_data_ctl@cdesc$pert_dose <- sub("\\.?0+$","",lvl3_data_ctl@cdesc$pert_dose)
@@ -61,29 +65,17 @@ lvl3_data_ctl@cdesc$pert_dose <- sub("\\.?0+$","",lvl3_data_ctl@cdesc$pert_dose)
 temp_ct <- sapply(unique(lvl3_data@cdesc$cell_id),function(X) 
   unique(lvl3_data@cdesc$pert_iname[lvl3_data@cdesc$cell_id == X]),
   simplify=F)
-lig15 <- Reduce(intersect,temp_ct)
+lig16 <- Reduce(intersect,temp_ct)
+lig16 <- lig16[order(sapply(lig16,function(X) sum(lvl3_data@cdesc$pert_iname == X)),decreasing=T)]
 
-temp_ctype <- apply(cell_info[unique(lvl3_data@cdesc$cell_id),c("primary_site","sample_type")],1,
+
+temp_ctype <- apply(temp_cell_info[unique(lvl3_data@cdesc$cell_id),c("primary_site","sample_type")],1,
                     function(X) paste(X,collapse=" "))
 temp_md <- data.frame(sets=names(temp_ctype),source.tissue=temp_ctype)
-ct14 <- names(sort(table(lvl3_data@cdesc$cell_id[lvl3_data@cdesc$pert_iname %in% lig15]),decreasing=T))
+ct14 <- names(sort(table(lvl3_data@cdesc$cell_id[lvl3_data@cdesc$pert_iname %in% lig16]),decreasing=T))
 names(ct14) <- paste(temp_md[ct14,"source.tissue"],ct14)
 names(ct14) <- gsub(" ","_",names(ct14))
-
-PM <- sapply(
-  unique(lvl3_data@cdesc[lvl3_data@cdesc$pert_iname %in% lig15,"cell_id"]),
-  function(CT) {
-    sapply(lig15,function(L) {
-      temp_tx <- rownames(lvl3_data@cdesc)[lvl3_data@cdesc$cell_id == CT & 
-                                             lvl3_data@cdesc$pert_iname == L]
-      temp_pl <- unique(lvl3_data@cdesc[temp_tx,"rna_plate"])
-      temp_ctl <- rownames(lvl3_data_ctl@cdesc)[lvl3_data_ctl@cdesc$rna_plate %in% temp_pl &
-                                                  lvl3_data_ctl@cdesc$cell_id == CT]
-      # message(paste(length(temp_tx),length(temp_ctl)))
-      return(list(tx=temp_tx,
-                  ctl=temp_ctl))
-    },simplify=F)
-  },simplify=F)
+ct14 <- ct14[order(names(ct14))]
 
 rm(list=grep("^temp",ls(),value=T))
 

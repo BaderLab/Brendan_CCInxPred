@@ -11,7 +11,7 @@ if (exists("lvl5_data")) {
 
 # unbalanced ----
 
-temp_id <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname %in% lig15]
+temp_id <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname %in% lig16]
 trainIDs <- sample(temp_id,round(length(temp_id) / 2))
 testIDs <- setdiff(temp_id,trainIDs)
 
@@ -28,7 +28,7 @@ save(rfmodel,rfresults,trainIDs,testIDs,
 
 
 # balancing data ----
-temp_lig_id <- sapply(lig15,function(L) 
+temp_lig_id <- sapply(lig16,function(L) 
   rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname == L],
   simplify=F)
 temp_size <- floor(min(sapply(temp_lig_id,length)) / 2)
@@ -55,7 +55,7 @@ save(rfmodel,rfresults,trainIDs,testIDs,
 
 
 # Data saturation test ----
-temp_lig_id <- sapply(lig15,function(L) 
+temp_lig_id <- sapply(lig16,function(L) 
   rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname == L],
   simplify=F)
 trainIDs <- sapply(

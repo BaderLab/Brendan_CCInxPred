@@ -8,6 +8,20 @@ if (exists("lvl3_data")) {
   source("lvl3_inputs.R")
 }
 
+PM <- sapply(
+  unique(lvl3_data@cdesc[lvl3_data@cdesc$pert_iname %in% lig16,"cell_id"]),
+  function(CT) {
+    sapply(lig16,function(L) {
+      temp_tx <- rownames(lvl3_data@cdesc)[lvl3_data@cdesc$cell_id == CT & 
+                                             lvl3_data@cdesc$pert_iname == L]
+      temp_pl <- unique(lvl3_data@cdesc[temp_tx,"rna_plate"])
+      temp_ctl <- rownames(lvl3_data_ctl@cdesc)[lvl3_data_ctl@cdesc$rna_plate %in% temp_pl &
+                                                  lvl3_data_ctl@cdesc$cell_id == CT]
+      # message(paste(length(temp_tx),length(temp_ctl)))
+      return(list(tx=temp_tx,
+                  ctl=temp_ctl))
+    },simplify=F)
+  },simplify=F)
 
 train_labels <- test_labels <- 
   test_results <- model <- list()
@@ -15,8 +29,8 @@ for (CT in names(PM)) {
   message(paste0("---- Cell type ",which(names(PM) == CT),"/",length(PM)," ----"))
   train_labels[[CT]] <- test_labels[[CT]] <- 
     test_results[[CT]] <- model[[CT]] <- list()
-  for (L in lig15) {
-    message(paste0("  -- Ligand ",which(lig15 == L),"/",length(lig15)))
+  for (L in lig16) {
+    message(paste0("  -- Ligand ",which(lig16 == L),"/",length(lig16)))
     temp_bal <- sapply(PM[names(PM) != CT],function(X) 
       list(tx=sample(X[[L]]$tx,min(sapply(X[[L]],length))),
            ctl=sample(X[[L]]$ctl,min(sapply(X[[L]],length)))),

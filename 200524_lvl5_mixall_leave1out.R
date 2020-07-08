@@ -10,7 +10,7 @@ if (exists("lvl5_data")) {
 }
 
 # Leave one out ----
-temp_lig_id <- sapply(lig15,function(L) 
+temp_lig_id <- sapply(lig16,function(L) 
   rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname == L],
   simplify=F)
 

@@ -1,0 +1,249 @@
+---
+title: "Differentiating ligand-perturbed transcriptomes <br> by training on all cell types (Level 4 data)"
+---
+  
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
+library(cmapR)
+library(ranger)
+library(colorspace)
+library(kableExtra)
+```
+
+```{r load_data_lvl4new, message=FALSE, warning=FALSE, include=FALSE}
+if (exists("lvl4new_data")) {
+} else if (file.exists("../CMapCorr_files/lvl4new.RData")) {
+  load("../CMapCorr_files/lvl4new.RData") 
+} else {
+  source("200706_ZscoreFromAssayed.R")
+}
+```
+
+Since the level 4 data has replicates whereas the level 5 data collapses those into a single value, and training may perform better with more samples, here I repeat the positive control assay training a random forest classifier to identify selected ligand pertubands from transcriptomic changes across cell lines.  The distribution of samples across ligands and cell lines is the same as the level 3 data, [shown here](./CmapDataSummary_lvl3.html).
+
+
+# Data saturation testing
+
+[Random forest model source code](https://github.com/BaderLab/Brendan_CCInxPred/blob/master/200707_lvl4new_mixall.R)  
+
+```{r RF_saturated,echo=FALSE,message=FALSE,warning=FALSE,fig.height=4,fig.width=9,fig.show='hold'}
+if (file.exists("../CMapCorr_files/200707_lvl4new_mixall_balanced_saturated.RData")) {
+  temp <- load("../CMapCorr_files/200707_lvl4new_mixall_balanced_saturated.RData")
+} else {
+  source("200707_lvl4new_mixall.R")
+}
+
+temp_confusion <- list()
+temp_acc <- list()
+for (N in seq_along(rfresults)) {
+  temp_confusion[[N]] <- table(true=lvl4new_data@cdesc[testIDs[[N]],"pert_iname"],
+                               predicted=rfresults[[N]]$predictions)
+  temp_acc[[N]] <- sweep(temp_confusion[[N]],1,rowSums(temp_confusion[[N]]),"/")
+}
+acc_saturating <- sapply(temp_acc,diag)
+
+par(mar=c(3,3,1,3),mgp=2:0)
+boxplot(acc_saturating,pch=".",
+        ylab="Accuracy per ligand",
+        xlab="Number of training samples per ligand")
+points(1:ncol(acc_saturating),colMeans(acc_saturating),
+       type="l",lwd=2,col="red")
+legend("topleft",bty="n",lwd=2,col="red",cex=0.8,
+       legend=paste0("Mean accuracy (max: ",
+                     round(max(colMeans(acc_saturating)) * 100),"%)"))
+axis(4)
+mtext("Accuracy per ligand",side=4,line=2)
+
+rm(list=temp)
+rm(list=c("N",grep("^temp",ls(),value=T)))
+```
+
+Training the random forest model was repeated with increasing data, from one sample per ligand (randomly sampled from the 14 cell types) to 418 samples per ligand (all but one sample for most ligands, except EGF).  
+Improvements in accuracy from increased training data level off after half the data is used, as was done in the previous models.
+
+These results are not an improvement in overall accuracy compared to using the level 5 data (as seen [here](./LigPred_lvl5.html#data-saturation)).  
+
+
+# Improving prediction with metadata modelling
+
+[Random forest model source code](https://github.com/BaderLab/Brendan_CCInxPred/blob/master/200707_lvl4new_mixall_metadata.R)  
+
+
+
+
+```{r RFmetadata_samples,echo=FALSE,message=FALSE,warning=FALSE}
+if (file.exists("../CMapCorr_files/200707_lvl4new_mixall_balanced_saturated_metadata.RData")) {
+  temp <- load("../CMapCorr_files/200707_lvl4new_mixall_balanced_saturated_metadata.RData")
+} else {
+  source("200707_lvl4new_mixall_metadata.R")
+}
+
+tempdf <- as.data.frame(
+  rbind(training=table(lvl4new_data@cdesc[trainIDs[[300]],"pert_iname"]),
+        testing=table(lvl4new_data@cdesc[testIDs[[300]],"pert_iname"]),
+        total=table(lvl4new_data@cdesc[c(trainIDs[[300]],testIDs[[300]]),"pert_iname"]))
+)
+kable(tempdf,format="html")  %>%
+  kable_styling()
+
+```
+
+Example distribution from the saturating test, at 300 training samples.
+
+```{r RFmetadata_matrix,echo=FALSE,message=FALSE,warning=FALSE,fig.height=7,fig.width=7,fig.show='hold'}
+temp_confusion <- table(true=lvl4new_data@cdesc[testIDs[[300]],"pert_iname"],
+                        predicted=rfresults[[300]]$predictions)
+temp_acc <- sweep(temp_confusion,1,rowSums(temp_confusion),"/")
+
+par(mar=c(1,5,5,1),mgp=2:0,las=2)
+image(z=t(temp_acc * 100)[,seq(nrow(temp_acc),1)],
+      x=1:nrow(temp_acc),y=1:ncol(temp_acc),
+      col=sequential_hcl(100,palette="inferno",rev=T),breaks=0:100,
+      xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+mtext(rev(colnames(temp_acc)),side=2,at=1:nrow(temp_acc),adj=1.1)
+mtext("Truth",side=2,line=3.5,at=((nrow(temp_acc)-1)/2)+1,las=0,font=2,cex=1.5)
+mtext(rownames(temp_acc),side=3,at=1:nrow(temp_acc),adj=-0.1)
+mtext("Prediction",side=3,line=3.5,at=((nrow(temp_acc)-1)/2)+1,las=0,font=2,cex=1.5)
+text(x=seq(1,nrow(temp_acc)),y=seq(nrow(temp_acc),1),
+     labels=round(diag(temp_acc),2),font=2,col="dodgerblue")
+
+```
+
+
+```{r RF_saturated_metadata,echo=FALSE,message=FALSE,warning=FALSE,fig.height=4,fig.width=9,fig.show='hold'}
+temp_confusion <- list()
+temp_acc <- list()
+for (N in seq_along(rfresults)) {
+  temp_confusion[[N]] <- table(true=lvl4new_data@cdesc[testIDs[[N]],"pert_iname"],
+                               predicted=rfresults[[N]]$predictions)
+  temp_acc[[N]] <- sweep(temp_confusion[[N]],1,rowSums(temp_confusion[[N]]),"/")
+}
+acc_saturating_metadata <- sapply(temp_acc,diag)
+
+par(mar=c(3,3,1,3),mgp=2:0)
+boxplot(acc_saturating_metadata,pch=".",
+        ylab="Accuracy per ligand",
+        xlab="Number of training samples per ligand")
+points(1:ncol(acc_saturating_metadata),
+       colMeans(acc_saturating_metadata),
+       type="l",lwd=2,col="red")
+legend("topleft",bty="n",lwd=2,col="red",cex=0.8,
+       legend=paste0("Mean accuracy (max: ",
+                     round(max(colMeans(acc_saturating_metadata)) * 100),"%)"))
+axis(4)
+mtext("Accuracy per ligand",side=4,line=2)
+
+rm(list=temp)
+rm(list=c("N",grep("^temp",ls(),value=T)))
+```
+
+Adding metadata (cell type, treatment dosage and duration) as features in the model did not improve prediction accuracy in any appreciable manner.
+
+```{r vs_lvl5, echo=FALSE,message=FALSE,warning=FALSE}
+if (exists("lvl4_data")) {
+} else if (file.exists("../CMapCorr_files/lvl4_inputs.RData")) {
+  load("../CMapCorr_files/lvl4_inputs.RData") 
+} else {
+  source("lvl4_inputs.R")
+}
+
+if (file.exists("../CMapCorr_files/200623_lvl4_mixall_balanced_saturated.RData")) {
+  temp <- load("../CMapCorr_files/200623_lvl4_mixall_balanced_saturated.RData")
+} else {
+  source("200623_lvl4_mixall.R")
+}
+
+temp_confusion <- list()
+temp_acc <- list()
+for (N in seq_along(rfresults)) {
+  temp_confusion[[N]] <- table(true=lvl4_data@cdesc[testIDs[[N]],"pert_iname"],
+                               predicted=rfresults[[N]]$predictions)
+  temp_acc[[N]] <- sweep(temp_confusion[[N]],1,rowSums(temp_confusion[[N]]),"/")
+}
+lvl4_acc_saturating <- sapply(temp_acc,diag)
+
+if (file.exists("../CMapCorr_files/200623_lvl4_mixall_balanced_saturated_metadata.RData")) {
+  temp <- load("../CMapCorr_files/200623_lvl4_mixall_balanced_saturated_metadata.RData")
+} else {
+  source("200623_lvl4_mixall_metadata.R")
+}
+
+temp_confusion <- list()
+temp_acc <- list()
+for (N in seq_along(rfresults)) {
+  temp_confusion[[N]] <- table(true=lvl4_data@cdesc[testIDs[[N]],"pert_iname"],
+                               predicted=rfresults[[N]]$predictions)
+  temp_acc[[N]] <- sweep(temp_confusion[[N]],1,rowSums(temp_confusion[[N]]),"/")
+}
+lvl4_acc_saturating_metadata <- sapply(temp_acc,diag)
+
+
+if (exists("lvl5_data")) {
+} else if (file.exists("../CMapCorr_files/lvl5_inputs.RData")) {
+  load("../CMapCorr_files/lvl5_inputs.RData") 
+} else {
+  source("lvl5_inputs.R")
+}
+
+
+if (file.exists("../CMapCorr_files/200427_lvl5_mixall_balanced_saturated.RData")) {
+  temp <- load("../CMapCorr_files/200427_lvl5_mixall_balanced_saturated.RData")
+} else {
+  source("200427_lvl5_mixall.R")
+}
+
+temp_confusion <- list()
+temp_acc <- list()
+for (N in seq_along(rfresults)) {
+  temp_confusion[[N]] <- table(true=lvl5_data@cdesc[testIDs[[N]],"pert_iname"],
+                               predicted=rfresults[[N]]$predictions)
+  temp_acc[[N]] <- sweep(temp_confusion[[N]],1,rowSums(temp_confusion[[N]]),"/")
+}
+lvl5_acc_saturating <- sapply(temp_acc,diag)
+
+
+if (file.exists("../CMapCorr_files/200703_lvl5_mixall_balanced_saturated_metadata.RData")) {
+  temp <- load("../CMapCorr_files/200703_lvl5_mixall_balanced_saturated_metadata.RData")
+} else {
+  source("200703_lvl5_mixall_metadata.R")
+}
+
+temp_confusion <- list()
+temp_acc <- list()
+for (N in seq_along(rfresults)) {
+  temp_confusion[[N]] <- table(true=lvl5_data@cdesc[testIDs[[N]],"pert_iname"],
+                               predicted=rfresults[[N]]$predictions)
+  temp_acc[[N]] <- sweep(temp_confusion[[N]],1,rowSums(temp_confusion[[N]]),"/")
+}
+lvl5_acc_saturating_metadata <- sapply(temp_acc,diag)
+
+```
+
+```{r vs_lvl5_plot, echo=FALSE,message=FALSE,warning=FALSE,fig.height=4,fig.width=9,fig.show='hold'}
+temp <- list(lvl5=colMeans(lvl5_acc_saturating),
+             lvl5MD=colMeans(lvl5_acc_saturating_metadata),
+             lvl4=colMeans(lvl4_acc_saturating),
+             lvl4MD=colMeans(lvl4_acc_saturating_metadata),
+             lvl4new=colMeans(acc_saturating),
+             lvl4newMD=colMeans(acc_saturating_metadata))
+par(mar=c(3,5,2,1),mgp=2:0)
+boxplot(temp,pch=".",cex=2,horizontal=T,ylim=c(0,1),
+        yaxt="n",xlab="Mean accuracy")
+mtext(names(temp),side=2,las=2,at=seq_along(temp),line=0.1)
+text(x=0.5,y=1.5,col="red",
+     labels=paste("p =",
+                  signif(
+                    wilcox.test(colMeans(lvl5_acc_saturating),
+                                colMeans(lvl5_acc_saturating_metadata))$p.value,
+                    2)))
+text(x=0.5,y=3.5,col="red",
+     labels=paste("p =",
+                  signif(
+                    wilcox.test(colMeans(acc_saturating),
+                                colMeans(acc_saturating_metadata))$p.value,
+                    2)))
+
+```
+
+When trained on level 4 data (including metadata) less training samples were needed to achieve maximum accuracy, but maximum accuracy was pretty similar across the board (actually best in the first model).
+
+****

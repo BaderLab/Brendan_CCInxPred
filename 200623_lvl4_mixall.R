@@ -10,11 +10,11 @@ if (exists("lvl4_data")) {
   source("lvl4_inputs.R")
 }
 temp <- load("../CMapCorr_files/lvl5_inputs.RData") 
-rm(list=c("temp",temp[!temp %in% c("ct14","lig15")]))
+rm(list=c("temp",temp[!temp %in% c("ct14","lig16")]))
 
 
 # Data saturation test ----
-temp_lig_id <- sapply(lig15,function(L) 
+temp_lig_id <- sapply(lig16,function(L) 
   rownames(lvl4_data@cdesc)[lvl4_data@cdesc$pert_iname == L],
   simplify=F)
 trainIDs <- sapply(

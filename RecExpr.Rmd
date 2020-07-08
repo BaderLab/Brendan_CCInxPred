@@ -24,18 +24,18 @@ if (exists("lvl3_ctl")) {
 
 temp <- load(system.file("LigRecDB_RData/BaderCCIeditedbyBI.RData",package="CCInx"))
 
-lig15R <- sapply(lig15,function(X) {
+lig16R <- sapply(lig16,function(X) {
   temp <- c(inxDB$nodeB[inxDB$nodeA == X],inxDB$nodeA[inxDB$nodeB == X])
   return(temp[grepl("Receptor",geneInfo[temp,"protein_type"])])
 },simplify=F)
-lig15R[["GAS6"]] <- c("AXL","TYRO3","MERTK")
-for (LIG in lig15) {
-  temp_in <- lig15R[[LIG]] %in% lvl3_ctl@rdesc$pr_gene_symbol
-  lig15R[[LIG]] <- lig15R[[LIG]][temp_in]
-  names(lig15R[[LIG]]) <- sapply(lig15R[[LIG]],function(X) 
+lig16R[["GAS6"]] <- c("AXL","TYRO3","MERTK")
+for (LIG in lig16) {
+  temp_in <- lig16R[[LIG]] %in% lvl3_ctl@rdesc$pr_gene_symbol
+  lig16R[[LIG]] <- lig16R[[LIG]][temp_in]
+  names(lig16R[[LIG]]) <- sapply(lig16R[[LIG]],function(X) 
     lvl3_ctl@rdesc$id[lvl3_ctl@rdesc$pr_gene_symbol == X])
   cat(paste0(round(sum(temp_in) / length(temp_in) * 100),"% (",
-               round(sum(lvl3_ctl@rdesc[names(lig15R[[LIG]]),"pr_is_lm"] == "1") / length(temp_in) * 100),
+               round(sum(lvl3_ctl@rdesc[names(lig16R[[LIG]]),"pr_is_lm"] == "1") / length(temp_in) * 100),
                "%) of ",LIG," receptors present in CMap data, either inferred or (assayed)."),"\n")
 }
 
@@ -45,13 +45,13 @@ rm(list=c("LIG","temp",temp))
 Below is an overview of all potential cognate receptors per ligand present in the data.  The left figure shows which ligands (dark purple) each receptor is known to interact with.  On the right is a heatmap showing mean normalized gene expression per cell type for each receptor gene, with darker indicating higher expression.  Gene names (rows) are ordered by heirarchical clustering of ligand-receptor interaction data, such that receptors common to the same ligand should be together.  **Landmark** gene expression was emperically determined rather than inferred (names indicated in bold).  Ligand names (columns, left) are ordered by heirarchical clustering of ligand-receptor interaction data, such that ligands sharing the same receptors should be proximal.  Cell type names (columns, right) are ordered by heirarchical clustering of mean receptor gene expression.
 
 ```{r rec_expr,echo=FALSE,message=FALSE,warning=FALSE,fig.height=25,fig.width=9,fig.show='hold'}
-temp_genes <- unique(unlist(lapply(lig15R,names)))
+temp_genes <- unique(unlist(lapply(lig16R,names)))
 names(temp_genes) <- lvl3_ctl@rdesc[temp_genes,"pr_gene_symbol"]
-lig15Rmat <- sapply(lig15R,function(X) names(temp_genes) %in% X)
-rownames(lig15Rmat) <- names(temp_genes)
-temp_roworder <- hclust(dist(lig15Rmat))$order
-lig15Rmat <- lig15Rmat[temp_roworder,]
-lig15Rmat <- lig15Rmat[,hclust(dist(t(lig15Rmat)))$order]
+lig16Rmat <- sapply(lig16R,function(X) names(temp_genes) %in% X)
+rownames(lig16Rmat) <- names(temp_genes)
+temp_roworder <- hclust(dist(lig16Rmat))$order
+lig16Rmat <- lig16Rmat[temp_roworder,]
+lig16Rmat <- lig16Rmat[,hclust(dist(t(lig16Rmat)))$order]
 
 meanR <- sapply(ct14,function(CT) rowMeans(lvl3_ctl@mat[temp_genes,lvl3_ctl@cdesc$cell_id == CT]))
 rownames(meanR) <- names(temp_genes)
@@ -60,12 +60,12 @@ meanR <- meanR[,hclust(dist(t(meanR)))$order]
 
 layout(cbind(rep(1,25),rep(2,25),c(rep(3,5),rep(0,20))),widths=c(3,3,1))
 par(mar=c(6,0.5,6,5.5),mgp=2:0,las=2)
-image(z=t(lig15Rmat[rev(rownames(lig15Rmat)),]),
-      x=1:ncol(lig15Rmat),y=1:nrow(lig15Rmat),
+image(z=t(lig16Rmat[rev(rownames(lig16Rmat)),]),
+      x=1:ncol(lig16Rmat),y=1:nrow(lig16Rmat),
       xaxt="n",yaxt="n",xlab=NA,ylab=NA,
       col=sequential_hcl(10,palette="inferno",rev=T)[c(1,9)])
-mtext(colnames(lig15Rmat),side=3,line=0.2,at=1:ncol(lig15Rmat),cex=0.8)
-mtext(colnames(lig15Rmat),side=1,line=0.2,at=1:ncol(lig15Rmat),cex=0.8)
+mtext(colnames(lig16Rmat),side=3,line=0.2,at=1:ncol(lig16Rmat),cex=0.8)
+mtext(colnames(lig16Rmat),side=1,line=0.2,at=1:ncol(lig16Rmat),cex=0.8)
 title("Ligand interaction with receptors",line=4.5)
 
 par(mar=c(6,0,6,0.5),mgp=2:0,las=2)
@@ -114,8 +114,8 @@ test_results <- data.frame(
   Labels=as.vector(t(sapply(rfresults,function(X) X$predictions))),
   stringsAsFactors=F
 )
-test_hits <- vector("list",sum(lvl5_data@cdesc$pert_iname %in% lig15))
-names(test_hits) <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname %in% lig15]
+test_hits <- vector("list",sum(lvl5_data@cdesc$pert_iname %in% lig16))
+names(test_hits) <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname %in% lig16]
 
 for (X in 1:nrow(test_results)) {
   test_hits[[test_results[X,"IDs"]]] <- append(test_hits[[test_results[X,"IDs"]]],
@@ -125,13 +125,13 @@ for (X in 1:nrow(test_results)) {
 acc_leave1out <- sapply(names(test_hits),function(X) 
   sum(test_hits[[X]] == lvl5_data@cdesc[X,"pert_iname"]) / 
     length(test_hits[[X]]))
-acc_leave1out_totals <- sapply(lig15,function(X) {
+acc_leave1out_totals <- sapply(lig16,function(X) {
   Y <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname == X]
   return(sum(unlist(test_hits[Y]) == X) / 
            length(unlist(test_hits[Y])))
 })
 
-acc_leave1out_ct <- sapply(lig15,function(X) {
+acc_leave1out_ct <- sapply(lig16,function(X) {
   sapply(ct14,function(Y) {
     Z <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname == X &
                                      lvl5_data@cdesc$cell_id == Y]
@@ -140,18 +140,18 @@ acc_leave1out_ct <- sapply(lig15,function(X) {
   })
 })
 
-test_counts <- sapply(lig15,function(X) {
+test_counts <- sapply(lig16,function(X) {
   sapply(ct14,function(Y) {
     sum(lvl5_data@cdesc$pert_iname == X &
           lvl5_data@cdesc$cell_id == Y)
   })
 })
 
-test_predictions <- sapply(lig15,function(X) {
+test_predictions <- sapply(lig16,function(X) {
   sapply(ct14,function(Y) {
     temp <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname == X &
                                         lvl5_data@cdesc$cell_id == Y]
-    return(table(factor(unlist(test_hits[temp]),levels=lig15)) / 
+    return(table(factor(unlist(test_hits[temp]),levels=lig16)) / 
              length(unlist(test_hits[temp])))
   })
 },simplify=F)
@@ -161,9 +161,9 @@ rm(X,temp)
 
 Cognate receptor expression for each ligand was compared to the accuracy per cell line of the leave-one-out ligand classification model outlined [previously](https://baderlab.github.io/Brendan_CCInxPred/LigPred_lvl5.html#cell-type-biases-in-accuracy).  Lines for each receptor are coloured by the spearman correlation coefficient between expression and accuracy per cell type (purple is negative, green is positive), and the three most correlated receptor genes are labeled.
 
-```{r rec_expr_acc_corr,echo=FALSE,message=FALSE,warning=FALSE,fig.height=15,fig.width=9,fig.show='hold'}
-par(mfrow=c(5,3),mar=c(4,6.5,1,3.5),mgp=2:0)
-for (LIG in lig15) {
+```{r rec_expr_acc_corr,echo=FALSE,message=FALSE,warning=FALSE,fig.height=9,fig.width=9,fig.show='hold'}
+par(mfrow=c(4,4),mar=c(4,6.5,1,3.5),mgp=2:0)
+for (LIG in lig16) {
   plot(NA,NA,xlim=range(acc_leave1out_ct[,LIG]),ylim=c(0,15),bty="n",yaxt="n",
        xlab="Prediction accuracy per cell type",ylab=NA)
   axis(2,line=3.5)
@@ -177,11 +177,11 @@ for (LIG in lig15) {
            lwd=2,col=sequential_hcl(1000,palette="inferno",rev=T))
   
   temp_order <- rownames(acc_leave1out_ct)[order(acc_leave1out_ct[,LIG])]
-  temp_corr <- apply(meanR[lig15R[[LIG]],temp_order],1,function(X)
+  temp_corr <- apply(meanR[lig16R[[LIG]],temp_order],1,function(X)
     cor(acc_leave1out_ct[temp_order,LIG],X,method="spearman"))
   temp_col <- diverge_hcl(100,palette="Purple-Green")[cut(c(-1,1,temp_corr),100,labels=F)[c(-1,-2)]]
-  names(temp_col) <- lig15R[[LIG]]
-  for (GENE in lig15R[[LIG]][order(temp_corr)]) {
+  names(temp_col) <- lig16R[[LIG]]
+  for (GENE in lig16R[[LIG]][order(temp_corr)]) {
     points(acc_leave1out_ct[temp_order,LIG],
            meanR[GENE,temp_order],
            type="b",pch=20,col=temp_col[GENE],lwd=2)
@@ -220,11 +220,11 @@ segments(x0=seq(0,1,length.out=1000),
          lwd=2,col=sequential_hcl(1000,palette="inferno",rev=T))
 
 temp_order <- rownames(acc_leave1out_ct)[order(acc_leave1out_ct[,LIG])]
-temp_corr <- apply(meanR[lig15R[[LIG]],temp_order],1,function(X)
+temp_corr <- apply(meanR[lig16R[[LIG]],temp_order],1,function(X)
   cor(acc_leave1out_ct[temp_order,LIG],X,method="spearman"))
 temp_col <- diverge_hcl(100,palette="Purple-Green")[cut(c(-1,1,temp_corr),100,labels=F)[c(-1,-2)]]
-names(temp_col) <- lig15R[[LIG]]
-for (GENE in lig15R[[LIG]][order(temp_corr)]) {
+names(temp_col) <- lig16R[[LIG]]
+for (GENE in lig16R[[LIG]][order(temp_corr)]) {
   points(acc_leave1out_ct[temp_order,LIG],
          meanR[GENE,temp_order],
          type="b",pch=20,col=temp_col[GENE],lwd=2)
@@ -271,11 +271,11 @@ segments(x0=seq(0,1,length.out=1000),
          lwd=2,col=sequential_hcl(1000,palette="inferno",rev=T))
 
 temp_order <- rownames(acc_leave1out_ct)[order(acc_leave1out_ct[,LIG])]
-temp_corr <- apply(meanR[lig15R[[LIG]],temp_order],1,function(X)
+temp_corr <- apply(meanR[lig16R[[LIG]],temp_order],1,function(X)
   cor(acc_leave1out_ct[temp_order,LIG],X,method="spearman"))
 temp_col <- diverge_hcl(100,palette="Purple-Green")[cut(c(-1,1,temp_corr),100,labels=F)[c(-1,-2)]]
-names(temp_col) <- lig15R[[LIG]]
-for (GENE in lig15R[[LIG]][order(temp_corr)]) {
+names(temp_col) <- lig16R[[LIG]]
+for (GENE in lig16R[[LIG]][order(temp_corr)]) {
   points(acc_leave1out_ct[temp_order,LIG],
          meanR[GENE,temp_order],
          type="b",pch=20,col=temp_col[GENE],lwd=2)

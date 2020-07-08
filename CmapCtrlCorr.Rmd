@@ -160,7 +160,6 @@ corr_ctl_tx <- unlist(
     !grepl("all$",names(unlist(lvl3_ctl_corr,recursive=F,use.names=T)))
     ]
 ,use.names=F)
-
 ```
 
 ```{r ctl_plate_corr_plot, echo=FALSE,message=FALSE,warning=FALSE,fig.height=4,fig.width=9,fig.show='hold'}
@@ -177,7 +176,7 @@ legend("bottomright","Median",lwd=2,col="red",bty="n")
 
 corr_ctl_plate <- unlist(lvl3_ctl_corr_plate,use.names=F)
 
-rm(list=c("CT",temp,grep("^temp",ls())))
+rm(list=c("CT",temp,grep("^temp",ls(),value=T)))
 ```
 
 Correlation between normalized transcriptomes within each cell type is pretty good, even across different control treatments (water, PBS, or DMSO for varying times).  At the plate level the correlations are even better, for the most part.  Treatments are compared to plate-matched controls, so consistent controls within a plate are important for downstream accuracy.  
@@ -196,7 +195,6 @@ corr_lig_ct <- unlist(lvl3_lig_corr_ct,use.names=F)
 corr_lig_tx <- unlist(lvl3_lig_corr_tx,use.names=F)
 
 temp_min <- do.call(min,mget(grep("^corr_",ls(),value=T)))
-
 
 # temp_ctVlig <- wilcox.test(dist_ct,dist_lig,conf.int=T)
 # temp_ctVligct <- wilcox.test(dist_ct,dist_lig_ct,conf.int=T)
@@ -242,7 +240,7 @@ hist(corr_lig_tx,breaks=100,xlim=c(temp_min,1),
 abline(v=median(corr_lig_tx),lwd=2,col="dodgerblue")
 abline(v=median(corr_ctl_plate),lwd=2,col="red")
 temp_diff <- wilcox.test(corr_ctl_plate,corr_lig_tx)
-legend("topleft",bty="n",lwd=c(2,2,NA),col=c("dodgerblue","red",NA),
+legend("topleft",bty="n",lwd=c(2,2,NA),col=c("red","dodgerblue",NA),
        legend=c("Control median PCC",
                 "Treatment median PCC",
                 paste("Wilcoxon p:",round(temp_diff$p.value,2))))
@@ -261,10 +259,13 @@ axis(side=4)
 mtext("Pairwise Pearson correlation coefficients",side=4,line=2)
 mtext("Ligands, sorted by median PCC",side=1)
 legend("bottomleft","Median",lwd=2,col="dodgerblue",bty="n")
+
+rm(list=grep("^lvl3",ls(),value=T))
 ```
 
 Cell type transcriptomes are similar to each other despite different ligand treatment, as one might expect.  When comparing within each cell type, ligand treated transcriptomes show good consistency, which improves when taking into account dosage and duration of treatment as well.  
 
+****  
 
 ## Level 4
 
@@ -320,7 +321,7 @@ hist(corr_lig_tx,breaks=100,xlim=c(temp_min,1),
 abline(v=median(corr_lig_tx),lwd=2,col="dodgerblue")
 abline(v=median(corr_ctl_plate),lwd=2,col="red")
 temp_diff <- wilcox.test(corr_ctl_plate,corr_lig_tx)
-legend("topleft",bty="n",lwd=c(2,2,NA),col=c("dodgerblue","red",NA),
+legend("topleft",bty="n",lwd=c(2,2,NA),col=c("red","dodgerblue",NA),
        legend=c("Control median",
                 "Treatment median",
                 paste("Wilcoxon p:",round(temp_diff$p.value,2))))
@@ -341,9 +342,6 @@ axis(side=4)
 mtext("Pairwise Spearman correlation coefficients",side=4,line=2)
 mtext("Plates, sorted by median",side=1)
 legend("bottomright","Median",lwd=2,col="red",bty="n")
-
-corr_ctl_plate <- unlist(lvl4_ctl_corr_plate,use.names=F)
-
 ```
 
 ```{r lvl4_tx_corr, echo=FALSE,message=FALSE,warning=FALSE,fig.height=4,fig.width=9,fig.show='hold'}
@@ -359,6 +357,148 @@ mtext("Ligands, sorted by median",side=1)
 legend("bottomright","Median",lwd=2,col="dodgerblue",bty="n")
 ```
 
+### Differentially expressed gene overlap
+
+Differentially expressed genes are identified as those with z-scores > 1.645, corresponding to the 95th percentile of normally-distributed data and therefore a 5% chance of having a positive difference from plate-matched controls by chance alone.
+
+```{r lvl4_de_jaccard_hist, echo=FALSE,message=FALSE,warning=FALSE,fig.height=8,fig.width=9,fig.show='hold'}
+if (exists("lvl4_jacc_ct")) {
+} else if (file.exists("../CMapCorr_files/200624_lvl4jacc.RData")) {
+  temp <- load("../CMapCorr_files/200624_lvl4jacc.RData") 
+} else {
+  source("200624_DEjaccard.R")
+}
+
+for (X in grep("jacc",temp,value=T)) {
+  assign(sub("^lvl4_","",X),
+         unlist(get(X),use.names=F))
+}
+
+par(mfrow=c(4,1),mar=c(3,3,2,1),mgp=c(2,1,0))
+
+hist(unlist(jacc_ct),breaks=100,xlim=0:1,
+     xlab="Pairwise Jaccard distance",
+     main="Overlapping DE genes between treatments by cell type")
+abline(v=median(jacc_ct),lwd=2,col="red")
+legend("topright",bty="n",lwd=2,col="red",legend="Median")
+
+hist(jacc_lig,breaks=100,xlim=0:1,
+     xlab="Pairwise Jaccard distance",
+     main="Overlapping DE genes between treatments by ligand")
+abline(v=median(jacc_lig),lwd=2,col="red")
+legend("topright",bty="n",lwd=2,col="red",legend="Median")
+
+hist(jacc_lig_ct,breaks=100,xlim=0:1,
+     xlab="Pairwise Jaccard distance",
+     main="Overlapping DE genes between treatments by ligand per cell type")
+abline(v=median(jacc_lig_ct),lwd=2,col="red")
+legend("topright",bty="n",lwd=2,col="red",legend="Median")
+
+hist(jacc_lig_tx,breaks=100,xlim=0:1,
+     xlab="Pairwise Jaccard distance",
+     main="Overlapping DE genes between treatments by ligand per treatment condition")
+abline(v=median(jacc_lig_tx),lwd=2,col="red")
+legend("topright",bty="n",lwd=2,col="red",legend="Median")
+
+rm(list=c("X",grep("jacc_",ls(),value=T)))
+```
+
+
+```{r lvl4_de_overlap, echo=FALSE,message=FALSE,warning=FALSE,fig.height=12,fig.width=9,fig.show='hold'}
+par(mfrow=c(3,1),mar=c(3,3,2,1),mgp=2:0)
+
+if (exists("lvl4_OVLPact_ct")) {
+  temp <- NULL
+} else if (file.exists("../CMapCorr_files/200702_lvl4_OVLP_ct.RData")) {
+  temp <- load("../CMapCorr_files/200702_lvl4_OVLP_ct.RData") 
+} else {
+  source("200624_DEoverlaptest.R")
+}
+
+temp_y <- sapply(lvl4_OVLPprob_ct,function(X) apply(-log10(X),2,mean))
+temp_x <- sapply(names(temp_y),function(X) 
+  2:(length(temp_y[[X]]) + 1) / sum(lvl4_data@cdesc$cell_id == X))
+temp_col <- qualitative_hcl(length(temp_x),palette="dark3",alpha=0.7)
+names(temp_col) <- names(temp_x)
+
+plot(NA,NA,xlim=0:1,ylim=range(unlist(temp_y)),
+     main="DE gene overlap within cell lines",
+     ylab="-log10 probability of overlap by chance",
+     xlab="Proportion of samples with overlapping DE genes")
+for (X in names(temp_x)) { points(temp_x[[X]],temp_y[[X]],type="l",col=temp_col[X]) }
+
+
+if (exists("lvl4_OVLPact_lig")) {
+  temp <- NULL
+} else if (file.exists("../CMapCorr_files/200702_lvl4_OVLP_lig.RData")) {
+  temp <- load("../CMapCorr_files/200702_lvl4_OVLP_lig.RData") 
+} else {
+  source("200624_DEoverlaptest.R")
+}
+
+for (LIG in names(lvl4_OVLPprob_lig)) {
+  lvl4_OVLPprob_lig[[LIG]][lvl4_OVLPprob_lig[[LIG]] == 0] <- 1e-100
+}
+temp_y <- sapply(lvl4_OVLPprob_lig,function(X) apply(-log10(X),2,mean))
+temp_x <- sapply(names(temp_y),function(X) 
+  2:(length(temp_y[[X]]) + 1) / sum(lvl4_data@cdesc$pert_iname == X))
+temp_col <- qualitative_hcl(length(temp_x),palette="dark3",alpha=0.7)
+names(temp_col) <- names(temp_x)
+
+plot(NA,NA,xlim=0:1,ylim=range(unlist(temp_y)),
+     main="DE gene overlap within ligands",
+     ylab="-log10 mean probability of overlap by chance",
+     xlab="Proportion of samples with overlapping DE genes")
+for (X in names(temp_x)) { 
+  points(temp_x[[X]],temp_y[[X]],type="l",col=temp_col[X])
+  if (any(temp_y[[X]] > 1)) {
+    text(temp_x[[X]][which.max(temp_y[[X]])],max(temp_y[[X]]),
+         labels=X,col=temp_col[X],pos=4,font=2)
+  }
+}
+
+if (exists("lvl4_OVLPact_lig_ct")) {
+  temp <- NULL
+} else if (file.exists("../CMapCorr_files/200702_lvl4_OVLP_lig_ct.RData")) {
+  temp <- load("../CMapCorr_files/200702_lvl4_OVLP_lig_ct.RData") 
+} else {
+  source("200624_DEoverlaptest.R")
+}
+temp_OVLP <- unlist(lvl4_OVLPprob_lig_ct,recursive=F)
+for (X in names(temp_OVLP)) {
+  for (Y in names(temp_OVLP[[X]])) {
+    temp_OVLP[[X]][[Y]][temp_OVLP[[X]][[Y]] == 0] <- 1e-160
+  }
+}
+
+temp_y <- sapply(temp_OVLP,function(X) sapply(X,function(Z) mean(-log10(Z))))
+temp_x <- sapply(strsplit(names(temp_y),".",T),function(X) {
+  2:(length(temp_y[[paste(X,collapse=".")]]) + 1) / 
+    sum(lvl4_data@cdesc$pert_iname == X[1] &
+          lvl4_data@cdesc$cell_id == X[2])
+  })
+names(temp_x) <- names(temp_y)
+temp_col <- qualitative_hcl(length(lig16),palette="dark3",alpha=0.7)
+names(temp_col) <- lig16
+temp_col <- temp_col[sapply(strsplit(names(temp_y),".",T),"[[",1)]
+names(temp_col) <- names(temp_y)
+
+plot(NA,NA,xlim=c(0,1.1),ylim=range(unlist(temp_y)),
+     main="DE gene overlap within ligands and cell types",
+     ylab="-log10 mean probability of overlap by chance",
+     xlab="Proportion of samples with overlapping DE genes")
+for (X in names(temp_y)) { 
+  points(temp_x[[X]],temp_y[[X]],type="l",col=temp_col[X])
+  if (any(temp_y[[X]] > 25)) {
+    text(temp_x[[X]][which.max(temp_y[[X]])],max(temp_y[[X]]),
+         labels=X,col=temp_col[X],pos=4,font=2)
+  }
+}
+
+```
+
+
+****  
 
 ## Level 5
 
@@ -423,8 +563,8 @@ test_results <- data.frame(
   Labels=as.vector(t(sapply(rfresults,function(X) X$predictions))),
   stringsAsFactors=F
 )
-test_hits <- vector("list",sum(lvl5_data@cdesc$pert_iname %in% lig15))
-names(test_hits) <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname %in% lig15]
+test_hits <- vector("list",sum(lvl5_data@cdesc$pert_iname %in% lig16))
+names(test_hits) <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname %in% lig16]
 
 for (X in 1:nrow(test_results)) {
   test_hits[[test_results[X,"IDs"]]] <- append(test_hits[[test_results[X,"IDs"]]],
@@ -434,7 +574,7 @@ for (X in 1:nrow(test_results)) {
 acc_leave1out <- sapply(names(test_hits),function(X) 
   sum(test_hits[[X]] == lvl5_data@cdesc[X,"pert_iname"]) / 
     length(test_hits[[X]]))
-acc_leave1out_totals <- sapply(lig15,function(X) {
+acc_leave1out_totals <- sapply(lig16,function(X) {
   Y <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname == X]
   return(sum(unlist(test_hits[Y]) == X) / 
            length(unlist(test_hits[Y])))
@@ -465,5 +605,373 @@ mtext(names(acc_leave1out_totals),side=1,line=0.1,las=2,at=temp_loc,font=2,cex=0
 
 Ligands used in the ligand treatment prediction model earlier are highlighted here, coloured by the accuracy of prediction where darker is higher accuracy.  As one might expect, ligands that were easier to predict generally had more consistent z-scores, though there are exceptions.
 
+
+### Differentially expressed gene overlap
+
+Differentially expressed genes are identified as those with z-scores > 1.645, corresponding to the 95th percentile of normally-distributed data and therefore a 5% chance of having a positive difference from plate-matched controls by chance alone.
+
+```{r lvl5_de_jaccard_hist, echo=FALSE,message=FALSE,warning=FALSE,fig.height=8,fig.width=9,fig.show='hold'}
+if (exists("lvl5_jacc_ct")) {
+} else if (file.exists("../CMapCorr_files/200624_lvl5jacc.RData")) {
+  temp <- load("../CMapCorr_files/200624_lvl5jacc.RData") 
+} else {
+  source("200624_DEjaccard.R")
+}
+
+for (X in grep("jacc",temp,value=T)) {
+  assign(sub("^lvl5_","",X),
+         unlist(get(X),use.names=F))
+}
+
+par(mfrow=c(4,1),mar=c(3,3,2,1),mgp=c(2,1,0))
+
+hist(unlist(jacc_ct),breaks=100,xlim=0:1,
+     xlab="Pairwise Jaccard distance",
+     main="Overlapping DE genes between treatments by cell type")
+abline(v=median(jacc_ct),lwd=2,col="red")
+legend("topright",bty="n",lwd=2,col="red",legend="Median")
+
+hist(jacc_lig,breaks=100,xlim=0:1,
+     xlab="Pairwise Jaccard distance",
+     main="Overlapping DE genes between treatments by ligand")
+abline(v=median(jacc_lig),lwd=2,col="red")
+legend("topright",bty="n",lwd=2,col="red",legend="Median")
+
+hist(jacc_lig_ct,breaks=100,xlim=0:1,
+     xlab="Pairwise Jaccard distance",
+     main="Overlapping DE genes between treatments by ligand per cell type")
+abline(v=median(jacc_lig_ct),lwd=2,col="red")
+legend("topright",bty="n",lwd=2,col="red",legend="Median")
+
+hist(jacc_lig_tx,breaks=100,xlim=0:1,
+     xlab="Pairwise Jaccard distance",
+     main="Overlapping DE genes between treatments by ligand per treatment condition")
+abline(v=median(jacc_lig_tx),lwd=2,col="red")
+legend("topright",bty="n",lwd=2,col="red",legend="Median")
+
+rm(list=c("X",grep("jacc_",ls(),value=T)))
+```
+
+
+```{r lvl5_de_overlap, echo=FALSE,message=FALSE,warning=FALSE,fig.height=12,fig.width=9,fig.show='hold'}
+par(mfrow=c(3,1),mar=c(3,3,2,1),mgp=2:0)
+
+if (exists("lvl5_OVLPact_ct")) {
+  temp <- NULL
+} else if (file.exists("../CMapCorr_files/200702_lvl5_OVLP_ct.RData")) {
+  temp <- load("../CMapCorr_files/200702_lvl5_OVLP_ct.RData") 
+} else {
+  source("200624_DEoverlaptest.R")
+}
+
+temp_y <- sapply(lvl5_OVLPprob_ct,function(X) apply(-log10(X),2,mean))
+temp_x <- sapply(names(temp_y),function(X) 
+  2:(length(temp_y[[X]]) + 1) / sum(lvl5_data@cdesc$cell_id == X))
+temp_col <- qualitative_hcl(length(temp_x),palette="dark3",alpha=0.7)
+names(temp_col) <- names(temp_x)
+
+plot(NA,NA,xlim=0:1,ylim=range(unlist(temp_y)),
+     main="DE gene overlap within cell lines",
+     ylab="-log10 probability of overlap by chance",
+     xlab="Proportion of samples with overlapping DE genes")
+for (X in names(temp_x)) { points(temp_x[[X]],temp_y[[X]],type="l",col=temp_col[X]) }
+
+
+if (exists("lvl5_OVLPact_lig")) {
+  temp <- NULL
+} else if (file.exists("../CMapCorr_files/200702_lvl5_OVLP_lig.RData")) {
+  temp <- load("../CMapCorr_files/200702_lvl5_OVLP_lig.RData") 
+} else {
+  source("200624_DEoverlaptest.R")
+}
+
+for (LIG in names(lvl5_OVLPprob_lig)) {
+  lvl5_OVLPprob_lig[[LIG]][lvl5_OVLPprob_lig[[LIG]] == 0] <- 1e-100
+}
+temp_y <- sapply(lvl5_OVLPprob_lig,function(X) apply(-log10(X),2,mean))
+temp_x <- sapply(names(temp_y),function(X) 
+  2:(length(temp_y[[X]]) + 1) / sum(lvl5_data@cdesc$pert_iname == X))
+temp_col <- qualitative_hcl(length(temp_x),palette="dark3",alpha=0.7)
+names(temp_col) <- names(temp_x)
+
+plot(NA,NA,xlim=0:1,ylim=range(unlist(temp_y)),
+     main="DE gene overlap within ligands",
+     ylab="-log10 mean probability of overlap by chance",
+     xlab="Proportion of samples with overlapping DE genes")
+for (X in names(temp_x)) { 
+  points(temp_x[[X]],temp_y[[X]],type="l",col=temp_col[X])
+  if (any(temp_y[[X]] > 1)) {
+    text(temp_x[[X]][which.max(temp_y[[X]])],max(temp_y[[X]]),
+         labels=X,col=temp_col[X],pos=4,font=2)
+  }
+}
+
+if (exists("lvl5_OVLPact_lig_ct")) {
+  temp <- NULL
+} else if (file.exists("../CMapCorr_files/200702_lvl5_OVLP_lig_ct.RData")) {
+  temp <- load("../CMapCorr_files/200702_lvl5_OVLP_lig_ct.RData") 
+} else {
+  source("200624_DEoverlaptest.R")
+}
+temp_OVLP <- unlist(lvl5_OVLPprob_lig_ct,recursive=F)
+for (X in names(temp_OVLP)) {
+  for (Y in names(temp_OVLP[[X]])) {
+    temp_OVLP[[X]][[Y]][temp_OVLP[[X]][[Y]] == 0] <- 1e-160
+  }
+}
+temp_OVLP <- temp_OVLP[sapply(temp_OVLP,length) > 0]
+temp_y <- sapply(temp_OVLP,function(X) sapply(X,function(Z) mean(-log10(Z))))
+temp_x <- sapply(strsplit(names(temp_y),".",T),function(X) {
+  2:(length(temp_y[[paste(X,collapse=".")]]) + 1) / 
+    sum(lvl5_data@cdesc$pert_iname == X[1] &
+          lvl5_data@cdesc$cell_id == X[2])
+  })
+names(temp_x) <- names(temp_y)
+temp_col <- qualitative_hcl(length(lig16),palette="dark3",alpha=0.7)
+names(temp_col) <- lig16
+temp_col <- temp_col[sapply(strsplit(names(temp_y),".",T),"[[",1)]
+names(temp_col) <- names(temp_y)
+
+plot(NA,NA,xlim=c(0,1.1),ylim=range(unlist(temp_y)),
+     main="DE gene overlap within ligands and cell types",
+     ylab="-log10 mean probability of overlap by chance",
+     xlab="Proportion of samples with overlapping DE genes")
+for (X in names(temp_y)) { 
+  points(temp_x[[X]],temp_y[[X]],type="l",col=temp_col[X])
+  if (any(temp_y[[X]] > 25)) {
+    text(temp_x[[X]][which.max(temp_y[[X]])],max(temp_y[[X]]),
+         labels=X,col=temp_col[X],pos=4,font=2)
+  }
+}
+
+```
+
+
 ****
 
+## Level 4 recalculated
+
+```{r lvl4new_load, echo=FALSE,message=FALSE,warning=FALSE,fig.height=4,fig.width=6,fig.show='hold'}
+if (exists("lvl4new_data")) {
+} else if (file.exists("../CMapCorr_files/lvl4new.RData")) {
+  load("../CMapCorr_files/lvl4new.RData") 
+} else {
+  source("200706_ZscoreFromAssayed.R")
+}
+
+par(mar=c(3,3,2,1),mgp=2:0)
+smoothScatter(as.vector(lvl4_data@mat[,colnames(lvl4new_data@mat)]),
+              as.vector(lvl4new_data@mat),
+              xlab="Original level 4 data",ylab="Recalculated level 4 data")
+mtext(paste("PCC =",
+            round(
+              cor(as.vector(lvl4_data@mat[,colnames(lvl4new_data@mat)]),
+                  as.vector(lvl4new_data@mat)),
+              3)),
+      side=3)
+```
+
+
+
+```{r lvl4new_corr, echo=FALSE,message=FALSE,warning=FALSE}
+if (exists("lvl4new_ctl_corr_plate")) {
+} else if (file.exists("../CMapCorr_files/200706_lvl4newcorr.RData")) {
+  temp <- load("../CMapCorr_files/200706_lvl4newcorr.RData") 
+} else {
+  source("200615_ctlcorr_inputs.R")
+}
+
+for (X in temp) {
+  assign(sub("_$","",sub("lvl4new_","corr_",sub("corr_?","",X))),
+         unlist(get(X),use.names=F))
+}
+temp_min <- do.call(min,mget(grep("^corr_",ls(),value=T)))
+
+rm(X,temp)
+```
+
+
+```{r lvl4new_corr_hist, echo=FALSE,message=FALSE,warning=FALSE,fig.height=8,fig.width=9,fig.show='hold'}
+par(mfrow=c(4,1),mar=c(3,3,2,1),mgp=c(2,1,0))
+
+hist(corr_ct,breaks=100,xlim=c(temp_min,1),
+     xlab="Pairwise Spearman correlation coefficient",
+     main="Correlation between treatments by cell type")
+abline(v=median(corr_ct),lwd=2,col="red")
+legend("topleft",bty="n",lwd=2,col="red",legend="Median")
+
+hist(corr_lig,breaks=100,xlim=c(temp_min,1),
+     xlab="Pairwise Spearman correlation coefficient",
+     main="Correlation between treatments by ligand")
+abline(v=median(corr_lig),lwd=2,col="red")
+legend("topleft",bty="n",lwd=2,col="red",legend="Median")
+
+hist(corr_lig_ct,breaks=100,xlim=c(temp_min,1),
+     xlab="Pairwise Spearman correlation coefficient",
+     main="Correlation between treatments by ligand per cell type")
+abline(v=median(corr_lig_ct),lwd=2,col="red")
+legend("topleft",bty="n",lwd=2,col="red",legend="Median")
+
+hist(corr_lig_tx,breaks=100,xlim=c(temp_min,1),
+     xlab="Pairwise Spearman correlation coefficient",
+     main="Correlation between treatments by ligand per treatment condition")
+abline(v=median(corr_lig_tx),lwd=2,col="red")
+legend("topleft",bty="n",lwd=2,col="red",legend="Median")
+
+rm(list=c(grep("^corr_",ls(),value=T),grep("^temp",ls(),value=T)))
+```
+
+After calculating robust z-scores for the difference between ligand-treated transcriptomes and plate-matched controls (level 4 data), things get a little strange.
+
+```{r lvl4new_tx_corr, echo=FALSE,message=FALSE,warning=FALSE,fig.height=4,fig.width=9,fig.show='hold'}
+par(mar=c(2,3,2,3),mgp=2:0)
+boxplot(lvl4new_lig_corr_tx[order(sapply(lvl4new_lig_corr_tx,median))],
+        pch=".",xaxt="n",xlab=NA,ylim=c(-1,1),
+        ylab="Pairwise Pearson correlation coefficients",
+        main="Correlation between treatments by ligand per treatment condition")
+points(sort(sapply(lvl4new_lig_corr_tx,median)),type="l",col="dodgerblue",lwd=2)
+axis(side=4)
+mtext("Pairwise Pearson correlation coefficients",side=4,line=2)
+mtext("Ligands, sorted by median",side=1)
+legend("bottomright","Median",lwd=2,col="dodgerblue",bty="n")
+```
+
+### Differentially expressed gene overlap
+
+Differentially expressed genes are identified as those with z-scores > 1.645, corresponding to the 95th percentile of normally-distributed data and therefore a 5% chance of having a positive difference from plate-matched controls by chance alone.
+
+```{r lvl4new_de_jaccard_hist, echo=FALSE,message=FALSE,warning=FALSE,fig.height=8,fig.width=9,fig.show='hold'}
+if (exists("lvl4new_jacc_ct")) {
+} else if (file.exists("../CMapCorr_files/200706_lvl4newjacc.RData")) {
+  temp <- load("../CMapCorr_files/200706_lvl4newjacc.RData") 
+} else {
+  source("200624_DEjaccard.R")
+}
+
+for (X in grep("jacc",temp,value=T)) {
+  assign(sub("^lvl4new_","",X),
+         unlist(get(X),use.names=F))
+}
+
+par(mfrow=c(4,1),mar=c(3,3,2,1),mgp=c(2,1,0))
+
+hist(unlist(jacc_ct),breaks=100,xlim=0:1,
+     xlab="Pairwise Jaccard distance",
+     main="Overlapping DE genes between treatments by cell type")
+abline(v=median(jacc_ct),lwd=2,col="red")
+legend("topright",bty="n",lwd=2,col="red",legend="Median")
+
+hist(jacc_lig,breaks=100,xlim=0:1,
+     xlab="Pairwise Jaccard distance",
+     main="Overlapping DE genes between treatments by ligand")
+abline(v=median(jacc_lig),lwd=2,col="red")
+legend("topright",bty="n",lwd=2,col="red",legend="Median")
+
+hist(jacc_lig_ct,breaks=100,xlim=0:1,
+     xlab="Pairwise Jaccard distance",
+     main="Overlapping DE genes between treatments by ligand per cell type")
+abline(v=median(jacc_lig_ct),lwd=2,col="red")
+legend("topright",bty="n",lwd=2,col="red",legend="Median")
+
+hist(jacc_lig_tx,breaks=100,xlim=0:1,
+     xlab="Pairwise Jaccard distance",
+     main="Overlapping DE genes between treatments by ligand per treatment condition")
+abline(v=median(jacc_lig_tx),lwd=2,col="red")
+legend("topright",bty="n",lwd=2,col="red",legend="Median")
+
+rm(list=c("X",grep("jacc_",ls(),value=T)))
+```
+
+
+```{r lvl4new_de_overlap, echo=FALSE,message=FALSE,warning=FALSE,fig.height=12,fig.width=9,fig.show='hold'}
+par(mfrow=c(3,1),mar=c(3,3,2,1),mgp=2:0)
+
+if (exists("lvl4new_OVLPact_ct")) {
+  temp <- NULL
+} else if (file.exists("../CMapCorr_files/200707_lvl4new_OVLP_ct.RData")) {
+  temp <- load("../CMapCorr_files/200707_lvl4new_OVLP_ct.RData") 
+} else {
+  source("200624_DEoverlaptest.R")
+}
+
+temp_y <- sapply(lvl4new_OVLPprob_ct,function(X) apply(-log10(X),2,mean))
+temp_x <- sapply(names(temp_y),function(X) 
+  2:(length(temp_y[[X]]) + 1) / sum(lvl4new_data@cdesc$cell_id == X))
+temp_col <- qualitative_hcl(length(temp_x),palette="dark3",alpha=0.7)
+names(temp_col) <- names(temp_x)
+
+plot(NA,NA,xlim=0:1,ylim=range(unlist(temp_y)),
+     main="DE gene overlap within cell lines",
+     ylab="-log10 probability of overlap by chance",
+     xlab="Proportion of samples with overlapping DE genes")
+for (X in names(temp_x)) { points(temp_x[[X]],temp_y[[X]],type="l",col=temp_col[X]) }
+
+
+if (exists("lvl4new_OVLPact_lig")) {
+  temp <- NULL
+} else if (file.exists("../CMapCorr_files/200707_lvl4new_OVLP_lig.RData")) {
+  temp <- load("../CMapCorr_files/200707_lvl4new_OVLP_lig.RData") 
+} else {
+  source("200624_DEoverlaptest.R")
+}
+
+for (LIG in names(lvl4new_OVLPprob_lig)) {
+  lvl4new_OVLPprob_lig[[LIG]][lvl4new_OVLPprob_lig[[LIG]] == 0] <- 1e-100
+}
+temp_y <- sapply(lvl4new_OVLPprob_lig,function(X) apply(-log10(X),2,mean))
+temp_x <- sapply(names(temp_y),function(X) 
+  2:(length(temp_y[[X]]) + 1) / sum(lvl4new_data@cdesc$pert_iname == X))
+temp_col <- qualitative_hcl(length(temp_x),palette="dark3",alpha=0.7)
+names(temp_col) <- names(temp_x)
+
+plot(NA,NA,xlim=0:1,ylim=range(unlist(temp_y)),
+     main="DE gene overlap within ligands",
+     ylab="-log10 mean probability of overlap by chance",
+     xlab="Proportion of samples with overlapping DE genes")
+for (X in names(temp_x)) { 
+  points(temp_x[[X]],temp_y[[X]],type="l",col=temp_col[X])
+  if (any(temp_y[[X]] > 1)) {
+    text(temp_x[[X]][which.max(temp_y[[X]])],max(temp_y[[X]]),
+         labels=X,col=temp_col[X],pos=4,font=2)
+  }
+}
+
+if (exists("lvl4new_OVLPact_lig_ct")) {
+  temp <- NULL
+} else if (file.exists("../CMapCorr_files/200707_lvl4new_OVLP_lig_ct.RData")) {
+  temp <- load("../CMapCorr_files/200707_lvl4new_OVLP_lig_ct.RData") 
+} else {
+  source("200624_DEoverlaptest.R")
+}
+temp_OVLP <- unlist(lvl4new_OVLPprob_lig_ct,recursive=F)
+for (X in names(temp_OVLP)) {
+  for (Y in names(temp_OVLP[[X]])) {
+    temp_OVLP[[X]][[Y]][temp_OVLP[[X]][[Y]] == 0] <- 1e-160
+  }
+}
+
+temp_y <- sapply(temp_OVLP,function(X) sapply(X,function(Z) mean(-log10(Z))))
+temp_x <- sapply(strsplit(names(temp_y),".",T),function(X) {
+  2:(length(temp_y[[paste(X,collapse=".")]]) + 1) / 
+    sum(lvl4new_data@cdesc$pert_iname == X[1] &
+          lvl4new_data@cdesc$cell_id == X[2])
+  })
+names(temp_x) <- names(temp_y)
+temp_col <- qualitative_hcl(length(lig16),palette="dark3",alpha=0.7)
+names(temp_col) <- lig16
+temp_col <- temp_col[sapply(strsplit(names(temp_y),".",T),"[[",1)]
+names(temp_col) <- names(temp_y)
+
+plot(NA,NA,xlim=c(0,1.1),ylim=range(unlist(temp_y)),
+     main="DE gene overlap within ligands and cell types",
+     ylab="-log10 mean probability of overlap by chance",
+     xlab="Proportion of samples with overlapping DE genes")
+for (X in names(temp_y)) { 
+  points(temp_x[[X]],temp_y[[X]],type="l",col=temp_col[X])
+  if (any(temp_y[[X]] > 25)) {
+    text(temp_x[[X]][which.max(temp_y[[X]])],max(temp_y[[X]]),
+         labels=X,col=temp_col[X],pos=4,font=2)
+  }
+}
+
+```

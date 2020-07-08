@@ -273,22 +273,31 @@ $(document).ready(function () {
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
         <li>
-  <a href="CmapDataSummary_lvl3.html">Lvl3 Data</a>
+  <a href="CmapDataSummary.html">CMap Data</a>
 </li>
 <li>
-  <a href="CellStimPred_lvl3.html">Predicting Perturbed Cells</a>
+  <a href="CmapCtrlCorr.html">Sanity Check</a>
 </li>
 <li>
-  <a href="CmapDataSummary_lvl5.html">Lvl5 Data</a>
+  <a href="CellStimPred_lvl3.html">Tx pred</a>
 </li>
 <li>
-  <a href="LigPred_lvl5.html">Predicting Ligand Treatment</a>
+  <a href="LigPred_lvl5.html">Lvl5 lig pred</a>
 </li>
 <li>
-  <a href="RecExpr.html">Biology of Ligand Response</a>
+  <a href="RecExpr.html">Lvl5 followup</a>
 </li>
 <li>
-  <a href="CmapCtrlCorr.html">Backtrack to Sanity Check</a>
+  <a href="LigPred_lvl4.html">Lvl4 lig pred</a>
+</li>
+<li>
+  <a href="LigPred_lvl4new.html">Lvl4new lig pred</a>
+</li>
+<li>
+  <a href="LigPred_lvl4pca.html">Lvl4 PCA lig pred</a>
+</li>
+<li>
+  <a href="LigPred_extrapolate.html">Lig pred on new CT</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
@@ -349,98 +358,34 @@ rec_bal
 <tbody>
 <tr>
 <td style="text-align:left;">
-BTC
-</td>
-<td style="text-align:right;">
-0.988
-</td>
-<td style="text-align:right;">
-0.908
-</td>
-<td style="text-align:right;">
-0.321
-</td>
-<td style="text-align:right;">
-0.988
-</td>
-<td style="text-align:right;">
-0.920
-</td>
-<td style="text-align:right;">
-0.321
-</td>
-<td style="text-align:right;">
-0.965
-</td>
-<td style="text-align:right;">
-0.319
-</td>
-<td style="text-align:right;">
-0.926
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
 EGF
 </td>
 <td style="text-align:right;">
 0.980
 </td>
 <td style="text-align:right;">
-0.703
+0.718
 </td>
 <td style="text-align:right;">
-0.667
+0.607
 </td>
 <td style="text-align:right;">
 0.980
 </td>
 <td style="text-align:right;">
-0.694
+0.718
 </td>
 <td style="text-align:right;">
-0.672
+0.617
 </td>
 <td style="text-align:right;">
-0.978
+0.979
 </td>
 <td style="text-align:right;">
-0.598
+0.615
 </td>
 <td style="text-align:right;">
-0.934
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-GDNF
-</td>
-<td style="text-align:right;">
-0.987
-</td>
-<td style="text-align:right;">
-0.836
-</td>
-<td style="text-align:right;">
-0.262
-</td>
-<td style="text-align:right;">
-0.986
-</td>
-<td style="text-align:right;">
-0.800
-</td>
-<td style="text-align:right;">
-0.262
-</td>
-<td style="text-align:right;">
-0.974
-</td>
-<td style="text-align:right;">
-0.383
-</td>
-<td style="text-align:right;">
-0.883
+0.925
 </td>
 </tr>
 <tr>
@@ -451,16 +396,16 @@ HGF
 0.983
 </td>
 <td style="text-align:right;">
-0.648
+0.673
 </td>
 <td style="text-align:right;">
-0.194
+0.139
 </td>
 <td style="text-align:right;">
-0.982
+0.983
 </td>
 <td style="text-align:right;">
-0.609
+0.765
 </td>
 <td style="text-align:right;">
 0.165
@@ -469,10 +414,10 @@ HGF
 0.950
 </td>
 <td style="text-align:right;">
-0.263
+0.268
 </td>
 <td style="text-align:right;">
-0.932
+0.958
 </td>
 </tr>
 <tr>
@@ -483,60 +428,124 @@ INS
 0.984
 </td>
 <td style="text-align:right;">
-0.689
-</td>
-<td style="text-align:right;">
-0.191
-</td>
-<td style="text-align:right;">
-0.985
-</td>
-<td style="text-align:right;">
-0.746
+0.602
 </td>
 <td style="text-align:right;">
 0.227
 </td>
 <td style="text-align:right;">
-0.970
+0.984
 </td>
 <td style="text-align:right;">
-0.357
+0.570
 </td>
 <td style="text-align:right;">
-0.909
+0.223
+</td>
+<td style="text-align:right;">
+0.975
+</td>
+<td style="text-align:right;">
+0.404
+</td>
+<td style="text-align:right;">
+0.914
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-TNF
+IGF2
 </td>
 <td style="text-align:right;">
-0.994
+0.985
 </td>
 <td style="text-align:right;">
-0.993
+0.844
 </td>
 <td style="text-align:right;">
-0.645
+0.173
 </td>
 <td style="text-align:right;">
-0.994
+0.985
 </td>
 <td style="text-align:right;">
-0.993
+0.851
 </td>
 <td style="text-align:right;">
-0.635
+0.182
 </td>
 <td style="text-align:right;">
-0.978
+0.959
 </td>
 <td style="text-align:right;">
-0.434
+0.294
 </td>
 <td style="text-align:right;">
-0.934
+0.941
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TGFA
+</td>
+<td style="text-align:right;">
+0.988
+</td>
+<td style="text-align:right;">
+0.813
+</td>
+<td style="text-align:right;">
+0.397
+</td>
+<td style="text-align:right;">
+0.988
+</td>
+<td style="text-align:right;">
+0.824
+</td>
+<td style="text-align:right;">
+0.406
+</td>
+<td style="text-align:right;">
+0.970
+</td>
+<td style="text-align:right;">
+0.359
+</td>
+<td style="text-align:right;">
+0.913
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+IGF1
+</td>
+<td style="text-align:right;">
+0.985
+</td>
+<td style="text-align:right;">
+0.769
+</td>
+<td style="text-align:right;">
+0.183
+</td>
+<td style="text-align:right;">
+0.985
+</td>
+<td style="text-align:right;">
+0.789
+</td>
+<td style="text-align:right;">
+0.205
+</td>
+<td style="text-align:right;">
+0.970
+</td>
+<td style="text-align:right;">
+0.358
+</td>
+<td style="text-align:right;">
+0.909
 </td>
 </tr>
 <tr>
@@ -547,60 +556,28 @@ FGF1
 0.985
 </td>
 <td style="text-align:right;">
-0.746
+0.772
 </td>
 <td style="text-align:right;">
-0.215
+0.201
 </td>
 <td style="text-align:right;">
 0.985
 </td>
 <td style="text-align:right;">
-0.687
+0.818
 </td>
 <td style="text-align:right;">
-0.210
+0.205
 </td>
 <td style="text-align:right;">
-0.969
+0.967
 </td>
 <td style="text-align:right;">
-0.345
+0.338
 </td>
 <td style="text-align:right;">
-0.900
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-GAS6
-</td>
-<td style="text-align:right;">
-0.984
-</td>
-<td style="text-align:right;">
-0.622
-</td>
-<td style="text-align:right;">
-0.108
-</td>
-<td style="text-align:right;">
-0.984
-</td>
-<td style="text-align:right;">
-0.574
-</td>
-<td style="text-align:right;">
-0.127
-</td>
-<td style="text-align:right;">
-0.971
-</td>
-<td style="text-align:right;">
-0.360
-</td>
-<td style="text-align:right;">
-0.901
+0.922
 </td>
 </tr>
 <tr>
@@ -608,191 +585,31 @@ GAS6
 HBEGF
 </td>
 <td style="text-align:right;">
-0.986
+0.985
 </td>
 <td style="text-align:right;">
-0.812
+0.759
 </td>
 <td style="text-align:right;">
-0.237
+0.201
 </td>
 <td style="text-align:right;">
-0.986
+0.985
 </td>
 <td style="text-align:right;">
-0.815
+0.754
 </td>
 <td style="text-align:right;">
-0.242
+0.196
 </td>
 <td style="text-align:right;">
-0.962
+0.971
 </td>
 <td style="text-align:right;">
-0.304
+0.369
 </td>
 <td style="text-align:right;">
-0.941
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-IFNG
-</td>
-<td style="text-align:right;">
-0.991
-</td>
-<td style="text-align:right;">
-1.000
-</td>
-<td style="text-align:right;">
-0.495
-</td>
-<td style="text-align:right;">
-0.992
-</td>
-<td style="text-align:right;">
-1.000
-</td>
-<td style="text-align:right;">
-0.505
-</td>
-<td style="text-align:right;">
-0.978
-</td>
-<td style="text-align:right;">
-0.434
-</td>
-<td style="text-align:right;">
-0.949
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-IGF1
-</td>
-<td style="text-align:right;">
-0.984
-</td>
-<td style="text-align:right;">
-0.647
-</td>
-<td style="text-align:right;">
-0.151
-</td>
-<td style="text-align:right;">
-0.984
-</td>
-<td style="text-align:right;">
-0.680
-</td>
-<td style="text-align:right;">
-0.155
-</td>
-<td style="text-align:right;">
-0.972
-</td>
-<td style="text-align:right;">
-0.372
-</td>
-<td style="text-align:right;">
-0.895
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-IGF2
-</td>
-<td style="text-align:right;">
-0.983
-</td>
-<td style="text-align:right;">
-0.566
-</td>
-<td style="text-align:right;">
-0.195
-</td>
-<td style="text-align:right;">
-0.983
-</td>
-<td style="text-align:right;">
-0.538
-</td>
-<td style="text-align:right;">
-0.195
-</td>
-<td style="text-align:right;">
-0.972
-</td>
-<td style="text-align:right;">
-0.376
-</td>
-<td style="text-align:right;">
-0.905
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-IL17A
-</td>
-<td style="text-align:right;">
-0.986
-</td>
-<td style="text-align:right;">
-0.833
-</td>
-<td style="text-align:right;">
-0.191
-</td>
-<td style="text-align:right;">
-0.986
-</td>
-<td style="text-align:right;">
-0.796
-</td>
-<td style="text-align:right;">
-0.206
-</td>
-<td style="text-align:right;">
-0.978
-</td>
-<td style="text-align:right;">
-0.431
-</td>
-<td style="text-align:right;">
-0.976
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-IL4
-</td>
-<td style="text-align:right;">
-0.986
-</td>
-<td style="text-align:right;">
-0.705
-</td>
-<td style="text-align:right;">
-0.286
-</td>
-<td style="text-align:right;">
-0.986
-</td>
-<td style="text-align:right;">
-0.692
-</td>
-<td style="text-align:right;">
-0.290
-</td>
-<td style="text-align:right;">
-0.977
-</td>
-<td style="text-align:right;">
-0.418
-</td>
-<td style="text-align:right;">
-0.871
+0.909
 </td>
 </tr>
 <tr>
@@ -803,28 +620,252 @@ IL6
 0.985
 </td>
 <td style="text-align:right;">
-0.766
+0.651
 </td>
 <td style="text-align:right;">
-0.226
+0.249
 </td>
 <td style="text-align:right;">
 0.985
 </td>
 <td style="text-align:right;">
-0.750
+0.659
 </td>
 <td style="text-align:right;">
-0.235
+0.258
+</td>
+<td style="text-align:right;">
+0.968
+</td>
+<td style="text-align:right;">
+0.341
+</td>
+<td style="text-align:right;">
+0.926
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+IL4
+</td>
+<td style="text-align:right;">
+0.986
+</td>
+<td style="text-align:right;">
+0.707
+</td>
+<td style="text-align:right;">
+0.300
+</td>
+<td style="text-align:right;">
+0.986
+</td>
+<td style="text-align:right;">
+0.736
+</td>
+<td style="text-align:right;">
+0.295
+</td>
+<td style="text-align:right;">
+0.973
+</td>
+<td style="text-align:right;">
+0.383
+</td>
+<td style="text-align:right;">
+0.889
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+IFNG
+</td>
+<td style="text-align:right;">
+0.992
+</td>
+<td style="text-align:right;">
+1.000
+</td>
+<td style="text-align:right;">
+0.528
+</td>
+<td style="text-align:right;">
+0.991
+</td>
+<td style="text-align:right;">
+1.000
+</td>
+<td style="text-align:right;">
+0.500
 </td>
 <td style="text-align:right;">
 0.976
 </td>
 <td style="text-align:right;">
-0.412
+0.414
 </td>
 <td style="text-align:right;">
-0.871
+0.926
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BTC
+</td>
+<td style="text-align:right;">
+0.987
+</td>
+<td style="text-align:right;">
+0.891
+</td>
+<td style="text-align:right;">
+0.265
+</td>
+<td style="text-align:right;">
+0.987
+</td>
+<td style="text-align:right;">
+0.892
+</td>
+<td style="text-align:right;">
+0.270
+</td>
+<td style="text-align:right;">
+0.975
+</td>
+<td style="text-align:right;">
+0.402
+</td>
+<td style="text-align:right;">
+0.898
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+GDNF
+</td>
+<td style="text-align:right;">
+0.985
+</td>
+<td style="text-align:right;">
+0.632
+</td>
+<td style="text-align:right;">
+0.257
+</td>
+<td style="text-align:right;">
+0.985
+</td>
+<td style="text-align:right;">
+0.630
+</td>
+<td style="text-align:right;">
+0.271
+</td>
+<td style="text-align:right;">
+0.976
+</td>
+<td style="text-align:right;">
+0.405
+</td>
+<td style="text-align:right;">
+0.897
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+GAS6
+</td>
+<td style="text-align:right;">
+0.982
+</td>
+<td style="text-align:right;">
+0.411
+</td>
+<td style="text-align:right;">
+0.108
+</td>
+<td style="text-align:right;">
+0.982
+</td>
+<td style="text-align:right;">
+0.415
+</td>
+<td style="text-align:right;">
+0.103
+</td>
+<td style="text-align:right;">
+0.970
+</td>
+<td style="text-align:right;">
+0.349
+</td>
+<td style="text-align:right;">
+0.892
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TNF
+</td>
+<td style="text-align:right;">
+0.993
+</td>
+<td style="text-align:right;">
+0.992
+</td>
+<td style="text-align:right;">
+0.597
+</td>
+<td style="text-align:right;">
+0.993
+</td>
+<td style="text-align:right;">
+0.992
+</td>
+<td style="text-align:right;">
+0.607
+</td>
+<td style="text-align:right;">
+0.978
+</td>
+<td style="text-align:right;">
+0.423
+</td>
+<td style="text-align:right;">
+0.929
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+IL17A
+</td>
+<td style="text-align:right;">
+0.987
+</td>
+<td style="text-align:right;">
+0.814
+</td>
+<td style="text-align:right;">
+0.273
+</td>
+<td style="text-align:right;">
+0.987
+</td>
+<td style="text-align:right;">
+0.780
+</td>
+<td style="text-align:right;">
+0.306
+</td>
+<td style="text-align:right;">
+0.978
+</td>
+<td style="text-align:right;">
+0.429
+</td>
+<td style="text-align:right;">
+0.919
 </td>
 </tr>
 </tbody>
@@ -889,143 +930,49 @@ SKBR3
 <tbody>
 <tr>
 <td style="text-align:left;">
-BTC
+EGF
 </td>
 <td style="text-align:right;">
-0.0888889
+0.0701754
 </td>
 <td style="text-align:right;">
-0.4400000
+0.2164948
 </td>
 <td style="text-align:right;">
-0.1764706
+0.2500000
+</td>
+<td style="text-align:right;">
+0.6250000
 </td>
 <td style="text-align:right;">
 0.3636364
 </td>
 <td style="text-align:right;">
-0.5454545
+0.3478261
 </td>
 <td style="text-align:right;">
-0.4000000
+0.8000000
 </td>
 <td style="text-align:right;">
-0.5882353
+0.4444444
 </td>
 <td style="text-align:right;">
-0.1666667
+0.2857143
 </td>
 <td style="text-align:right;">
-NaN
+0.7628866
 </td>
 <td style="text-align:right;">
-0.7073171
+0.7033898
 </td>
 <td style="text-align:right;">
-0.6835443
-</td>
-<td style="text-align:right;">
-0.6521739
-</td>
-<td style="text-align:right;">
-0.6170213
-</td>
-<td style="text-align:right;">
-0.6705882
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-EGF
-</td>
-<td style="text-align:right;">
-0.0857143
-</td>
-<td style="text-align:right;">
-0.3571429
-</td>
-<td style="text-align:right;">
-0.1875000
-</td>
-<td style="text-align:right;">
-0.5882353
-</td>
-<td style="text-align:right;">
-0.2307692
-</td>
-<td style="text-align:right;">
-0.3157895
-</td>
-<td style="text-align:right;">
-0.6666667
-</td>
-<td style="text-align:right;">
-0.5000000
-</td>
-<td style="text-align:right;">
-NaN
-</td>
-<td style="text-align:right;">
-0.7576792
-</td>
-<td style="text-align:right;">
-0.7000000
-</td>
-<td style="text-align:right;">
-0.6517857
+0.5933014
 </td>
 <td style="text-align:right;">
 0.7692308
 </td>
 <td style="text-align:right;">
-0.7465753
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-GDNF
-</td>
-<td style="text-align:right;">
-0.2222222
-</td>
-<td style="text-align:right;">
-0.2816901
-</td>
-<td style="text-align:right;">
-0.1333333
-</td>
-<td style="text-align:right;">
-0.6153846
-</td>
-<td style="text-align:right;">
-NaN
-</td>
-<td style="text-align:right;">
-0.3750000
-</td>
-<td style="text-align:right;">
-0.5714286
-</td>
-<td style="text-align:right;">
-0.5714286
-</td>
-<td style="text-align:right;">
-NaN
-</td>
-<td style="text-align:right;">
-0.3529412
-</td>
-<td style="text-align:right;">
-0.1917808
-</td>
-<td style="text-align:right;">
-0.5972222
-</td>
-<td style="text-align:right;">
-0.6145251
-</td>
-<td style="text-align:right;">
-0.0327869
+0.7450980
 </td>
 </tr>
 <tr>
@@ -1033,46 +980,46 @@ NaN
 HGF
 </td>
 <td style="text-align:right;">
-0.1320755
+0.1538462
 </td>
 <td style="text-align:right;">
-0.4022346
+0.3725490
 </td>
 <td style="text-align:right;">
-0.2307692
+0.2325581
 </td>
 <td style="text-align:right;">
-0.6363636
+0.4705882
 </td>
 <td style="text-align:right;">
-0.4761905
+0.5882353
 </td>
 <td style="text-align:right;">
-0.5000000
+0.3703704
 </td>
 <td style="text-align:right;">
-0.8000000
+0.5833333
 </td>
 <td style="text-align:right;">
-0.4800000
+0.5454545
 </td>
 <td style="text-align:right;">
-NaN
+0.1333333
 </td>
 <td style="text-align:right;">
-0.4126984
+0.5285714
 </td>
 <td style="text-align:right;">
-0.6388889
+0.5774648
 </td>
 <td style="text-align:right;">
-0.6329114
+0.5906040
 </td>
 <td style="text-align:right;">
-0.6222222
+0.6304348
 </td>
 <td style="text-align:right;">
-0.4961240
+0.6153846
 </td>
 </tr>
 <tr>
@@ -1080,13 +1027,119 @@ NaN
 INS
 </td>
 <td style="text-align:right;">
-0.1052632
+0.1153846
 </td>
 <td style="text-align:right;">
-0.4661654
+0.5112108
 </td>
 <td style="text-align:right;">
-0.1935484
+0.2222222
+</td>
+<td style="text-align:right;">
+0.5000000
+</td>
+<td style="text-align:right;">
+0.4285714
+</td>
+<td style="text-align:right;">
+0.2857143
+</td>
+<td style="text-align:right;">
+0.6666667
+</td>
+<td style="text-align:right;">
+0.5714286
+</td>
+<td style="text-align:right;">
+0.1142857
+</td>
+<td style="text-align:right;">
+0.5697674
+</td>
+<td style="text-align:right;">
+0.2784810
+</td>
+<td style="text-align:right;">
+0.3181818
+</td>
+<td style="text-align:right;">
+0.6451613
+</td>
+<td style="text-align:right;">
+0.6619718
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+IGF2
+</td>
+<td style="text-align:right;">
+0.0555556
+</td>
+<td style="text-align:right;">
+0.5630252
+</td>
+<td style="text-align:right;">
+0.3636364
+</td>
+<td style="text-align:right;">
+0.4000000
+</td>
+<td style="text-align:right;">
+0.5000000
+</td>
+<td style="text-align:right;">
+0.4444444
+</td>
+<td style="text-align:right;">
+0.6666667
+</td>
+<td style="text-align:right;">
+0.5714286
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+<td style="text-align:right;">
+0.5822785
+</td>
+<td style="text-align:right;">
+0.3269231
+</td>
+<td style="text-align:right;">
+0.4040404
+</td>
+<td style="text-align:right;">
+0.6285714
+</td>
+<td style="text-align:right;">
+0.5540541
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+TGFA
+</td>
+<td style="text-align:right;">
+0.0869565
+</td>
+<td style="text-align:right;">
+0.4259259
+</td>
+<td style="text-align:right;">
+0.0769231
+</td>
+<td style="text-align:right;">
+0.6000000
+</td>
+<td style="text-align:right;">
+0.5714286
+</td>
+<td style="text-align:right;">
+0.4000000
+</td>
+<td style="text-align:right;">
+0.8000000
 </td>
 <td style="text-align:right;">
 0.5000000
@@ -1095,31 +1148,442 @@ INS
 0.2857143
 </td>
 <td style="text-align:right;">
-0.5000000
-</td>
-<td style="text-align:right;">
-0.5454545
+0.7453416
 </td>
 <td style="text-align:right;">
 0.6666667
 </td>
 <td style="text-align:right;">
-0.3076923
+0.6808511
 </td>
 <td style="text-align:right;">
-0.5948718
+0.6250000
 </td>
 <td style="text-align:right;">
-0.1690141
+0.6867470
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+IGF1
 </td>
 <td style="text-align:right;">
-0.4200000
+0.0571429
 </td>
 <td style="text-align:right;">
-0.6486486
+0.4615385
 </td>
 <td style="text-align:right;">
-0.5844156
+0.3333333
+</td>
+<td style="text-align:right;">
+0.6000000
+</td>
+<td style="text-align:right;">
+0.1538462
+</td>
+<td style="text-align:right;">
+0.5000000
+</td>
+<td style="text-align:right;">
+0.5000000
+</td>
+<td style="text-align:right;">
+0.4000000
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+<td style="text-align:right;">
+0.5970149
+</td>
+<td style="text-align:right;">
+0.5522388
+</td>
+<td style="text-align:right;">
+0.4230769
+</td>
+<td style="text-align:right;">
+0.5673759
+</td>
+<td style="text-align:right;">
+0.5955056
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+FGF1
+</td>
+<td style="text-align:right;">
+0.1219512
+</td>
+<td style="text-align:right;">
+0.4470588
+</td>
+<td style="text-align:right;">
+0.1250000
+</td>
+<td style="text-align:right;">
+0.4761905
+</td>
+<td style="text-align:right;">
+0.3636364
+</td>
+<td style="text-align:right;">
+0.6666667
+</td>
+<td style="text-align:right;">
+0.3750000
+</td>
+<td style="text-align:right;">
+0.6000000
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+<td style="text-align:right;">
+0.5747126
+</td>
+<td style="text-align:right;">
+0.6194690
+</td>
+<td style="text-align:right;">
+0.4444444
+</td>
+<td style="text-align:right;">
+0.6250000
+</td>
+<td style="text-align:right;">
+0.5987261
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+HBEGF
+</td>
+<td style="text-align:right;">
+0.1000000
+</td>
+<td style="text-align:right;">
+0.3826087
+</td>
+<td style="text-align:right;">
+0.1025641
+</td>
+<td style="text-align:right;">
+0.5333333
+</td>
+<td style="text-align:right;">
+0.4705882
+</td>
+<td style="text-align:right;">
+0.4705882
+</td>
+<td style="text-align:right;">
+0.6666667
+</td>
+<td style="text-align:right;">
+0.5000000
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+<td style="text-align:right;">
+0.6363636
+</td>
+<td style="text-align:right;">
+0.6240000
+</td>
+<td style="text-align:right;">
+0.6178862
+</td>
+<td style="text-align:right;">
+0.6250000
+</td>
+<td style="text-align:right;">
+0.5897436
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+IL6
+</td>
+<td style="text-align:right;">
+0.3333333
+</td>
+<td style="text-align:right;">
+0.0481928
+</td>
+<td style="text-align:right;">
+0.3529412
+</td>
+<td style="text-align:right;">
+0.4761905
+</td>
+<td style="text-align:right;">
+0.2666667
+</td>
+<td style="text-align:right;">
+0.5454545
+</td>
+<td style="text-align:right;">
+0.6000000
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+<td style="text-align:right;">
+0.6300000
+</td>
+<td style="text-align:right;">
+0.5289256
+</td>
+<td style="text-align:right;">
+0.4859813
+</td>
+<td style="text-align:right;">
+0.6551724
+</td>
+<td style="text-align:right;">
+0.7044025
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+IL4
+</td>
+<td style="text-align:right;">
+0.0888889
+</td>
+<td style="text-align:right;">
+0.3841060
+</td>
+<td style="text-align:right;">
+0.1860465
+</td>
+<td style="text-align:right;">
+0.7500000
+</td>
+<td style="text-align:right;">
+0.2000000
+</td>
+<td style="text-align:right;">
+0.3333333
+</td>
+<td style="text-align:right;">
+0.5714286
+</td>
+<td style="text-align:right;">
+0.4000000
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+<td style="text-align:right;">
+0.5426357
+</td>
+<td style="text-align:right;">
+0.5964912
+</td>
+<td style="text-align:right;">
+0.4646465
+</td>
+<td style="text-align:right;">
+0.6344086
+</td>
+<td style="text-align:right;">
+0.5694444
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+IFNG
+</td>
+<td style="text-align:right;">
+0.8888889
+</td>
+<td style="text-align:right;">
+0.6906475
+</td>
+<td style="text-align:right;">
+0.5714286
+</td>
+<td style="text-align:right;">
+1.0000000
+</td>
+<td style="text-align:right;">
+0.8333333
+</td>
+<td style="text-align:right;">
+1.0000000
+</td>
+<td style="text-align:right;">
+0.9230769
+</td>
+<td style="text-align:right;">
+1.0000000
+</td>
+<td style="text-align:right;">
+0.6250000
+</td>
+<td style="text-align:right;">
+0.6636364
+</td>
+<td style="text-align:right;">
+0.7920792
+</td>
+<td style="text-align:right;">
+0.8296296
+</td>
+<td style="text-align:right;">
+0.6860465
+</td>
+<td style="text-align:right;">
+0.5301205
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BTC
+</td>
+<td style="text-align:right;">
+0.0879121
+</td>
+<td style="text-align:right;">
+0.5205479
+</td>
+<td style="text-align:right;">
+0.1500000
+</td>
+<td style="text-align:right;">
+0.3846154
+</td>
+<td style="text-align:right;">
+0.5714286
+</td>
+<td style="text-align:right;">
+0.4210526
+</td>
+<td style="text-align:right;">
+0.4210526
+</td>
+<td style="text-align:right;">
+0.3333333
+</td>
+<td style="text-align:right;">
+0.2500000
+</td>
+<td style="text-align:right;">
+0.7022901
+</td>
+<td style="text-align:right;">
+0.7096774
+</td>
+<td style="text-align:right;">
+0.6400000
+</td>
+<td style="text-align:right;">
+0.6170213
+</td>
+<td style="text-align:right;">
+0.7044025
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+GDNF
+</td>
+<td style="text-align:right;">
+0.1818182
+</td>
+<td style="text-align:right;">
+0.4000000
+</td>
+<td style="text-align:right;">
+0.5454545
+</td>
+<td style="text-align:right;">
+0.2352941
+</td>
+<td style="text-align:right;">
+NaN
+</td>
+<td style="text-align:right;">
+0.4285714
+</td>
+<td style="text-align:right;">
+0.3333333
+</td>
+<td style="text-align:right;">
+0.4000000
+</td>
+<td style="text-align:right;">
+0.1666667
+</td>
+<td style="text-align:right;">
+0.1428571
+</td>
+<td style="text-align:right;">
+0.3191489
+</td>
+<td style="text-align:right;">
+0.5584416
+</td>
+<td style="text-align:right;">
+0.5500000
+</td>
+<td style="text-align:right;">
+0.2666667
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+GAS6
+</td>
+<td style="text-align:right;">
+0.1428571
+</td>
+<td style="text-align:right;">
+0.5194805
+</td>
+<td style="text-align:right;">
+0.1428571
+</td>
+<td style="text-align:right;">
+0.2222222
+</td>
+<td style="text-align:right;">
+0.4285714
+</td>
+<td style="text-align:right;">
+0.4444444
+</td>
+<td style="text-align:right;">
+0.6666667
+</td>
+<td style="text-align:right;">
+0.3333333
+</td>
+<td style="text-align:right;">
+0.2222222
+</td>
+<td style="text-align:right;">
+0.5900000
+</td>
+<td style="text-align:right;">
+0.5696970
+</td>
+<td style="text-align:right;">
+0.4074074
+</td>
+<td style="text-align:right;">
+0.6033520
+</td>
+<td style="text-align:right;">
+0.5957447
 </td>
 </tr>
 <tr>
@@ -1127,37 +1591,37 @@ INS
 TNF
 </td>
 <td style="text-align:right;">
+0.8000000
+</td>
+<td style="text-align:right;">
+0.8701299
+</td>
+<td style="text-align:right;">
 0.8888889
 </td>
 <td style="text-align:right;">
-0.8085106
+0.9230769
 </td>
 <td style="text-align:right;">
-0.8888889
+0.9090909
 </td>
 <td style="text-align:right;">
-0.8571429
+0.6250000
 </td>
 <td style="text-align:right;">
-0.7142857
+0.9230769
 </td>
 <td style="text-align:right;">
-0.6666667
-</td>
-<td style="text-align:right;">
-0.8571429
-</td>
-<td style="text-align:right;">
-1.0000000
+0.8000000
 </td>
 <td style="text-align:right;">
 NaN
 </td>
 <td style="text-align:right;">
-0.8721805
+0.8636364
 </td>
 <td style="text-align:right;">
-0.8297872
+0.8172043
 </td>
 <td style="text-align:right;">
 0.7294118
@@ -1166,289 +1630,7 @@ NaN
 0.7724138
 </td>
 <td style="text-align:right;">
-0.9142857
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-FGF1
-</td>
-<td style="text-align:right;">
-0.1449275
-</td>
-<td style="text-align:right;">
-0.4831461
-</td>
-<td style="text-align:right;">
-0.1290323
-</td>
-<td style="text-align:right;">
-0.8000000
-</td>
-<td style="text-align:right;">
-0.2352941
-</td>
-<td style="text-align:right;">
-0.5454545
-</td>
-<td style="text-align:right;">
-0.6666667
-</td>
-<td style="text-align:right;">
-0.5000000
-</td>
-<td style="text-align:right;">
-NaN
-</td>
-<td style="text-align:right;">
-0.6502463
-</td>
-<td style="text-align:right;">
-0.5252525
-</td>
-<td style="text-align:right;">
-0.4727273
-</td>
-<td style="text-align:right;">
-0.6315789
-</td>
-<td style="text-align:right;">
-0.6052632
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-GAS6
-</td>
-<td style="text-align:right;">
-0.1176471
-</td>
-<td style="text-align:right;">
-0.5662100
-</td>
-<td style="text-align:right;">
-0.2857143
-</td>
-<td style="text-align:right;">
-0.5454545
-</td>
-<td style="text-align:right;">
-0.3529412
-</td>
-<td style="text-align:right;">
-0.3076923
-</td>
-<td style="text-align:right;">
-0.4285714
-</td>
-<td style="text-align:right;">
-0.1818182
-</td>
-<td style="text-align:right;">
-0.2222222
-</td>
-<td style="text-align:right;">
-0.6138614
-</td>
-<td style="text-align:right;">
-0.5921788
-</td>
-<td style="text-align:right;">
-0.3333333
-</td>
-<td style="text-align:right;">
-0.5477707
-</td>
-<td style="text-align:right;">
-0.6060606
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-HBEGF
-</td>
-<td style="text-align:right;">
-0.1012658
-</td>
-<td style="text-align:right;">
-0.3221477
-</td>
-<td style="text-align:right;">
-0.1500000
-</td>
-<td style="text-align:right;">
-0.5000000
-</td>
-<td style="text-align:right;">
-0.3571429
-</td>
-<td style="text-align:right;">
-0.5333333
-</td>
-<td style="text-align:right;">
-0.6153846
-</td>
-<td style="text-align:right;">
-0.5000000
-</td>
-<td style="text-align:right;">
-NaN
-</td>
-<td style="text-align:right;">
-0.6703911
-</td>
-<td style="text-align:right;">
-0.6075949
-</td>
-<td style="text-align:right;">
-0.5970149
-</td>
-<td style="text-align:right;">
-0.6250000
-</td>
-<td style="text-align:right;">
-0.6433566
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-IFNG
-</td>
-<td style="text-align:right;">
-0.8000000
-</td>
-<td style="text-align:right;">
-0.6428571
-</td>
-<td style="text-align:right;">
-0.7500000
-</td>
-<td style="text-align:right;">
-1.0000000
-</td>
-<td style="text-align:right;">
-0.8333333
-</td>
-<td style="text-align:right;">
-0.8333333
-</td>
-<td style="text-align:right;">
-1.0000000
-</td>
-<td style="text-align:right;">
-0.9090909
-</td>
-<td style="text-align:right;">
-0.9090909
-</td>
-<td style="text-align:right;">
-0.6759259
-</td>
-<td style="text-align:right;">
-0.7959184
-</td>
-<td style="text-align:right;">
-0.7777778
-</td>
-<td style="text-align:right;">
-0.7179487
-</td>
-<td style="text-align:right;">
-0.5476190
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-IGF1
-</td>
-<td style="text-align:right;">
-0.1666667
-</td>
-<td style="text-align:right;">
-0.4301075
-</td>
-<td style="text-align:right;">
-0.1538462
-</td>
-<td style="text-align:right;">
-0.6666667
-</td>
-<td style="text-align:right;">
-0.1250000
-</td>
-<td style="text-align:right;">
-0.5714286
-</td>
-<td style="text-align:right;">
-0.6000000
-</td>
-<td style="text-align:right;">
-0.4000000
-</td>
-<td style="text-align:right;">
-NaN
-</td>
-<td style="text-align:right;">
-0.4962406
-</td>
-<td style="text-align:right;">
-0.4918033
-</td>
-<td style="text-align:right;">
-0.4655172
-</td>
-<td style="text-align:right;">
-0.5977011
-</td>
-<td style="text-align:right;">
-0.6162162
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-IGF2
-</td>
-<td style="text-align:right;">
-0.0465116
-</td>
-<td style="text-align:right;">
-0.4727273
-</td>
-<td style="text-align:right;">
-0.2500000
-</td>
-<td style="text-align:right;">
-0.5000000
-</td>
-<td style="text-align:right;">
-0.3333333
-</td>
-<td style="text-align:right;">
-0.5000000
-</td>
-<td style="text-align:right;">
-0.5000000
-</td>
-<td style="text-align:right;">
-0.4000000
-</td>
-<td style="text-align:right;">
-NaN
-</td>
-<td style="text-align:right;">
-0.5352113
-</td>
-<td style="text-align:right;">
-0.3725490
-</td>
-<td style="text-align:right;">
-0.4695652
-</td>
-<td style="text-align:right;">
-0.6187845
-</td>
-<td style="text-align:right;">
-0.6322581
+0.9056604
 </td>
 </tr>
 <tr>
@@ -1456,150 +1638,52 @@ NaN
 IL17A
 </td>
 <td style="text-align:right;">
-NaN
+0.3000000
 </td>
 <td style="text-align:right;">
-0.1818182
+0.2680412
 </td>
 <td style="text-align:right;">
-0.1818182
+0.2857143
 </td>
 <td style="text-align:right;">
 0.8000000
 </td>
 <td style="text-align:right;">
-0.2857143
+0.1818182
 </td>
 <td style="text-align:right;">
-0.1600000
-</td>
-<td style="text-align:right;">
-NaN
+0.1333333
 </td>
 <td style="text-align:right;">
 NaN
 </td>
 <td style="text-align:right;">
 NaN
-</td>
-<td style="text-align:right;">
-0.1265823
-</td>
-<td style="text-align:right;">
-0.0857143
-</td>
-<td style="text-align:right;">
-0.5483871
-</td>
-<td style="text-align:right;">
-0.6272189
-</td>
-<td style="text-align:right;">
-0.6153846
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-IL4
-</td>
-<td style="text-align:right;">
-0.1224490
-</td>
-<td style="text-align:right;">
-0.5315315
-</td>
-<td style="text-align:right;">
-0.2857143
-</td>
-<td style="text-align:right;">
-0.6000000
-</td>
-<td style="text-align:right;">
-0.2666667
-</td>
-<td style="text-align:right;">
-0.5000000
-</td>
-<td style="text-align:right;">
-0.6000000
-</td>
-<td style="text-align:right;">
-NaN
-</td>
-<td style="text-align:right;">
-NaN
-</td>
-<td style="text-align:right;">
-0.6590909
 </td>
 <td style="text-align:right;">
 0.4000000
 </td>
 <td style="text-align:right;">
-0.4842105
+0.3030303
 </td>
 <td style="text-align:right;">
-0.6417112
+0.1666667
 </td>
 <td style="text-align:right;">
-0.6303030
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-IL6
+0.5045045
 </td>
 <td style="text-align:right;">
-NaN
+0.6551724
 </td>
 <td style="text-align:right;">
-0.0618557
-</td>
-<td style="text-align:right;">
-0.5000000
-</td>
-<td style="text-align:right;">
-0.6153846
-</td>
-<td style="text-align:right;">
-0.3478261
-</td>
-<td style="text-align:right;">
-0.5000000
-</td>
-<td style="text-align:right;">
-0.6666667
-</td>
-<td style="text-align:right;">
-0.2222222
-</td>
-<td style="text-align:right;">
-NaN
-</td>
-<td style="text-align:right;">
-0.6478873
-</td>
-<td style="text-align:right;">
-0.5957447
-</td>
-<td style="text-align:right;">
-0.5090909
-</td>
-<td style="text-align:right;">
-0.6666667
-</td>
-<td style="text-align:right;">
-0.6666667
+0.5309735
 </td>
 </tr>
 </tbody>
 </table>
 <p><img src="CellStimPred_lvl3_files/figure-html/RF_leaveout1-1.png" width="768" /></p>
 <p><em>Note that only plate-matched data was used, in an attempt to reduce noise.</em></p>
-<p><img src="CellStimPred_lvl3_files/figure-html/tx_vs_ctl_umap_ct-1.png" width="768" /><img src="CellStimPred_lvl3_files/figure-html/tx_vs_ctl_umap_ct-2.png" width="768" /><img src="CellStimPred_lvl3_files/figure-html/tx_vs_ctl_umap_ct-3.png" width="768" /><img src="CellStimPred_lvl3_files/figure-html/tx_vs_ctl_umap_ct-4.png" width="768" /></p>
-<p><img src="CellStimPred_lvl3_files/figure-html/tx_vs_ctl_umap_lig-1.png" width="864" /><img src="CellStimPred_lvl3_files/figure-html/tx_vs_ctl_umap_lig-2.png" width="864" /><img src="CellStimPred_lvl3_files/figure-html/tx_vs_ctl_umap_lig-3.png" width="864" /><img src="CellStimPred_lvl3_files/figure-html/tx_vs_ctl_umap_lig-4.png" width="864" /></p>
-<p>Looks like transcriptomes are entirely delineated by cell type from the ligand perspective.</p>
-<p><img src="CellStimPred_lvl3_files/figure-html/lvl3_umap_lig-1.png" width="768" /></p>
 <hr />
 </div>
 

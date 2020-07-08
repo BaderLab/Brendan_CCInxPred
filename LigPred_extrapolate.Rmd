@@ -1,0 +1,282 @@
+---
+title: "Differentiating ligand-perturbed transcriptomes <br> by training on all cell types (Level 4 data)"
+---
+  
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
+library(cmapR)
+library(ranger)
+library(colorspace)
+library(kableExtra)
+```
+
+## Level 4
+
+```{r load_data_lvl4, message=FALSE, warning=FALSE, include=FALSE}
+if (exists("lvl4_data")) {
+} else if (file.exists("../CMapCorr_files/lvl4_inputs.RData")) {
+  load("../CMapCorr_files/lvl4_inputs.RData") 
+} else {
+  source("lvl4_inputs.R")
+}
+```
+
+[Random forest model source code](https://github.com/BaderLab/Brendan_CCInxPred/blob/master/200708_lvl4_withhold1CT.R)  
+
+```{r RFwithholdCT,echo=FALSE,message=FALSE,warning=FALSE,fig.height=4,fig.width=9,fig.show='hold'}
+if (file.exists("../CMapCorr_files/200708_lvl4_withhold1CT.RData")) {
+  temp <- load("../CMapCorr_files/200708_lvl4_withhold1CT.RData")
+} else {
+  source("200708_lvl4_withhold1CT.R")
+}
+```
+
+
+```{r lvl4_training_dist,eval=F,echo=FALSE,message=FALSE,warning=FALSE}
+t(sapply(ct14,function(CT) sapply(lig16,function(LIG) 
+    sum(lvl4_data@cdesc[trainIDs[[1]],"cell_id"] == CT & lvl4_data@cdesc[trainIDs[[1]],"pert_iname"] == LIG))))
+
+
+
+tempdf <- as.data.frame(
+  sapply(trainIDs,function(X) table(factor(lvl4_data@cdesc[X,"cell_id"],levels=ct14)))
+)
+
+kable(tempdf,format="html")  %>%
+  kable_styling()
+
+```
+
+```{r lvl4_confusion_matrix_calc, echo=F,message=F,warning=F}
+confusionCT <- sapply(ct14,function(CT) {
+  temp_confusion <- table(true=factor(lvl4_data@cdesc[testIDs[[CT]],"pert_iname"],levels=lig16),
+                          predicted=rfresults[[CT]]$predictions)
+  return(sweep(temp_confusion,1,rowSums(temp_confusion),"/"))
+},simplify=F)
+
+lvl4_acc_ct <- t(sapply(confusionCT,diag))
+lvl4_counts <- t(sapply(ct14,function(CT) 
+  table(factor(lvl4_data@cdesc[testIDs[[CT]],"pert_iname"],levels=lig16))))
+```
+
+```{r lvl4_confusion_matrix_perCT_plot, eval=F,echo=F,message=F,warning=F,fig.height=7,fig.width=7,fig.show='hold'}
+for (CT in ct14) {
+  par(mar=c(1,5,5,1),mgp=2:0,las=2)
+  image(z=t(confusionCT[[CT]] * 100)[,seq(nrow(confusionCT[[CT]]),1)],
+        x=1:nrow(confusionCT[[CT]]),y=1:ncol(confusionCT[[CT]]),
+        col=sequential_hcl(100,palette="inferno",rev=T),breaks=0:100,
+        xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+  mtext(rev(colnames(confusionCT[[CT]])),side=2,at=1:nrow(confusionCT[[CT]]),adj=1.1)
+  mtext("Truth",side=2,line=3.5,at=((nrow(confusionCT[[CT]])-1)/2)+1,las=0,font=2,cex=1.5)
+  mtext(rownames(confusionCT[[CT]]),side=3,at=1:nrow(confusionCT[[CT]]),adj=-0.1)
+  mtext("Prediction",side=3,line=3.5,at=((nrow(confusionCT[[CT]])-1)/2)+1,las=0,font=2,cex=1.5)
+  text(x=seq(1,nrow(confusionCT[[CT]])),y=seq(nrow(confusionCT[[CT]]),1),
+       labels=round(diag(confusionCT[[CT]]),2),font=2,col="dodgerblue")
+}
+```
+
+
+
+```{r lvl4_accuracy_heatmap, echo=F,message=F,warning=F,fig.height=5,fig.width=7,fig.show='hold'}
+par(mar=c(1,13,5,1),mgp=2:0,las=2)
+image(z=t(lvl4_acc_ct * 100)[,seq(nrow(lvl4_acc_ct),1)],
+      x=1:ncol(lvl4_acc_ct),y=1:nrow(lvl4_acc_ct),
+      col=sequential_hcl(100,palette="inferno",rev=T),breaks=0:100,
+      xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+mtext(colnames(lvl4_acc_ct),side=3,at=1:ncol(lvl4_acc_ct),adj=0,line=0.1)
+mtext("Ligands",side=3,line=3.5,at=((ncol(lvl4_acc_ct)-1)/2)+1,las=0,font=2,cex=1.5)
+mtext(rev(rownames(lvl4_acc_ct)),
+      side=2,at=1:nrow(lvl4_acc_ct),adj=1,line=0.1)
+mtext("Cell Types",side=3,line=0.1,at=0.2,adj=1,las=0,font=2,cex=1.5)
+mtext("Sample number",side=1,line=0,at=ncol(lvl4_acc_ct) + 0.5,adj=1,las=0,col="dodgerblue")
+text(as.vector(sapply(1:ncol(lvl4_counts),function(X) rep(X,nrow(lvl4_counts)))),
+     as.vector(sapply(1:ncol(lvl4_counts),function(X) nrow(lvl4_counts):1)),
+     labels=as.vector(lvl4_counts),cex=0.8,col="dodgerblue")
+```
+
+
+## Level 5
+
+
+```{r load_data_lvl5, message=FALSE, warning=FALSE, include=FALSE}
+if (exists("lvl5_data")) {
+} else if (file.exists("../CMapCorr_files/lvl5_inputs.RData")) {
+  load("../CMapCorr_files/lvl5_inputs.RData") 
+} else {
+  source("lvl5_inputs.R")
+}
+```
+
+[Random forest model source code](https://github.com/BaderLab/Brendan_CCInxPred/blob/master/200708_lvl5_withhold1CT.R)  
+
+```{r lv5_RFwithholdCT,echo=FALSE,message=FALSE,warning=FALSE,fig.height=4,fig.width=9,fig.show='hold'}
+if (file.exists("../CMapCorr_files/200708_lvl5_withhold1CT.RData")) {
+  temp <- load("../CMapCorr_files/200708_lvl5_withhold1CT.RData")
+} else {
+  source("200708_lvl5_withhold1CT.R")
+}
+```
+
+
+```{r lv5_training_dist,eval=F,echo=FALSE,message=FALSE,warning=FALSE}
+t(sapply(ct14,function(CT) sapply(lig16,function(LIG) 
+    sum(lvl5_data@cdesc[trainIDs[[1]],"cell_id"] == CT & lvl5_data@cdesc[trainIDs[[1]],"pert_iname"] == LIG))))
+
+
+
+tempdf <- as.data.frame(
+  sapply(trainIDs,function(X) table(factor(lvl5_data@cdesc[X,"cell_id"],levels=ct14)))
+)
+
+kable(tempdf,format="html")  %>%
+  kable_styling()
+
+```
+
+```{r lv5_confusion_matrix_calc, echo=F,message=F,warning=F}
+confusionCT <- sapply(ct14,function(CT) {
+  temp_confusion <- table(true=factor(lvl5_data@cdesc[testIDs[[CT]],"pert_iname"],levels=lig16),
+                          predicted=rfresults[[CT]]$predictions)
+  return(sweep(temp_confusion,1,rowSums(temp_confusion),"/"))
+},simplify=F)
+
+lvl5_acc_ct <- t(sapply(confusionCT,diag))
+lvl5_counts <- t(sapply(ct14,function(CT) 
+  table(factor(lvl5_data@cdesc[testIDs[[CT]],"pert_iname"],levels=lig16))))
+```
+
+```{r lv5_confusion_matrix_perCT_plot, eval=F,echo=F,message=F,warning=F,fig.height=7,fig.width=7,fig.show='hold'}
+for (CT in ct14) {
+  par(mar=c(1,5,5,1),mgp=2:0,las=2)
+  image(z=t(confusionCT[[CT]] * 100)[,seq(nrow(confusionCT[[CT]]),1)],
+        x=1:nrow(confusionCT[[CT]]),y=1:ncol(confusionCT[[CT]]),
+        col=sequential_hcl(100,palette="inferno",rev=T),breaks=0:100,
+        xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+  mtext(rev(colnames(confusionCT[[CT]])),side=2,at=1:nrow(confusionCT[[CT]]),adj=1.1)
+  mtext("Truth",side=2,line=3.5,at=((nrow(confusionCT[[CT]])-1)/2)+1,las=0,font=2,cex=1.5)
+  mtext(rownames(confusionCT[[CT]]),side=3,at=1:nrow(confusionCT[[CT]]),adj=-0.1)
+  mtext("Prediction",side=3,line=3.5,at=((nrow(confusionCT[[CT]])-1)/2)+1,las=0,font=2,cex=1.5)
+  text(x=seq(1,nrow(confusionCT[[CT]])),y=seq(nrow(confusionCT[[CT]]),1),
+       labels=round(diag(confusionCT[[CT]]),2),font=2,col="dodgerblue")
+}
+```
+
+
+
+```{r lv5_accuracy_heatmap, echo=F,message=F,warning=F,fig.height=5,fig.width=7,fig.show='hold'}
+par(mar=c(1,13,5,1),mgp=2:0,las=2)
+image(z=t(lvl5_acc_ct * 100)[,seq(nrow(lvl5_acc_ct),1)],
+      x=1:ncol(lvl5_acc_ct),y=1:nrow(lvl5_acc_ct),
+      col=sequential_hcl(100,palette="inferno",rev=T),breaks=0:100,
+      xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+mtext(colnames(lvl5_acc_ct),side=3,at=1:ncol(lvl5_acc_ct),adj=0,line=0.1)
+mtext("Ligands",side=3,line=3.5,at=((ncol(lvl5_acc_ct)-1)/2)+1,las=0,font=2,cex=1.5)
+mtext(rev(rownames(lvl5_acc_ct)),
+      side=2,at=1:nrow(lvl5_acc_ct),adj=1,line=0.1)
+mtext("Cell Types",side=3,line=0.1,at=0.2,adj=1,las=0,font=2,cex=1.5)
+mtext("Sample number",side=1,line=0,at=ncol(lvl5_acc_ct) + 0.5,adj=1,las=0,col="dodgerblue")
+text(as.vector(sapply(1:ncol(lvl5_counts),function(X) rep(X,nrow(lvl5_counts)))),
+     as.vector(sapply(1:ncol(lvl5_counts),function(X) nrow(lvl5_counts):1)),
+     labels=as.vector(lvl5_counts),cex=0.8,col="dodgerblue")
+```
+
+
+## Compared to Level 5 control assay (leave-one-out)
+
+
+```{r RF_leave1out,echo=FALSE,message=FALSE,warning=FALSE}
+if (file.exists("../CMapCorr_files/200524_lvl5_mixall_balanced_leave1out_results.RData")) {
+  temp <- load("../CMapCorr_files/200524_lvl5_mixall_balanced_leave1out_results.RData")
+} else {
+  source("200524_lvl5_mixall_leave1out.R")
+}
+
+test_results <- data.frame(
+  IDs=as.vector(testIDs),
+  Labels=as.vector(t(sapply(rfresults,function(X) X$predictions))),
+  stringsAsFactors=F
+)
+test_hits <- vector("list",sum(lvl5_data@cdesc$pert_iname %in% lig16))
+names(test_hits) <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname %in% lig16]
+
+for (X in 1:nrow(test_results)) {
+  test_hits[[test_results[X,"IDs"]]] <- append(test_hits[[test_results[X,"IDs"]]],
+                                               test_results[X,"Labels"])
+}
+
+acc_leave1out <- sapply(names(test_hits),function(X) 
+  sum(test_hits[[X]] == lvl5_data@cdesc[X,"pert_iname"]) / 
+    length(test_hits[[X]]))
+acc_leave1out_totals <- sapply(lig16,function(X) {
+  Y <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname == X]
+  return(sum(unlist(test_hits[Y]) == X) / 
+           length(unlist(test_hits[Y])))
+})
+
+acc_leave1out_ct <- sapply(lig16,function(X) {
+  sapply(ct14,function(Y) {
+    Z <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname == X &
+                                     lvl5_data@cdesc$cell_id == Y]
+    return(sum(unlist(test_hits[Z]) == X) / 
+             length(unlist(test_hits[Z])))
+  })
+})
+
+test_counts <- sapply(lig16,function(X) {
+  sapply(ct14,function(Y) {
+    sum(lvl5_data@cdesc$pert_iname == X &
+          lvl5_data@cdesc$cell_id == Y)
+  })
+})
+
+test_predictions <- sapply(lig16,function(X) {
+  sapply(ct14,function(Y) {
+    temp <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname == X &
+                                        lvl5_data@cdesc$cell_id == Y]
+    return(table(factor(unlist(test_hits[temp]),levels=lig16)) / 
+             length(unlist(test_hits[temp])))
+  })
+},simplify=F)
+
+rm(X)
+```
+
+```{r leave1out_acc_ct,echo=FALSE,message=FALSE,warning=FALSE,fig.height=5,fig.width=7,fig.show='hold'}
+# see {RF_leave1out} for input code for this figure.
+
+par(mar=c(1,13,5,1),mgp=2:0,las=2)
+image(z=t(acc_leave1out_ct * 100)[,seq(nrow(acc_leave1out_ct),1)],
+      x=1:ncol(acc_leave1out_ct),y=1:nrow(acc_leave1out_ct),
+      col=sequential_hcl(100,palette="inferno",rev=T),breaks=0:100,
+      xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+mtext(colnames(acc_leave1out_ct),side=3,at=1:ncol(acc_leave1out_ct),adj=0,line=0.1)
+mtext("Ligands",side=3,line=3.5,at=((ncol(acc_leave1out_ct)-1)/2)+1,las=0,font=2,cex=1.5)
+mtext(rev(rownames(acc_leave1out_ct)),
+      side=2,at=1:nrow(acc_leave1out_ct),adj=1,line=0.1)
+mtext("Cell Types",side=3,line=0.1,at=0.2,adj=1,las=0,font=2,cex=1.5)
+mtext("Sample number",side=1,line=0,at=ncol(acc_leave1out_ct) + 0.5,adj=1,las=0,col="dodgerblue")
+text(as.vector(sapply(1:ncol(test_counts),function(X) rep(X,nrow(test_counts)))),
+     as.vector(sapply(1:ncol(test_counts),function(X) nrow(test_counts):1)),
+     labels=as.vector(test_counts),cex=0.8,col="dodgerblue")
+```
+
+
+```{r vs_lvl5_leave1out, echo=FALSE,message=FALSE,warning=FALSE,fig.height=4,fig.width=7,fig.show='hold'}
+temp <- list(lvl5_l1o=as.vector(acc_leave1out_ct),
+             lvl5_ct=as.vector(lvl5_acc_ct),
+             lvl4_ct=as.vector(lvl4_acc_ct))
+par(mar=c(3,3,1,5),mgp=2:0,las=1)
+boxplot(list(lvl4=temp$lvl4_ct - temp$lvl5_l1o,
+             lvl5=temp$lvl5_ct - temp$lvl5_l1o),
+        ylim=c(-1,1),pch=".",cex=2,horizontal=T,
+        xlab="Difference in accuracy compared to lvl5_leave1out")
+abline(v=0,lty=2)
+tempW <- wilcox.test(temp$lvl4_ct - temp$lvl5_l1o,conf.int=T)
+mtext(paste("Median ~",round(tempW$conf.int[2],3),round(tempW$conf.int[1],3),sep="\n"),
+      side=4,at=1,line=0.5)
+tempW <- wilcox.test(temp$lvl5_ct - temp$lvl5_l1o,conf.int=T)
+mtext(paste("Median ~",round(tempW$conf.int[2],3),round(tempW$conf.int[1],3),sep="\n"),
+      side=4,at=2,line=0.5)
+
+```
+
+

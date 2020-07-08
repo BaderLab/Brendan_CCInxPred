@@ -273,22 +273,31 @@ $(document).ready(function () {
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
         <li>
-  <a href="CmapDataSummary_lvl3.html">Lvl3 Data</a>
+  <a href="CmapDataSummary.html">CMap Data</a>
 </li>
 <li>
-  <a href="CellStimPred_lvl3.html">Predicting Perturbed Cells</a>
+  <a href="CmapCtrlCorr.html">Sanity Check</a>
 </li>
 <li>
-  <a href="CmapDataSummary_lvl5.html">Lvl5 Data</a>
+  <a href="CellStimPred_lvl3.html">Tx pred</a>
 </li>
 <li>
-  <a href="LigPred_lvl5.html">Predicting Ligand Treatment</a>
+  <a href="LigPred_lvl5.html">Lvl5 lig pred</a>
 </li>
 <li>
-  <a href="RecExpr.html">Biology of Ligand Response</a>
+  <a href="RecExpr.html">Lvl5 followup</a>
 </li>
 <li>
-  <a href="CmapCtrlCorr.html">Backtrack to Sanity Check</a>
+  <a href="LigPred_lvl4.html">Lvl4 lig pred</a>
+</li>
+<li>
+  <a href="LigPred_lvl4new.html">Lvl4new lig pred</a>
+</li>
+<li>
+  <a href="LigPred_lvl4pca.html">Lvl4 PCA lig pred</a>
+</li>
+<li>
+  <a href="LigPred_extrapolate.html">Lig pred on new CT</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
@@ -357,6 +366,9 @@ IL6
 INS
 </th>
 <th style="text-align:right;">
+TGFA
+</th>
+<th style="text-align:right;">
 TNF
 </th>
 </tr>
@@ -367,31 +379,19 @@ TNF
 training
 </td>
 <td style="text-align:right;">
-45
-</td>
-<td style="text-align:right;">
-101
-</td>
-<td style="text-align:right;">
 50
 </td>
 <td style="text-align:right;">
-53
-</td>
-<td style="text-align:right;">
-58
+106
 </td>
 <td style="text-align:right;">
 59
 </td>
 <td style="text-align:right;">
-56
+61
 </td>
 <td style="text-align:right;">
 58
-</td>
-<td style="text-align:right;">
-55
 </td>
 <td style="text-align:right;">
 50
@@ -400,7 +400,16 @@ training
 52
 </td>
 <td style="text-align:right;">
-49
+52
+</td>
+<td style="text-align:right;">
+58
+</td>
+<td style="text-align:right;">
+55
+</td>
+<td style="text-align:right;">
+44
 </td>
 <td style="text-align:right;">
 50
@@ -409,7 +418,13 @@ training
 60
 </td>
 <td style="text-align:right;">
-52
+44
+</td>
+<td style="text-align:right;">
+56
+</td>
+<td style="text-align:right;">
+47
 </td>
 </tr>
 <tr>
@@ -417,25 +432,28 @@ training
 testing
 </td>
 <td style="text-align:right;">
-62
-</td>
-<td style="text-align:right;">
-94
-</td>
-<td style="text-align:right;">
 57
 </td>
 <td style="text-align:right;">
-54
-</td>
-<td style="text-align:right;">
-49
+89
 </td>
 <td style="text-align:right;">
 48
 </td>
 <td style="text-align:right;">
-62
+46
+</td>
+<td style="text-align:right;">
+49
+</td>
+<td style="text-align:right;">
+57
+</td>
+<td style="text-align:right;">
+66
+</td>
+<td style="text-align:right;">
+55
 </td>
 <td style="text-align:right;">
 49
@@ -444,22 +462,22 @@ testing
 52
 </td>
 <td style="text-align:right;">
-57
-</td>
-<td style="text-align:right;">
-47
-</td>
-<td style="text-align:right;">
-58
-</td>
-<td style="text-align:right;">
-57
-</td>
-<td style="text-align:right;">
-47
-</td>
-<td style="text-align:right;">
 55
+</td>
+<td style="text-align:right;">
+57
+</td>
+<td style="text-align:right;">
+47
+</td>
+<td style="text-align:right;">
+63
+</td>
+<td style="text-align:right;">
+51
+</td>
+<td style="text-align:right;">
+60
 </td>
 </tr>
 <tr>
@@ -511,11 +529,14 @@ total
 <td style="text-align:right;">
 107
 </td>
+<td style="text-align:right;">
+107
+</td>
 </tr>
 </tbody>
 </table>
 <p><img src="LigPred_lvl5_files/figure-html/RF_unbalanced-1.png" width="672" /></p>
-<p><strong>Average accuracy was 32.62%.</strong> This is perhaps unexpectedly bad, given that the model is seeing all the data, not trying to extrapolate to withheld cell lines.<br />
+<p><strong>Average accuracy was 31.07%.</strong> This is perhaps unexpectedly bad, given that the model is seeing all the data, not trying to extrapolate to withheld cell lines.<br />
 Clearly the fact that EGF was tested more than the other ligands caused an imbalance in the training data, leading to a bias towards classifying samples as EGF-treated.</p>
 <div id="balanced-training-data" class="section level1">
 <h1>Balanced training data</h1>
@@ -569,6 +590,9 @@ IL6
 INS
 </th>
 <th style="text-align:right;">
+TGFA
+</th>
+<th style="text-align:right;">
 TNF
 </th>
 </tr>
@@ -577,6 +601,9 @@ TNF
 <tr>
 <td style="text-align:left;">
 training
+</td>
+<td style="text-align:right;">
+49
 </td>
 <td style="text-align:right;">
 49
@@ -673,6 +700,9 @@ testing
 <td style="text-align:right;">
 58
 </td>
+<td style="text-align:right;">
+58
+</td>
 </tr>
 <tr>
 <td style="text-align:left;">
@@ -723,11 +753,14 @@ total
 <td style="text-align:right;">
 107
 </td>
+<td style="text-align:right;">
+107
+</td>
 </tr>
 </tbody>
 </table>
 <p><img src="LigPred_lvl5_files/figure-html/RF_balanced-1.png" width="864" /></p>
-<p><strong>Average accuracy was 37.38%.</strong> This is still worse than one might expect. Given that this is serving as the positive control for the use of the level 5 data, I’d like to explore why its working well for a few ligands, and poorly for the rest.</p>
+<p><strong>Average accuracy was 34.05%.</strong> This is still worse than one might expect. Given that this is serving as the positive control for the use of the level 5 data, I’d like to explore why its working well for a few ligands, and poorly for the rest.</p>
 </div>
 <div id="data-saturation" class="section level1">
 <h1>Data saturation</h1>
@@ -765,16 +798,25 @@ This data was used to colour the UMAP projections in the top row of the previous
 <h2>Ligand response genes per cell type</h2>
 <p>To determine which genes had Z-scores (treated vs. control) with consistently high magnitudes within a cell type, one-way analyses of variance were performed with cell types as the independent variable and each gene’s Z-scores as the dependent variable. The T-statistic from each coefficient was used to summarize the Z-score distributions for each gene. The ten T-statistics with the highest magnitude per cell type are shown in the heatmaps below, with cell type prediction accuracies from above included as coloured bars next to each row. <strong>Click below for full-size image</strong>.</p>
 <p>
-<a href="output_figs/BTC.png"><img src="output_figs/BTC_sm.png"/></a><a href="output_figs/EGF.png"><img src="output_figs/EGF_sm.png"/></a><a href="output_figs/FGF1.png"><img src="output_figs/FGF1_sm.png"/></a><a href="output_figs/GAS6.png"><img src="output_figs/GAS6_sm.png"/></a><a href="output_figs/GDNF.png"><img src="output_figs/GDNF_sm.png"/></a>
+<a href="output_figs/EGF.png"><img src="output_figs/EGF_sm.png"/></a><a href="output_figs/HGF.png"><img src="output_figs/HGF_sm.png"/></a><a href="output_figs/INS.png"><img src="output_figs/INS_sm.png"/></a><a href="output_figs/IGF2.png"><img src="output_figs/IGF2_sm.png"/></a>
 </p>
 <p>
-<a href="output_figs/HBEGF.png"><img src="output_figs/HBEGF_sm.png"/></a><a href="output_figs/HGF.png"><img src="output_figs/HGF_sm.png"/></a><a href="output_figs/IFNG.png"><img src="output_figs/IFNG_sm.png"/></a><a href="output_figs/IGF1.png"><img src="output_figs/IGF1_sm.png"/></a><a href="output_figs/IGF2.png"><img src="output_figs/IGF2_sm.png"/></a>
+<a href="output_figs/TGFA.png"><img src="output_figs/TGFA_sm.png"/></a><a href="output_figs/IGF1.png"><img src="output_figs/IGF1_sm.png"/></a><a href="output_figs/FGF1.png"><img src="output_figs/FGF1_sm.png"/></a><a href="output_figs/HBEGF.png"><img src="output_figs/HBEGF_sm.png"/></a>
 </p>
 <p>
-<a href="output_figs/IL17A.png"><img src="output_figs/IL17A_sm.png"/></a><a href="output_figs/IL4.png"><img src="output_figs/IL4_sm.png"/></a><a href="output_figs/IL6.png"><img src="output_figs/IL6_sm.png"/></a><a href="output_figs/INS.png"><img src="output_figs/INS_sm.png"/></a><a href="output_figs/TNF.png"><img src="output_figs/TNF_sm.png"/></a>
+<a href="output_figs/IL6.png"><img src="output_figs/IL6_sm.png"/></a><a href="output_figs/IL4.png"><img src="output_figs/IL4_sm.png"/></a><a href="output_figs/IFNG.png"><img src="output_figs/IFNG_sm.png"/></a><a href="output_figs/BTC.png"><img src="output_figs/BTC_sm.png"/></a>
 </p>
-<hr />
+<p>
+<a href="output_figs/GDNF.png"><img src="output_figs/GDNF_sm.png"/></a><a href="output_figs/GAS6.png"><img src="output_figs/GAS6_sm.png"/></a><a href="output_figs/TNF.png"><img src="output_figs/TNF_sm.png"/></a><a href="output_figs/IL17A.png"><img src="output_figs/IL17A_sm.png"/></a>
+</p>
 </div>
+</div>
+<div id="metadata-features" class="section level1">
+<h1>Metadata features</h1>
+<p>Rather than let the model implicitly learn metadata characteristics such as cell line, treatment duration, and dosage, perhaps it would improve accuracy if these were explicitly provided as features.</p>
+<p><img src="LigPred_lvl5_files/figure-html/RF_saturated_metadata-1.png" width="864" /></p>
+<p>Since the random forest model accuracy is not improved by the addition of metadata features, gene expression differences must capture enough of the same information as cell line, treatment duration, and dosage.</p>
+<hr />
 </div>
 
 

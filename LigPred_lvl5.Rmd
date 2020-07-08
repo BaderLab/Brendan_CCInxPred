@@ -143,6 +143,7 @@ boxplot(acc_saturating,pch=".",
         xlab="Number of training samples per ligand")
 points(1:ncol(acc_saturating),colMeans(acc_saturating),
        type="l",lwd=2,col="red")
+abline(h=max(colMeans(acc_saturating)),lty=2,col="red")
 legend("topleft",legend="Mean accuracy",
        bty="n",lwd=2,col="red",cex=0.8)
 
@@ -158,26 +159,26 @@ Improvements in accuracy from increased training data level off after half the d
 
 Below are UMAP projections of all cells used in these models, coloured by cell type with each ligand treatment highlighted.  The ligands are ordered by the accuracy of their prediction, and plots are outlined per the colour scheme above.
 
-```{r UMAP_ct,echo=FALSE,message=FALSE,warning=FALSE,fig.height=5.5,fig.width=9,fig.show='hold'}
-if (exists("UMAPmixall")) {
+```{r UMAP_ct,echo=FALSE,message=FALSE,warning=FALSE,fig.height=9,fig.width=9,fig.show='hold'}
+if (exists("lvl5_umap_lig16")) {
   temp <- NULL
-} else if (file.exists("../CMapCorr_files/200427_lvl5_UMAPmixall.RData")) {
-  load("../CMapCorr_files/200427_lvl5_UMAPmixall.RData") 
+} else if (file.exists("../CMapCorr_files/200701_lvl5_umap_lig16.RData")) {
+  load("../CMapCorr_files/200701_lvl5_umap_lig16.RData") 
 } else {
-  source("200426_lvl5_pca_umap.R")
+  source("200701_lvl5_umap.R")
 }
-temp_allcol <- as.factor(lvl5_data@cdesc[rownames(UMAPmixall$layout),"cell_id"])
+temp_allcol <- as.factor(lvl5_data@cdesc[rownames(lvl5_umap_lig16$layout),"cell_id"])
 temp_boxcol <- cut(acc_balanced * 100, breaks=0:100,labels=F)
 names(temp_boxcol) <- names(acc_balanced)
-par(mfrow=c(3,5),mar=c(1,1,1,0.5),mgp=c(0,0,0))
+par(mfrow=c(4,4),mar=c(1,1,1,0.5),mgp=c(0,0,0))
 for (L in names(sort(acc_balanced,decreasing=T))) {
-  plot(UMAPmixall$layout,pch=".",cex=2,
+  plot(lvl5_umap_lig16$layout,pch=".",cex=2,
        xaxt="n",yaxt="n",xlab="UMAP1",ylab="UMAP2",
        main=paste0(L," (",round(acc_balanced[L] * 100,1),"%)"),
        col=qualitative_hcl(length(levels(temp_allcol)),
                            palette="dark3",alpha=.7)[temp_allcol])
-  temp_col <- temp_allcol[lvl5_data@cdesc[rownames(UMAPmixall$layout),"pert_iname"] == L]
-  points(UMAPmixall$layout[lvl5_data@cdesc[rownames(UMAPmixall$layout),"pert_iname"] == L,],
+  temp_col <- temp_allcol[lvl5_data@cdesc[rownames(lvl5_umap_lig16$layout),"pert_iname"] == L]
+  points(lvl5_umap_lig16$layout[lvl5_data@cdesc[rownames(lvl5_umap_lig16$layout),"pert_iname"] == L,],
          pch=19,col=qualitative_hcl(length(levels(temp_col)),
                                     palette="dark3",alpha=1)[temp_col])
   box(col=sequential_hcl(100,palette="inferno",rev=T)[temp_boxcol[L]])
@@ -225,9 +226,9 @@ legend("bottomright",bty="n",pch=20,
 text(scClustViz::spreadLabels2(
   as.vector(temp_mean)[as.vector(temp_meansd)],
   as.vector(temp_sd)[as.vector(temp_meansd)],
-  gene_info[rep(rownames(temp_sd),ncol(temp_sd))[as.vector(temp_meansd)],"pr_gene_symbol"],
+  lvl5_data@rdesc[rep(rownames(temp_sd),ncol(temp_sd))[as.vector(temp_meansd)],"pr_gene_symbol"],
   str.cex=0.8),cex=0.8,
-  labels=gene_info[rep(rownames(temp_sd),ncol(temp_sd))[as.vector(temp_meansd)],"pr_gene_symbol"],
+  labels=lvl5_data@rdesc[rep(rownames(temp_sd),ncol(temp_sd))[as.vector(temp_meansd)],"pr_gene_symbol"],
   col=qualitative_hcl(ncol(temp_sd),palette="dark3")[temp_ct[as.vector(temp_meansd)]])
 
 # par(mfrow=c(5,3),mar=c(3,3,1,1),mgp=2:0)
@@ -237,7 +238,7 @@ text(scClustViz::spreadLabels2(
 #        col=sequential_hcl(100,palette="inferno",rev=T)[temp_col[,L]])
 #   temp_top <- rownames(temp_col)[which.max(temp_col[,L])]
 #   text(temp_mean[temp_top,L],temp_sd[temp_top,L],
-#        labels=gene_info[temp_top,"pr_gene_symbol"],
+#        labels=lvl5_data@rdesc[temp_top,"pr_gene_symbol"],
 #        col="dodgerblue",pos=2)
 # }
 
@@ -260,8 +261,8 @@ test_results <- data.frame(
   Labels=as.vector(t(sapply(rfresults,function(X) X$predictions))),
   stringsAsFactors=F
 )
-test_hits <- vector("list",sum(lvl5_data@cdesc$pert_iname %in% lig15))
-names(test_hits) <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname %in% lig15]
+test_hits <- vector("list",sum(lvl5_data@cdesc$pert_iname %in% lig16))
+names(test_hits) <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname %in% lig16]
 
 for (X in 1:nrow(test_results)) {
   test_hits[[test_results[X,"IDs"]]] <- append(test_hits[[test_results[X,"IDs"]]],
@@ -271,13 +272,13 @@ for (X in 1:nrow(test_results)) {
 acc_leave1out <- sapply(names(test_hits),function(X) 
   sum(test_hits[[X]] == lvl5_data@cdesc[X,"pert_iname"]) / 
     length(test_hits[[X]]))
-acc_leave1out_totals <- sapply(lig15,function(X) {
+acc_leave1out_totals <- sapply(lig16,function(X) {
   Y <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname == X]
   return(sum(unlist(test_hits[Y]) == X) / 
            length(unlist(test_hits[Y])))
 })
 
-acc_leave1out_ct <- sapply(lig15,function(X) {
+acc_leave1out_ct <- sapply(lig16,function(X) {
   sapply(ct14,function(Y) {
     Z <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname == X &
                                      lvl5_data@cdesc$cell_id == Y]
@@ -286,18 +287,18 @@ acc_leave1out_ct <- sapply(lig15,function(X) {
   })
 })
 
-test_counts <- sapply(lig15,function(X) {
+test_counts <- sapply(lig16,function(X) {
   sapply(ct14,function(Y) {
     sum(lvl5_data@cdesc$pert_iname == X &
           lvl5_data@cdesc$cell_id == Y)
   })
 })
 
-test_predictions <- sapply(lig15,function(X) {
+test_predictions <- sapply(lig16,function(X) {
   sapply(ct14,function(Y) {
     temp <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname == X &
                                         lvl5_data@cdesc$cell_id == Y]
-    return(table(factor(unlist(test_hits[temp]),levels=lig15)) / 
+    return(table(factor(unlist(test_hits[temp]),levels=lig16)) / 
              length(unlist(test_hits[temp])))
   })
 },simplify=F)
@@ -305,40 +306,40 @@ test_predictions <- sapply(lig15,function(X) {
 rm(X)
 ```
 
-```{r UMAP_marker_gene,echo=FALSE,message=FALSE,warning=FALSE,fig.height=11,fig.width=9,fig.show='hold'}
-if (exists("UMAPmixall")) {
+```{r UMAP_marker_gene,echo=FALSE,message=FALSE,warning=FALSE,fig.height=8.5,fig.width=9,fig.show='hold'}
+if (exists("lvl5_umap_lig16")) {
   temp <- NULL
-} else if (file.exists("../CMapCorr_files/200427_lvl5_UMAPmixall.RData")) {
-  load("../CMapCorr_files/200427_lvl5_UMAPmixall.RData") 
+} else if (file.exists("../CMapCorr_files/200701_lvl5_umap_lig16.RData")) {
+  load("../CMapCorr_files/200701_lvl5_umap_lig16.RData") 
 } else {
-  source("200426_lvl5_pca_umap.R")
+  source("200701_lvl5_umap.R")
 }
 
 temp_allcol <- cut(acc_leave1out * 100,breaks=0:100,labels=F,include.lowest=T)
 names(temp_allcol) <- names(acc_leave1out)
-temp_allcol <- temp_allcol[rownames(UMAPmixall$layout)]
-layout(rbind(1:3,matrix(4:9,ncol=3),matrix(10:15,ncol=3)),
+temp_allcol <- temp_allcol[rownames(lvl5_umap_lig16$layout)]
+layout(rbind(1:4,matrix(5:12,ncol=4),matrix(13:20,ncol=4)),
        heights=c(3,3,1,3,1))
 par(mar=c(1.5,1,1,0.5),mgp=c(0,0,0))
-for (L in c("TNF","IFNG","BTC")) {
-  plot(NA,NA,xlim=range(UMAPmixall$layout[,1]),ylim=range(UMAPmixall$layout[,2]),
+for (L in c("TNF","IFNG","BTC","TGFA")) {
+  plot(NA,NA,xlim=range(lvl5_umap_lig16$layout[,1]),ylim=range(lvl5_umap_lig16$layout[,2]),
        xaxt="n",yaxt="n",xlab="UMAP1",ylab="UMAP2",
        main=paste0(L," (",round(acc_leave1out_totals[L] * 100,1),"%)"))
-  points(UMAPmixall$layout[lvl5_data@cdesc[rownames(UMAPmixall$layout),"pert_iname"] != L,],
+  points(lvl5_umap_lig16$layout[lvl5_data@cdesc[rownames(lvl5_umap_lig16$layout),"pert_iname"] != L,],
        pch=".",cex=2,col=sequential_hcl(100,palette="inferno",rev=T,alpha=0.7)[temp_allcol])
   temp_col <- temp_allcol[lvl5_data@cdesc[names(temp_allcol),"pert_iname"] == L]
-  points(UMAPmixall$layout[lvl5_data@cdesc[rownames(UMAPmixall$layout),"pert_iname"] == L,],
+  points(lvl5_umap_lig16$layout[lvl5_data@cdesc[rownames(lvl5_umap_lig16$layout),"pert_iname"] == L,],
          pch=19,col=sequential_hcl(100,palette="inferno",rev=T,alpha=0.7)[temp_col])
 }
 
-temp_genes <- c("NFKBIA","STAT1","DUSP4","RELB","PSMB8","ICAM1")
-temp_lig <- list("TNF","IFNG","BTC","TNF","IFNG",c("TNF","IFNG"))
+temp_genes <- c("NFKBIA","STAT1","DUSP4","IER3","RELB","PSMB8","ICAM1")
+temp_lig <- list("TNF","IFNG","BTC","TGFA","TNF","IFNG",c("TNF","IFNG"))
 par(mar=c(1,1,1,0.5),mgp=c(0,0,0))
 temp_par <- par(c("mar","mgp","bty","las"))
 for (N in seq_along(temp_genes)) {
   temp_z <- lvl5_data@mat[
-    rownames(gene_info)[gene_info$pr_gene_symbol == temp_genes[N]],
-    rownames(UMAPmixall$layout)
+    rownames(lvl5_data@rdesc)[lvl5_data@rdesc$pr_gene_symbol == temp_genes[N]],
+    rownames(lvl5_umap_lig16$layout)
     ]
   temp_down <- cut(c(0,max(abs(range(temp_z))) * -1,temp_z[temp_z <= 0]),
                    50,labels=F)[c(-1,-2)]
@@ -347,15 +348,15 @@ for (N in seq_along(temp_genes)) {
   temp_col <- rep(NA, length(temp_z))
   temp_col[temp_z <= 0] <- temp_down
   temp_col[temp_z > 0] <- temp_up + 50
-  temp_big <- rownames(UMAPmixall$layout) %in% 
+  temp_big <- rownames(lvl5_umap_lig16$layout) %in% 
     rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname %in% temp_lig[[N]]]
   
   par(temp_par)
-  plot(NA,NA,xlim=range(UMAPmixall$layout[,1]),ylim=range(UMAPmixall$layout[,2]),
+  plot(NA,NA,xlim=range(lvl5_umap_lig16$layout[,1]),ylim=range(lvl5_umap_lig16$layout[,2]),
        xaxt="n",yaxt="n",xlab="UMAP1",ylab="UMAP2",main=temp_genes[N])
-  points(UMAPmixall$layout[!temp_big,],pch=20,
+  points(lvl5_umap_lig16$layout[!temp_big,],pch=20,
          col=colorspace::diverge_hcl(100, palette = "Purple-Green",alpha=.8)[temp_col])
-  points(UMAPmixall$layout[temp_big,],pch=19,
+  points(lvl5_umap_lig16$layout[temp_big,],pch=19,
          col=colorspace::diverge_hcl(100, palette = "Purple-Green",alpha=.8)[temp_col][temp_big])
   
   temp_bp <- list(
@@ -423,17 +424,17 @@ This figure shows the distribution of predicted ligands from the experiment abov
 ```{r leave1out_class_ct,echo=FALSE,message=FALSE,warning=FALSE,fig.height=5,fig.width=9,fig.show='hold'}
 # sapply(colnames(test_predictions[["IL17A"]]),function(X)
 #   sort(test_predictions[["IL17A"]][,X],decreasing=T),simplify=F)
-temp_col <- unlist(lapply(qualitative_hcl(ceiling(length(lig15) / 2),palette="dark3"),
-                          function(X) rep(X,2)))[1:length(lig15)]
-names(temp_col) <- lig15
-layout(rbind(c(16,1:15)),widths=c(2,rep(1,15)))
+temp_col <- unlist(lapply(qualitative_hcl(ceiling(length(lig16) / 2),palette="dark3"),
+                          function(X) rep(X,2)))[1:length(lig16)]
+names(temp_col) <- lig16
+layout(rbind(c(17,1:16)),widths=c(2,rep(1,16)))
 par(mar=c(0,0.1,5,0.1),mgp=2:0,las=2)
-for (LIG in lig15) {
+for (LIG in lig16) {
   temp <- barplot(test_predictions[[LIG]][,rev(seq_along(ct14))],axes=F,space=0,horiz=T,
                   las=3,col=temp_col,density=c(NA,40),angle=45,las=2,axisnames=F)
   mtext(LIG,side=3,line=0,font=2)#,col=temp_col[LIG])
   rect(0.25,14.1,0.75,14.5,xpd=NA,col=temp_col[LIG],border="black",
-       density=switch(as.character(which(lig15 == LIG) %% 2),'1'=NA,'0'=40))
+       density=switch(as.character(which(lig16 == LIG) %% 2),'1'=NA,'0'=40))
   temp2 <- par("usr")
 }
 par(mar=c(0,0,5,0))
@@ -447,7 +448,7 @@ The exemplar of consistent misclassification is IL17A in VCAP prostate tumour li
 
 ```{r lig_genes_per_ct,echo=FALSE,message=FALSE,warning=FALSE}
 if (!file.exists("output_figs/TNF.png")) {
-  for (LIG in lig15) {
+  for (LIG in lig16) {
     temp_lig <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname == LIG &
                                             lvl5_data@cdesc$cell_id %in% ct14]
     temp_ct <- factor(lvl5_data@cdesc[temp_lig,"cell_id"],levels=ct14)
@@ -473,7 +474,7 @@ if (!file.exists("output_figs/TNF.png")) {
     temp_heat[temp_col > 0] <- temp_up + 50
     temp_heat <- matrix(temp_heat,ncol=14)
     colnames(temp_heat) <- colnames(tempZTtop)
-    rownames(temp_heat) <- gene_info[rownames(tempZTtop),"pr_gene_symbol"]
+    rownames(temp_heat) <- lvl5_data@rdesc[rownames(tempZTtop),"pr_gene_symbol"]
     temp_heat <- t(temp_heat)
     
     png(paste0("output_figs/",LIG,".png"),width=10,height=5,units="in",res=300)
@@ -515,7 +516,7 @@ if (!file.exists("output_figs/TNF.png")) {
          pos=1,xpd=NA,cex=0.8)
     dev.off()
     
-    png(paste0("output_figs/",LIG,"_sm.png"),width=180,height=90,units="px")
+    png(paste0("output_figs/",LIG,"_sm.png"),width=220,height=110,units="px")
     par(mar=c(.2,.5,.2,.2),mgp=2:0,las=2)
     image(z=t(temp_heat)[,seq(nrow(temp_heat),1)],
           x=1:ncol(temp_heat),y=1:nrow(temp_heat),
@@ -541,7 +542,7 @@ if (!file.exists("output_figs/TNF.png")) {
 To determine which genes had Z-scores (treated vs. control) with consistently high magnitudes within a cell type, one-way analyses of variance were performed with cell types as the independent variable and each gene's Z-scores as the dependent variable.  The T-statistic from each coefficient was used to summarize the Z-score distributions for each gene.  The ten T-statistics with the highest magnitude per cell type are shown in the heatmaps below, with cell type prediction accuracies from above included as coloured bars next to each row.  **Click below for full-size image**.
 
 ```{r lig_genes_per_ct_out,echo=F,results="asis"}
-temp <- matrix(lig15,nrow=3,byrow=T)
+temp <- matrix(lig16,nrow=4,byrow=T)
 for (L in 1:nrow(temp)) {
   cat("<p>")
   for (LIG in temp[L,]) {
@@ -553,5 +554,53 @@ for (L in 1:nrow(temp)) {
   cat("\n")
 }
 ```
+
+
+# Metadata features
+
+Rather than let the model implicitly learn metadata characteristics such as cell line, treatment duration, and dosage, perhaps it would improve accuracy if these were explicitly provided as features.  
+
+```{r RF_saturated_metadata,echo=FALSE,message=FALSE,warning=FALSE,fig.height=3,fig.width=9,fig.show='hold'}
+if (file.exists("../CMapCorr_files/200703_lvl5_mixall_balanced_saturated_metadata.RData")) {
+  temp <- load("../CMapCorr_files/200703_lvl5_mixall_balanced_saturated_metadata.RData")
+} else {
+  source("200703_lvl5_mixall_metadata.R")
+}
+
+temp_confusion <- list()
+temp_acc <- list()
+for (N in seq_along(rfresults)) {
+  temp_confusion[[N]] <- table(true=lvl5_data@cdesc[testIDs[[N]],"pert_iname"],
+                               predicted=rfresults[[N]]$predictions)
+  temp_acc[[N]] <- sweep(temp_confusion[[N]],1,rowSums(temp_confusion[[N]]),"/")
+}
+acc_saturating_metadata <- sapply(temp_acc,diag)
+
+layout(cbind(1,2),widths=c(7,2))
+par(mar=c(3,3,1,1),mgp=2:0)
+boxplot(acc_saturating_metadata,pch=".",
+        ylab="Accuracy per ligand",
+        xlab="Number of training samples per ligand")
+points(1:ncol(acc_saturating_metadata),colMeans(acc_saturating_metadata),
+       type="l",lwd=2,col="red")
+abline(h=max(colMeans(acc_saturating_metadata)),lty=2,col="red")
+legend("topleft",legend="Mean accuracy",
+       bty="n",lwd=2,col="red",cex=0.8)
+
+boxplot(list("Expr"=colMeans(acc_saturating),
+             "+ MD"=colMeans(acc_saturating_metadata)),
+        ylab="Mean accuracy",pch=".",ylim=0:1)
+text(1.5,max(c(colMeans(acc_saturating),colMeans(acc_saturating_metadata))),
+     labels=paste("p =",
+                  round(wilcox.test(colMeans(acc_saturating),
+                                    colMeans(acc_saturating_metadata))$p.value,
+                        2)),
+     pos=3,col="red")
+     
+rm(list=temp)
+rm(list=grep("^temp",ls(),value=T))
+```
+
+Since the random forest model accuracy is not improved by the addition of metadata features, gene expression differences must capture enough of the same information as cell line, treatment duration, and dosage.  
 
 ****

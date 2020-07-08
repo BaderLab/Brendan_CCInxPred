@@ -12,8 +12,8 @@ if (exists("lvl3_data")) {
 train_labels <- train_labelsB <- test_labels <- 
   test_results <- test_resultsW <- test_resultsB <-
   model <- modelW <- modelB <- list()
-for (L in lig15) {
-  message(paste0("---- Ligand ",which(lig15 == L),"/",length(lig15)," ----"))
+for (L in lig16) {
+  message(paste0("---- Ligand ",which(lig16 == L),"/",length(lig16)," ----"))
   tx <- lvl3_data@mat[,lvl3_data@cdesc$pert_iname == L]
   tx_train <- tx[,sample(colnames(tx),round(ncol(tx) / 2))]
   tx_test <- tx[,!colnames(tx) %in% colnames(tx_train)]

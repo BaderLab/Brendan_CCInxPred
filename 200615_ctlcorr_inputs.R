@@ -247,3 +247,74 @@ save(list=ls()[grepl("lvl5",ls()) & grepl("corr",ls())],
      file="~/Dropbox/GDB/CMapCorr_files/200617_lvl5corr.RData")
 
 
+# lvl4new ----
+if (exists("lvl4new_data")) {
+} else if (file.exists("../CMapCorr_files/lvl4new.RData")) {
+  load("../CMapCorr_files/lvl4new.RData") 
+} else {
+  source("200706_ZscoreFromAssayed.R")
+}
+
+
+lvl4new_lig_corr <- pbapply::pbsapply(unique(lvl4new_data@cdesc$pert_iname),function(LIG) {
+  temp <- cor(lvl4new_data@mat[,lvl4new_data@cdesc$pert_iname == LIG],
+              method="spearman")
+  return(temp[lower.tri(temp)])
+})
+
+
+lvl4new_ct_corr <- pbapply::pbsapply(unique(lvl4new_data@cdesc$cell_id),function(CT) {
+  temp <- cor(lvl4new_data@mat[,lvl4new_data@cdesc$cell_id == CT],
+              method="spearman")
+  return(temp[lower.tri(temp)])
+})
+
+
+lvl4new_lig_corr_ct <- list()
+for (LIG in unique(lvl4new_data@cdesc$pert_iname)) {
+  temp_cond <- unique(lvl4new_data@cdesc[lvl4new_data@cdesc$pert_iname == LIG,"cell_id"])
+  temp_cond_id <- sapply(temp_cond,function(CT) 
+    rownames(lvl4new_data@cdesc)[
+      lvl4new_data@cdesc$pert_iname == LIG &
+        lvl4new_data@cdesc$cell_id == CT 
+      ],simplify=F)
+  
+  lvl4new_lig_corr_ct[[LIG]] <- sapply(temp_cond_id[sapply(temp_cond_id,length) > 1],
+                                    function(X) {
+                                      temp <- cor(lvl4new_data@mat[,X],
+                                                  method="spearman")
+                                      return(temp[lower.tri(temp)])
+                                    },simplify=F)
+}
+lvl4new_lig_corr_ct <- lvl4new_lig_corr_ct[sapply(lvl4new_lig_corr_ct,length) > 0]
+lvl4new_lig_corr_ct <- sapply(lvl4new_lig_corr_ct,unlist,simplify=F)
+
+
+lvl4new_lig_corr_tx <- list()
+for (LIG in unique(lvl4new_data@cdesc$pert_iname)) {
+  temp_cond <- unique(lvl4new_data@cdesc[lvl4new_data@cdesc$pert_iname == LIG,c("cell_id","pert_dose","pert_time")])
+  temp_cond_str <- apply(temp_cond,1,function(X) paste0(X[1],"_",X[2],"ng/mL_",X[3],"hr"))
+  temp_cond_id <- sapply(1:nrow(temp_cond),function(X) 
+    rownames(lvl4new_data@cdesc)[
+      lvl4new_data@cdesc$pert_iname == LIG &
+        lvl4new_data@cdesc$cell_id == temp_cond[X,1] &
+        lvl4new_data@cdesc$pert_dose == temp_cond[X,2] &
+        lvl4new_data@cdesc$pert_time == temp_cond[X,3]
+      ],simplify=F)
+  names(temp_cond_id) <- temp_cond_str
+  
+  lvl4new_lig_corr_tx[[LIG]] <- sapply(temp_cond_id[sapply(temp_cond_id,length) > 1],function(X) {
+    temp <- cor(lvl4new_data@mat[,X],
+                method="spearman")
+    return(temp[lower.tri(temp)])
+  },simplify=F)
+}
+lvl4new_lig_corr_tx <- lvl4new_lig_corr_tx[sapply(lvl4new_lig_corr_tx,length) > 0]
+lvl4new_lig_corr_tx <- sapply(lvl4new_lig_corr_tx,unlist,simplify=F)
+
+
+save(list=ls()[grepl("lvl4new",ls()) & grepl("corr",ls())],
+     file="../CMapCorr_files/200706_lvl4newcorr.RData")
+rm(list=c("LIG",grep("^temp",ls(),value=T),grep("^lvl4new_(lig|ct)",ls(),value=T)))
+
+

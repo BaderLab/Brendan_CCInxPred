@@ -2,6 +2,9 @@ library(cmapR)
 
 rm(list=ls())
 setwd("~/Dropbox/GDB/CMapCorr/")
+temp <- load("../CMapCorr_files/lvl3_inputs.RData")
+rm(list=ls()[!ls() %in% c("ct14","lig16")])
+
 temp_cmap_path <- "~/Data_LINCS/phase1"
 temp_coldata <- read.table(file.path(temp_cmap_path,"GSE92742_Broad_LINCS_inst_info.txt"),
                            header=T,sep="\t",row.names=1,colClasses="character",quote="\"")
@@ -18,6 +21,8 @@ lvl4_data <- parse.gctx(
   rid=rownames(temp_geneinfo)[temp_geneinfo$pr_is_lm == "1"])
 temp_id <- lvl4_data@cdesc$id
 lvl4_data@cdesc <- temp_coldata[temp_id,]
+#fixing fucked-up ligand names (except NRG/ALPHA/BETA)
+lvl4_data@cdesc$pert_iname <- toupper(lvl4_data@cdesc$pert_iname)
 # fixing floating-point bullshit
 lvl4_data@cdesc$pert_dose[lvl4_data@cdesc$pert_dose == "0.00999999977648"] <- "0.01"
 lvl4_data@cdesc$pert_dose[lvl4_data@cdesc$pert_dose == "0.029999999329400003"] <- "0.03"
@@ -51,6 +56,8 @@ lvl4_data_ctl <- parse.gctx(
   rid=rownames(temp_geneinfo)[temp_geneinfo$pr_is_lm == "1"])
 temp_id <- lvl4_data_ctl@cdesc$id
 lvl4_data_ctl@cdesc <- temp_coldata[temp_id,]
+#fixing fucked-up ligand names (except NRG/ALPHA/BETA)
+lvl4_data_ctl@cdesc$pert_iname <- toupper(lvl4_data_ctl@cdesc$pert_iname)
 # fixing floating-point bullshit
 lvl4_data_ctl@cdesc$pert_dose[lvl4_data_ctl@cdesc$pert_dose == "0.10000000149"] <- "0.1"
 lvl4_data_ctl@cdesc$pert_dose <- sub("\\.?0+$","",lvl4_data_ctl@cdesc$pert_dose)

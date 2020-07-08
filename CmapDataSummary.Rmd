@@ -1,0 +1,536 @@
+---
+title: "Connectivity Map ligand assay data summary"
+---
+
+```{r setup, echo=FALSE,message=FALSE,warning=FALSE}
+library(cmapR)
+library(UpSetR)
+library(colorspace)
+library(kableExtra)
+```
+
+# Quantile-normalized transcriptomes from control and ligand-treated cell lines (level 3 data)
+
+```{r load_data_lvl3, message=FALSE,warning=FALSE,include=FALSE}
+if (exists("lvl3_data")) {
+} else if (file.exists("../CMapCorr_files/lvl3_inputs.RData")) {
+  load("../CMapCorr_files/lvl3_inputs.RData") 
+} else {
+  source("lvl3_inputs.R")
+}
+```
+
+
+## Ligands / cell lines assayed
+
+```{r lvl3_data_summary, echo=FALSE,message=FALSE,warning=FALSE,fig.height=5,fig.width=8,fig.show='hold'}
+temp_ct <- sapply(ct14,function(X) 
+  unique(lvl3_data@cdesc$pert_iname[lvl3_data@cdesc$cell_id == X]),
+  simplify=F)
+temp_ctype <- mapply(function(X,Y) sub(paste0("_",Y),"",X),
+                     X=names(temp_ct),Y=ct14)
+names(temp_ct) <- names(temp_ctype) <- ct14
+
+temp_md <- data.frame(sets=ct14,
+                      source.tissue=temp_ctype)
+rownames(temp_md) <- ct14
+temp_col <- qualitative_hcl(length(unique(temp_ctype)),palette="dark3")
+names(temp_col) <- unique(temp_ctype)
+
+upset(fromList(temp_ct),
+      nsets=length(temp_ct),
+      nintersects=NA,
+      order.by="degree",
+      set.metadata=list(data=temp_md,
+                        plots=list(
+                          list(type="text",
+                               column="source.tissue",
+                               assign=15,
+                               colors=temp_col),
+                          list(type="matrix_rows",
+                               column="source.tissue",
+                               colors=temp_col,
+                               alpha=0.7))
+      ))
+
+rm(list=grep("^temp",ls(),value=T))
+```
+
+In the Connectivity Map data, there are 16 ligands assayed in all 14 cell lines, and 300 ligands assayed in 8 cell lines.
+
+
+```{r lvl3_data_dist, echo=FALSE,message=FALSE,warning=FALSE,fig.show='hold'}
+temp <- cbind(sapply(lig16,function(X)
+  table(lvl3_data@cdesc$cell_id[lvl3_data@cdesc$pert_iname == X])),
+  ctrl=table(lvl3_data_ctl@cdesc$cell_id))
+temp <- as.data.frame(rbind(temp,Totals=colSums(temp)))
+temp <- temp[c(ct14,"Total"),]
+rownames(temp)[seq_along(ct14)] <- sapply(rownames(temp)[seq_along(ct14)],
+                                          function(X) names(ct14)[ct14 == X])
+temp$min.ctrl.ratio <- apply(temp[,colnames(temp) != "ctrl"],1,max) / temp$ctrl
+kable(temp,format="html")  %>%
+  kable_styling()
+
+rm(list=grep("^temp",ls(),value=T))
+```
+
+In a subset of cell lines, ligands were tested over a variety of doses and times (and EGF was especially rigorously assayed), while in most cell lines ligands were tested at a single concentration over two time points.  Note that the number of control samples per cell type is much greater than the number of treatments.
+
+
+## Overall UMAP
+
+```{r lvl3_umap, echo=FALSE,message=FALSE,warning=FALSE,fig.height=3,fig.width=9,fig.show='hold'}
+if (file.exists("../CMapCorr_files/200630_lvl3_umap.RData")) {
+  load("../CMapCorr_files/200630_lvl3_umap.RData") 
+} else {
+  source("200326_lvl3_umap.R")
+}
+
+par(mfrow=c(1,3),mar=c(1.5,1,1,0.5),mgp=c(0,0,0))
+plot(lvl3_umap$layout,pch=".",xaxt="n",yaxt="n",main="All (coloured by cell type)",xlab="UMAP1",ylab="UMAP2",
+     col=qualitative_hcl(
+       length(unique(lvl3_data@cdesc$cell_id)),
+       palette="dark3",alpha=.7)[as.factor(c(lvl3_data@cdesc$cell_id,lvl3_data_ctl@cdesc$cell_id))])
+plot(lvl3_umap$layout[colnames(lvl3_data_ctl@mat),],
+     pch=".",xaxt="n",yaxt="n",main="Controls",xlab="UMAP1",ylab="UMAP2",
+     xlim=range(lvl3_umap$layout[,1]),ylim=range(lvl3_umap$layout[,2]),
+     col=qualitative_hcl(
+       length(unique(lvl3_data@cdesc$cell_id)),
+       palette="dark3",alpha=.7)[as.factor(lvl3_data_ctl@cdesc$cell_id)])
+plot(lvl3_umap$layout[colnames(lvl3_data@mat),],
+     pch=".",xaxt="n",yaxt="n",main="Treatments",xlab="UMAP1",ylab="UMAP2",
+     xlim=range(lvl3_umap$layout[,1]),ylim=range(lvl3_umap$layout[,2]),
+     col=qualitative_hcl(
+       length(unique(lvl3_data@cdesc$cell_id)),
+       palette="dark3",alpha=.7)[as.factor(lvl3_data@cdesc$cell_id)])
+
+rm(list=grep("^temp",ls(),value=T))
+```
+
+Above are UMAP projections (from assayed genes) of all Connectivity Map ligand-treated and control data coloured by cell type.
+
+
+## UMAP per cell line  
+
+Below are UMAP projections of ligand-treated and control samples for each cell type.  Only the 16 ligands assayed in all cell types and their plate-matched controls (coloured in black) are included.
+
+```{r lvl3_umap_ct, echo=FALSE,message=FALSE,warning=FALSE,fig.height=15,fig.width=9,fig.show='hold'}
+if (file.exists("../CMapCorr_files/200630_lvl3_ctUMAP.RData")) {
+  load("../CMapCorr_files/200630_lvl3_ctUMAP.RData") 
+} else {
+  source("200326_lvl3_umap.R")
+}
+
+par(mfrow=c(7,4),mar=c(1,1,1,0.5),mgp=c(0,0,0))
+for (CT in names(lvl3_ctUMAP)) {
+  if (nrow(lvl3_ctUMAP[[CT]]$layout) > 1000) {
+    temp_pch <- "."; temp_cex <- 3
+  } else {
+    temp_pch <- 20; temp_cex <- 1
+  }
+  temp <- sample(nrow(lvl3_ctUMAP[[CT]]$layout))
+  temp_col <- c(scales::alpha("black",0.5),
+                qualitative_hcl(length(lig16),palette="dark3",alpha=0.5))
+  names(temp_col) <- c("CTRL",lig16)
+  temp_lig <- lvl3_data@cdesc[rownames(lvl3_ctUMAP[[CT]]$layout),"pert_iname"]
+  temp_lig[is.na(temp_lig)] <- "CTRL"
+  
+  plot(lvl3_ctUMAP[[CT]]$layout[temp,],pch=temp_pch,cex=temp_cex,xaxt="n",yaxt="n",
+       xlab="UMAP1",ylab="UMAP2",main=paste(CT,"by ligand"),
+       col=temp_col[temp_lig][temp])
+  
+  temp_plate <- lvl3_data@cdesc[rownames(lvl3_ctUMAP[[CT]]$layout),"rna_plate"]
+  temp_plate[is.na(temp_plate)] <- lvl3_data_ctl@cdesc[rownames(lvl3_ctUMAP[[CT]]$layout)[is.na(temp_plate)],"rna_plate"]
+  temp_plate <- as.factor(temp_plate)
+  
+  plot(lvl3_ctUMAP[[CT]]$layout,pch=temp_pch,cex=temp_cex,xaxt="n",yaxt="n",
+       xlab="UMAP1",ylab="UMAP2",main=paste(CT,"by plate"),
+       col=qualitative_hcl(length(levels(temp_plate)),
+                           palette="dark3",alpha=0.5)[temp_plate])
+}
+
+rm(list=c("CT",grep("^temp",ls(),value=T)))
+```
+
+So it seems the plate effect is strong in this data.  Might consider using the plate-based Z-scores from Cmap level 5 instead of the quantile normalized transcriptomes from level 3 that are shown here.
+
+
+## UMAP per ligand treatment  
+
+```{r lvl3_umap_lig, echo=FALSE,message=FALSE,warning=FALSE,fig.height=17,fig.width=9,fig.show='hold'}
+if (file.exists("../CMapCorr_files/200630_lvl3_ligUMAP.RData")) {
+  load("../CMapCorr_files/200630_lvl3_ligUMAP.RData") 
+} else {
+  source("200326_lvl3_umap.R")
+}
+
+par(mfrow=c(8,4),mar=c(1,1,1,0.5),mgp=c(0,0,0))
+for (LIG in names(lvl3_ligUMAP)) {
+  if (nrow(lvl3_ligUMAP[[LIG]]$layout) > 1000) {
+    temp_pch <- "."; temp_cex <- 3
+  } else {
+    temp_pch <- 20; temp_cex <- 1
+  }
+  temp_ct <- lvl3_data@cdesc[rownames(lvl3_ligUMAP[[LIG]]$layout),"cell_id"]
+  temp_ct[is.na(temp_ct)] <- lvl3_data_ctl@cdesc[rownames(lvl3_ligUMAP[[LIG]]$layout)[is.na(temp_ct)],"cell_id"]
+  temp_ct <- as.factor(temp_ct)
+  
+  plot(lvl3_ligUMAP[[LIG]]$layout,pch=temp_pch,cex=temp_cex,xaxt="n",yaxt="n",
+       xlab="UMAP1",ylab="UMAP2",main=paste(LIG,"by cell line"),
+       col=qualitative_hcl(length(levels(temp_ct)),
+                           palette="dark3",alpha=0.5)[temp_ct])
+  
+  temp_plate <- lvl3_data@cdesc[rownames(lvl3_ligUMAP[[LIG]]$layout),"rna_plate"]
+  temp_plate[is.na(temp_plate)] <- lvl3_data_ctl@cdesc[rownames(lvl3_ligUMAP[[LIG]]$layout)[is.na(temp_plate)],"rna_plate"]
+  temp_plate <- as.factor(temp_plate)
+  
+  plot(lvl3_ligUMAP[[LIG]]$layout,pch=temp_pch,cex=temp_cex,xaxt="n",yaxt="n",
+       xlab="UMAP1",ylab="UMAP2",main=paste(LIG,"by plate"),
+       col=qualitative_hcl(length(levels(temp_plate)),
+                           palette="dark3",alpha=0.5)[temp_plate])
+}
+
+rm(list=c("LIG",grep("^temp",ls(),value=T)))
+```
+
+Looks like transcriptomes are entirely delineated by cell type from the ligand perspective.  
+
+****
+
+# Robust Z-scores of differences in cell line transcriptomes following ligand treatment (level 4 data)
+
+```{r load_data_lvl4, message=FALSE,warning=FALSE,include=FALSE}
+if (exists("lvl4_data")) {
+} else if (file.exists("../CMapCorr_files/lvl4_inputs.RData")) {
+  load("../CMapCorr_files/lvl4_inputs.RData") 
+} else {
+  source("lvl4_inputs.R")
+}
+```
+
+## Overall UMAP
+
+```{r lvl4_umap, echo=FALSE,message=FALSE,warning=FALSE,fig.height=6,fig.width=9,fig.show='hold'}
+par(mfrow=c(2,3),mar=c(1.5,1,1,0.5),mgp=c(0,0,0))
+
+if (file.exists("../CMapCorr_files/200630_lvl4_umap.RData")) {
+  load("../CMapCorr_files/200630_lvl4_umap.RData") 
+} else {
+  source("200326_lvl4_umap.R")
+}
+
+temp_col <- as.factor(lvl4_data@cdesc$cell_id)
+temp_col <- qualitative_hcl(length(levels(temp_col)),palette="dark3",alpha=.7)[temp_col]
+plot(lvl4_umap$layout,pch=".",xaxt="n",yaxt="n",
+     main="Coloured by cell line",xlab="UMAP1",ylab="UMAP2",
+     col=temp_col)
+
+temp_col <- as.factor(lvl4_data@cdesc$pert_iname)
+temp_col <- qualitative_hcl(length(levels(temp_col)),palette="dark3",alpha=.7)[temp_col]
+plot(lvl4_umap$layout,pch=".",xaxt="n",yaxt="n",
+     main="Coloured by ligand (all)",xlab="UMAP1",ylab="UMAP2",
+     col=temp_col)
+
+temp_col <- as.factor(lvl4_data@cdesc$rna_plate)
+temp_col <- qualitative_hcl(length(levels(temp_col)),palette="dark3",alpha=.7)[temp_col]
+plot(lvl4_umap$layout,pch=".",xaxt="n",yaxt="n",
+     main="Coloured by plate",xlab="UMAP1",ylab="UMAP2",
+     col=temp_col)
+
+
+if (file.exists("../CMapCorr_files/200630_lvl4_umap_lig16.RData")) {
+  load("../CMapCorr_files/200630_lvl4_umap_lig16.RData") 
+} else {
+  source("200326_lvl4_umap.R")
+}
+
+temp_col <- as.factor(lvl4_data@cdesc[rownames(lvl4_umap_lig16$layout),"cell_id"])
+temp_col <- qualitative_hcl(length(levels(temp_col)),palette="dark3",alpha=.7)[temp_col]
+plot(lvl4_umap_lig16$layout,pch=".",xaxt="n",yaxt="n",
+     main="Coloured by cell line",xlab="UMAP1",ylab="UMAP2",
+     col=temp_col)
+
+temp_col <- as.factor(lvl4_data@cdesc[rownames(lvl4_umap_lig16$layout),"pert_iname"])
+temp_col <- qualitative_hcl(length(levels(temp_col)),palette="dark3",alpha=.7)[temp_col]
+plot(lvl4_umap_lig16$layout,pch=".",xaxt="n",yaxt="n",
+     main="Coloured by ligand (common only)",xlab="UMAP1",ylab="UMAP2",
+     col=temp_col)
+
+temp_col <- as.factor(lvl4_data@cdesc[rownames(lvl4_umap_lig16$layout),"rna_plate"])
+temp_col <- qualitative_hcl(length(levels(temp_col)),palette="dark3",alpha=.7)[temp_col]
+plot(lvl4_umap_lig16$layout,pch=".",xaxt="n",yaxt="n",
+     main="Coloured by plate",xlab="UMAP1",ylab="UMAP2",
+     col=temp_col)
+
+
+rm(list=grep("^temp",ls(),value=T))
+```
+
+Above are UMAP projections (from assayed genes) of all Connectivity Map ligand-treated and control data coloured by cell type.
+
+
+## UMAP per cell line  
+
+Below are UMAP projections of ligand-treated and control samples for each cell type.  Only the 16 ligands assayed in all cell types and their plate-matched controls (coloured in black) are included.
+
+```{r lvl4_umap_ct, echo=FALSE,message=FALSE,warning=FALSE,fig.height=15,fig.width=9,fig.show='hold'}
+if (file.exists("../CMapCorr_files/200630_lvl4_ctUMAP.RData")) {
+  load("../CMapCorr_files/200630_lvl4_ctUMAP.RData") 
+} else {
+  source("200327_lvl4_umap.R")
+}
+
+par(mfrow=c(7,4),mar=c(1,1,1,0.5),mgp=c(0,0,0))
+for (CT in names(lvl4_ctUMAP)) {
+  if (nrow(lvl4_ctUMAP[[CT]]$layout) > 1000) {
+    temp_pch <- "."; temp_cex <- 3
+  } else {
+    temp_pch <- 20; temp_cex <- 1
+  }
+  temp_col <- as.factor(lvl4_data@cdesc[rownames(lvl4_ctUMAP[[CT]]$layout),"pert_iname"])
+  temp_col <- qualitative_hcl(length(levels(temp_col)),palette="dark3",alpha=.7)[temp_col]
+  plot(lvl4_ctUMAP[[CT]]$layout,pch=temp_pch,cex=temp_cex,xaxt="n",yaxt="n",
+       xlab="UMAP1",ylab="UMAP2",main=paste(CT,"by ligand"),
+       col=temp_col)
+  
+  temp_col <- as.factor(lvl4_data@cdesc[rownames(lvl4_ctUMAP[[CT]]$layout),"rna_plate"])
+  temp_col <- qualitative_hcl(length(levels(temp_col)),palette="dark3",alpha=.7)[temp_col]
+  plot(lvl4_ctUMAP[[CT]]$layout,pch=temp_pch,cex=temp_cex,xaxt="n",yaxt="n",
+       xlab="UMAP1",ylab="UMAP2",main=paste(CT,"by plate"),
+       col=temp_col)
+}
+
+rm(list=c("CT",grep("^temp",ls(),value=T)))
+```
+
+
+## UMAP per ligand treatment  
+
+```{r lvl4_umap_lig, echo=FALSE,message=FALSE,warning=FALSE,fig.height=17,fig.width=9,fig.show='hold'}
+if (file.exists("../CMapCorr_files/200630_lvl4_ligUMAP.RData")) {
+  load("../CMapCorr_files/200630_lvl4_ligUMAP.RData") 
+} else {
+  source("200326_lvl4_umap.R")
+}
+
+par(mfrow=c(8,4),mar=c(1,1,1,0.5),mgp=c(0,0,0))
+for (LIG in names(lvl4_ligUMAP)) {
+  if (nrow(lvl4_ligUMAP[[LIG]]$layout) > 1000) {
+    temp_pch <- "."; temp_cex <- 3
+  } else {
+    temp_pch <- 20; temp_cex <- 1
+  }
+  temp_col <- as.factor(lvl4_data@cdesc[rownames(lvl4_ligUMAP[[LIG]]$layout),"cell_id"])
+  temp_col <- qualitative_hcl(length(levels(temp_col)),palette="dark3",alpha=.7)[temp_col]
+  plot(lvl4_ligUMAP[[LIG]]$layout,pch=temp_pch,cex=temp_cex,xaxt="n",yaxt="n",
+       xlab="UMAP1",ylab="UMAP2",main=paste(LIG,"by cell line"),
+       col=temp_col)
+  
+  temp_col <- as.factor(lvl4_data@cdesc[rownames(lvl4_ligUMAP[[LIG]]$layout),"rna_plate"])
+  temp_col <- qualitative_hcl(length(levels(temp_col)),palette="dark3",alpha=.7)[temp_col]
+  plot(lvl4_ligUMAP[[LIG]]$layout,pch=temp_pch,cex=temp_cex,xaxt="n",yaxt="n",
+       xlab="UMAP1",ylab="UMAP2",main=paste(LIG,"by plate"),
+       col=temp_col)
+}
+
+rm(list=c("LIG",grep("^temp",ls(),value=T)))
+```
+
+
+****  
+
+
+# Replicate-collapsed robust Z-scores of differences in cell line transcriptomes following ligand treatment (level 5 data)
+
+```{r load_data_lvl5, message=FALSE, warning=FALSE, include=FALSE}
+if (exists("lvl5_data")) {
+} else if (file.exists("../CMapCorr_files/lvl5_inputs.RData")) {
+  load("../CMapCorr_files/lvl5_inputs.RData") 
+} else {
+  source("lvl5_inputs.R")
+}
+```
+
+
+# Ligands / cell lines assayed
+
+```{r lvl5_data_summary, echo=FALSE, message=FALSE, warning=FALSE, fig.height=5, fig.width=8, fig.show='hold'}
+temp_ct <- sapply(ct14,function(X) 
+  unique(lvl5_data@cdesc$pert_iname[lvl5_data@cdesc$cell_id == X]),
+  simplify=F)
+temp_ctype <- mapply(function(X,Y) sub(paste0("_",Y),"",X),
+                     X=names(temp_ct),Y=ct14)
+names(temp_ct) <- names(temp_ctype) <- ct14
+
+temp_md <- data.frame(sets=ct14,
+                      source.tissue=temp_ctype)
+rownames(temp_md) <- ct14
+temp_col <- qualitative_hcl(length(unique(temp_ctype)),palette="dark3")
+names(temp_col) <- unique(temp_ctype)
+
+upset(fromList(temp_ct),
+      nsets=length(temp_ct),
+      nintersects=NA,
+      order.by="degree",
+      set.metadata=list(data=temp_md,
+                        plots=list(
+                          list(type="text",
+                               column="source.tissue",
+                               assign=15,
+                               colors=temp_col),
+                          list(type="matrix_rows",
+                               column="source.tissue",
+                               colors=temp_col,
+                               alpha=0.7))
+      ))
+
+rm(list=grep("^temp",ls(),value=T))
+```
+
+In the Connectivity Map data, there are 16 ligands assayed in all 14 cell lines, and 300 ligands assayed in 8 cell lines.
+
+```{r lvl5_data_dist, echo=FALSE, message=FALSE, warning=FALSE, fig.show='hold'}
+temp <- sapply(lig16,function(X)
+  table(lvl5_data@cdesc$cell_id[lvl5_data@cdesc$pert_iname == X]))
+temp <- as.data.frame(rbind(temp,Totals=colSums(temp)))
+temp <- temp[c(ct14,"Total"),]
+rownames(temp)[seq_along(ct14)] <- sapply(rownames(temp)[seq_along(ct14)],
+                                          function(X) names(ct14)[ct14 == X])
+
+kable(temp,format="html")  %>%
+  kable_styling()
+
+rm(list=grep("^temp",ls(),value=T))
+```
+
+In a subset of cell lines, ligands were tested over a variety of doses and times (and EGF was especially rigorously assayed), while in most cell lines ligands were tested at a single concentration over two time points.  Note that these data (level 5) are replicate-aggregated Z-scores, so each reported assay represents multiple replicates.
+
+## Overall UMAP
+
+```{r lvl5_umap, echo=FALSE,message=FALSE,warning=FALSE,fig.height=6,fig.width=9,fig.show='hold'}
+par(mfrow=c(2,3),mar=c(1.5,1,1,0.5),mgp=c(0,0,0))
+
+if (file.exists("../CMapCorr_files/200701_lvl5_umap.RData")) {
+  load("../CMapCorr_files/200701_lvl5_umap.RData") 
+} else {
+  source("200701_lvl5_umap.R")
+}
+
+temp_col <- as.factor(lvl5_data@cdesc$cell_id)
+temp_col <- qualitative_hcl(length(levels(temp_col)),palette="dark3",alpha=.7)[temp_col]
+plot(lvl5_umap$layout,pch=".",xaxt="n",yaxt="n",
+     main="Coloured by cell line",xlab="UMAP1",ylab="UMAP2",
+     col=temp_col)
+
+temp_col <- as.factor(lvl5_data@cdesc$pert_iname)
+temp_col <- qualitative_hcl(length(levels(temp_col)),palette="dark3",alpha=.7)[temp_col]
+plot(lvl5_umap$layout,pch=".",xaxt="n",yaxt="n",
+     main="Coloured by ligand (all)",xlab="UMAP1",ylab="UMAP2",
+     col=temp_col)
+
+temp_col <- as.factor(lvl5_data@cdesc$pert_time)
+temp_col <- qualitative_hcl(length(levels(temp_col)),palette="dark3",alpha=.7)[temp_col]
+plot(lvl5_umap$layout,pch=".",xaxt="n",yaxt="n",
+     main="Coloured by duration (correlates with plate)",xlab="UMAP1",ylab="UMAP2",
+     col=temp_col)
+
+
+if (file.exists("../CMapCorr_files/200701_lvl5_umap_lig16.RData")) {
+  load("../CMapCorr_files/200701_lvl5_umap_lig16.RData") 
+} else {
+  source("200701_lvl5_umap.R")
+}
+
+temp_col <- as.factor(lvl5_data@cdesc[rownames(lvl5_umap_lig16$layout),"cell_id"])
+temp_col <- qualitative_hcl(length(levels(temp_col)),palette="dark3",alpha=.7)[temp_col]
+plot(lvl5_umap_lig16$layout,pch=20,xaxt="n",yaxt="n",
+     main="Coloured by cell line",xlab="UMAP1",ylab="UMAP2",
+     col=temp_col)
+
+temp_col <- as.factor(lvl5_data@cdesc[rownames(lvl5_umap_lig16$layout),"pert_iname"])
+temp_col <- qualitative_hcl(length(levels(temp_col)),palette="dark3",alpha=.7)[temp_col]
+plot(lvl5_umap_lig16$layout,pch=20,xaxt="n",yaxt="n",
+     main="Coloured by ligand (common only)",xlab="UMAP1",ylab="UMAP2",
+     col=temp_col)
+
+temp_col <- as.factor(lvl5_data@cdesc[rownames(lvl5_umap_lig16$layout),"pert_time"])
+temp_col <- qualitative_hcl(length(levels(temp_col)),palette="dark3",alpha=.7)[temp_col]
+plot(lvl5_umap_lig16$layout,pch=20,xaxt="n",yaxt="n",
+     main="Coloured by duration (correlates with plate)",xlab="UMAP1",ylab="UMAP2",
+     col=temp_col)
+
+
+rm(list=grep("^temp",ls(),value=T))
+```
+
+Above are UMAP projections (from assayed genes) of all Connectivity Map ligand-treated and control data coloured by cell type.
+
+
+## UMAP per cell line  
+
+Below are UMAP projections of ligand-treated and control samples for each cell type.  Only the 16 ligands assayed in all cell types and their plate-matched controls (coloured in black) are included.
+
+```{r lvl5_umap_ct, echo=FALSE,message=FALSE,warning=FALSE,fig.height=15,fig.width=9,fig.show='hold'}
+if (file.exists("../CMapCorr_files/200701_lvl5_ctUMAP.RData")) {
+  load("../CMapCorr_files/200701_lvl5_ctUMAP.RData") 
+} else {
+  source("200327_lvl5_umap.R")
+}
+
+par(mfrow=c(7,4),mar=c(1,1,1,0.5),mgp=c(0,0,0))
+for (CT in names(lvl5_ctUMAP)) {
+  if (nrow(lvl5_ctUMAP[[CT]]$layout) > 1000) {
+    temp_pch <- "."; temp_cex <- 3
+  } else {
+    temp_pch <- 20; temp_cex <- 1
+  }
+  temp_col <- as.factor(lvl5_data@cdesc[rownames(lvl5_ctUMAP[[CT]]$layout),"pert_iname"])
+  temp_col <- qualitative_hcl(length(levels(temp_col)),palette="dark3",alpha=.7)[temp_col]
+  plot(lvl5_ctUMAP[[CT]]$layout,pch=temp_pch,cex=temp_cex,xaxt="n",yaxt="n",
+       xlab="UMAP1",ylab="UMAP2",main=paste(CT,"by ligand"),
+       col=temp_col)
+  
+  temp_col <- as.factor(lvl5_data@cdesc[rownames(lvl5_ctUMAP[[CT]]$layout),"pert_time"])
+  temp_col <- qualitative_hcl(length(levels(temp_col)),palette="dark3",alpha=.7)[temp_col]
+  plot(lvl5_ctUMAP[[CT]]$layout,pch=temp_pch,cex=temp_cex,xaxt="n",yaxt="n",
+       xlab="UMAP1",ylab="UMAP2",main=paste(CT,"by duration (plate)"),
+       col=temp_col)
+
+}
+
+rm(list=c("CT",grep("^temp",ls(),value=T)))
+```
+
+
+## UMAP per ligand treatment  
+
+```{r lvl5_umap_lig, echo=FALSE,message=FALSE,warning=FALSE,fig.height=17,fig.width=9,fig.show='hold'}
+if (file.exists("../CMapCorr_files/200701_lvl5_ligUMAP.RData")) {
+  load("../CMapCorr_files/200701_lvl5_ligUMAP.RData") 
+} else {
+  source("200701_lvl5_umap.R")
+}
+
+par(mfrow=c(8,4),mar=c(1,1,1,0.5),mgp=c(0,0,0))
+for (LIG in names(lvl5_ligUMAP)) {
+  if (nrow(lvl5_ligUMAP[[LIG]]$layout) > 1000) {
+    temp_pch <- "."; temp_cex <- 3
+  } else {
+    temp_pch <- 20; temp_cex <- 1
+  }
+  temp_col <- as.factor(lvl5_data@cdesc[rownames(lvl5_ligUMAP[[LIG]]$layout),"cell_id"])
+  temp_col <- qualitative_hcl(length(levels(temp_col)),palette="dark3",alpha=.7)[temp_col]
+  plot(lvl5_ligUMAP[[LIG]]$layout,pch=temp_pch,cex=temp_cex,xaxt="n",yaxt="n",
+       xlab="UMAP1",ylab="UMAP2",main=paste(LIG,"by cell line"),
+       col=temp_col)
+
+  temp_col <- as.factor(lvl5_data@cdesc[rownames(lvl5_ligUMAP[[LIG]]$layout),"pert_time"])
+  temp_col <- qualitative_hcl(length(levels(temp_col)),palette="dark3",alpha=.7)[temp_col]
+  plot(lvl5_ligUMAP[[LIG]]$layout,pch=temp_pch,cex=temp_cex,xaxt="n",yaxt="n",
+       xlab="UMAP1",ylab="UMAP2",main=paste(LIG,"by duration (plate)"),
+       col=temp_col)
+}
+
+rm(list=c("LIG",grep("^temp",ls(),value=T)))
+```
+
