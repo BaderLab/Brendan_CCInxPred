@@ -215,6 +215,20 @@ if (exists("lvl4_data_all")) {
 }
 ```
 
+```{r lvl4_data_dist, echo=FALSE,message=FALSE,warning=FALSE,fig.show='hold'}
+temp <- sapply(lig16,function(X)
+  table(lvl4_data@cdesc$cell_id[lvl4_data@cdesc$pert_iname == X]))
+temp <- as.data.frame(rbind(temp,Total=colSums(temp)))
+temp$Total <- rowSums(temp)
+temp <- temp[c(ct14,"Total"),]
+rownames(temp)[seq_along(ct14)] <- sapply(rownames(temp)[seq_along(ct14)],
+                                          function(X) names(ct14)[ct14 == X])
+kable(temp,format="html")  %>%
+  kable_styling()
+
+rm(list=grep("^temp",ls(),value=T))
+```
+
 ## Overall UMAP
 
 Last line are UMAP projections using all (including inferred) gene Z-scores.  This was included to see whether adding inferred genes improved the structure, but that doesn't seem to be the case.
