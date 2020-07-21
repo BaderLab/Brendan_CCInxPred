@@ -206,12 +206,21 @@ if (exists("lvl4_data")) {
 } else {
   source("lvl4_inputs.R")
 }
+
+if (exists("lvl4_data_all")) {
+} else if (file.exists("../CMapCorr_files/lvl4_inputs_allgenes.RData")) {
+  load("../CMapCorr_files/lvl4_inputs_allgenes.RData") 
+} else {
+  source("lvl4_inputs_allgenes.R")
+}
 ```
 
 ## Overall UMAP
 
-```{r lvl4_umap, echo=FALSE,message=FALSE,warning=FALSE,fig.height=6,fig.width=9,fig.show='hold'}
-par(mfrow=c(2,3),mar=c(1.5,1,1,0.5),mgp=c(0,0,0))
+Last line are UMAP projections using all (including inferred) gene Z-scores.  This was included to see whether adding inferred genes improved the structure, but that doesn't seem to be the case.
+
+```{r lvl4_umap, echo=FALSE,message=FALSE,warning=FALSE,fig.height=9,fig.width=9,fig.show='hold'}
+par(mfrow=c(3,3),mar=c(1.5,1,1,0.5),mgp=c(0,0,0))
 
 if (file.exists("../CMapCorr_files/200630_lvl4_umap.RData")) {
   load("../CMapCorr_files/200630_lvl4_umap.RData") 
@@ -221,20 +230,20 @@ if (file.exists("../CMapCorr_files/200630_lvl4_umap.RData")) {
 
 temp_col <- as.factor(lvl4_data@cdesc$cell_id)
 temp_col <- qualitative_hcl(length(levels(temp_col)),palette="dark3",alpha=.7)[temp_col]
-plot(lvl4_umap$layout,pch=".",xaxt="n",yaxt="n",
-     main="Coloured by cell line",xlab="UMAP1",ylab="UMAP2",
+plot(lvl4_umap$layout,pch=".",cex=2,xaxt="n",yaxt="n",
+     main="Coloured by cell line (all lig)",xlab="UMAP1",ylab="UMAP2",
      col=temp_col)
 
 temp_col <- as.factor(lvl4_data@cdesc$pert_iname)
 temp_col <- qualitative_hcl(length(levels(temp_col)),palette="dark3",alpha=.7)[temp_col]
-plot(lvl4_umap$layout,pch=".",xaxt="n",yaxt="n",
-     main="Coloured by ligand (all)",xlab="UMAP1",ylab="UMAP2",
+plot(lvl4_umap$layout,pch=".",cex=2,xaxt="n",yaxt="n",
+     main="Coloured by ligand (all lig)",xlab="UMAP1",ylab="UMAP2",
      col=temp_col)
 
 temp_col <- as.factor(lvl4_data@cdesc$rna_plate)
 temp_col <- qualitative_hcl(length(levels(temp_col)),palette="dark3",alpha=.7)[temp_col]
-plot(lvl4_umap$layout,pch=".",xaxt="n",yaxt="n",
-     main="Coloured by plate",xlab="UMAP1",ylab="UMAP2",
+plot(lvl4_umap$layout,pch=".",cex=2,xaxt="n",yaxt="n",
+     main="Coloured by plate (all lig)",xlab="UMAP1",ylab="UMAP2",
      col=temp_col)
 
 
@@ -246,23 +255,49 @@ if (file.exists("../CMapCorr_files/200630_lvl4_umap_lig16.RData")) {
 
 temp_col <- as.factor(lvl4_data@cdesc[rownames(lvl4_umap_lig16$layout),"cell_id"])
 temp_col <- qualitative_hcl(length(levels(temp_col)),palette="dark3",alpha=.7)[temp_col]
-plot(lvl4_umap_lig16$layout,pch=".",xaxt="n",yaxt="n",
-     main="Coloured by cell line",xlab="UMAP1",ylab="UMAP2",
+plot(lvl4_umap_lig16$layout,pch=".",cex=3,xaxt="n",yaxt="n",
+     main="Coloured by cell line (lig16)",xlab="UMAP1",ylab="UMAP2",
      col=temp_col)
 
 temp_col <- as.factor(lvl4_data@cdesc[rownames(lvl4_umap_lig16$layout),"pert_iname"])
 temp_col <- qualitative_hcl(length(levels(temp_col)),palette="dark3",alpha=.7)[temp_col]
-plot(lvl4_umap_lig16$layout,pch=".",xaxt="n",yaxt="n",
-     main="Coloured by ligand (common only)",xlab="UMAP1",ylab="UMAP2",
+plot(lvl4_umap_lig16$layout,pch=".",cex=3,xaxt="n",yaxt="n",
+     main="Coloured by ligand (lig16)",xlab="UMAP1",ylab="UMAP2",
      col=temp_col)
 
 temp_col <- as.factor(lvl4_data@cdesc[rownames(lvl4_umap_lig16$layout),"rna_plate"])
 temp_col <- qualitative_hcl(length(levels(temp_col)),palette="dark3",alpha=.7)[temp_col]
-plot(lvl4_umap_lig16$layout,pch=".",xaxt="n",yaxt="n",
-     main="Coloured by plate",xlab="UMAP1",ylab="UMAP2",
+plot(lvl4_umap_lig16$layout,pch=".",cex=3,xaxt="n",yaxt="n",
+     main="Coloured by plate (lig16)",xlab="UMAP1",ylab="UMAP2",
      col=temp_col)
 
 
+if (file.exists("../CMapCorr_files/200721_lvl4all_umap_lig16.RData")) {
+  load("../CMapCorr_files/200721_lvl4all_umap_lig16.RData") 
+} else {
+  source("200326_lvl4_umap.R")
+}
+
+temp_col <- as.factor(lvl4_data_all@cdesc[rownames(lvl4all_umap_lig16$layout),"cell_id"])
+temp_col <- qualitative_hcl(length(levels(temp_col)),palette="dark3",alpha=.7)[temp_col]
+plot(lvl4all_umap_lig16$layout,pch=".",cex=3,xaxt="n",yaxt="n",
+     main="Coloured by cell line (lig16, all genes)",xlab="UMAP1",ylab="UMAP2",
+     col=temp_col)
+
+temp_col <- as.factor(lvl4_data_all@cdesc[rownames(lvl4all_umap_lig16$layout),"pert_iname"])
+temp_col <- qualitative_hcl(length(levels(temp_col)),palette="dark3",alpha=.7)[temp_col]
+plot(lvl4all_umap_lig16$layout,pch=".",cex=3,xaxt="n",yaxt="n",
+     main="Coloured by ligand (lig16, all genes)",xlab="UMAP1",ylab="UMAP2",
+     col=temp_col)
+
+temp_col <- as.factor(lvl4_data_all@cdesc[rownames(lvl4all_umap_lig16$layout),"rna_plate"])
+temp_col <- qualitative_hcl(length(levels(temp_col)),palette="dark3",alpha=.7)[temp_col]
+plot(lvl4all_umap_lig16$layout,pch=".",cex=3,xaxt="n",yaxt="n",
+     main="Coloured by plate (lig16, all genes)",xlab="UMAP1",ylab="UMAP2",
+     col=temp_col)
+
+
+rm(lvl4_umap,lvl4_umap_lig16,lvl4all_umap_lig16)
 rm(list=grep("^temp",ls(),value=T))
 ```
 
@@ -300,6 +335,7 @@ for (CT in names(lvl4_ctUMAP)) {
        col=temp_col)
 }
 
+rm(lvl4_ctUMAP)
 rm(list=c("CT",grep("^temp",ls(),value=T)))
 ```
 
@@ -333,6 +369,78 @@ for (LIG in names(lvl4_ligUMAP)) {
        col=temp_col)
 }
 
+rm(lvl4_ligUMAP,lvl4_data,lvl4_data_ctl)
+rm(list=c("LIG",grep("^temp",ls(),value=T)))
+```
+
+
+
+## UMAP per cell line  
+
+Rerunning these using *all* genes (including inferred).
+
+```{r lvl4_umap_ct_all, echo=FALSE,message=FALSE,warning=FALSE,fig.height=15,fig.width=9,fig.show='hold'}
+if (file.exists("../CMapCorr_files/200721_lvl4all_ctUMAP.RData")) {
+  load("../CMapCorr_files/200721_lvl4all_ctUMAP.RData") 
+} else {
+  source("200327_lvl4_umap.R")
+}
+
+par(mfrow=c(7,4),mar=c(1,1,1,0.5),mgp=c(0,0,0))
+for (CT in names(lvl4_ctUMAP)) {
+  if (nrow(lvl4_ctUMAP[[CT]]$layout) > 1000) {
+    temp_pch <- "."; temp_cex <- 3
+  } else {
+    temp_pch <- 20; temp_cex <- 1
+  }
+  temp_col <- as.factor(lvl4_data_all@cdesc[rownames(lvl4_ctUMAP[[CT]]$layout),"pert_iname"])
+  temp_col <- qualitative_hcl(length(levels(temp_col)),palette="dark3",alpha=.7)[temp_col]
+  plot(lvl4_ctUMAP[[CT]]$layout,pch=temp_pch,cex=temp_cex,xaxt="n",yaxt="n",
+       xlab="UMAP1",ylab="UMAP2",main=paste(CT,"by ligand"),
+       col=temp_col)
+  
+  temp_col <- as.factor(lvl4_data_all@cdesc[rownames(lvl4_ctUMAP[[CT]]$layout),"rna_plate"])
+  temp_col <- qualitative_hcl(length(levels(temp_col)),palette="dark3",alpha=.7)[temp_col]
+  plot(lvl4_ctUMAP[[CT]]$layout,pch=temp_pch,cex=temp_cex,xaxt="n",yaxt="n",
+       xlab="UMAP1",ylab="UMAP2",main=paste(CT,"by plate"),
+       col=temp_col)
+}
+
+rm(lvl4_ctUMAP)
+rm(list=c("CT",grep("^temp",ls(),value=T)))
+```
+
+
+## UMAP per ligand treatment  
+
+```{r lvl4_umap_lig_all, echo=FALSE,message=FALSE,warning=FALSE,fig.height=17,fig.width=9,fig.show='hold'}
+if (file.exists("../CMapCorr_files/200721_lvl4all_ligUMAP.RData")) {
+  load("../CMapCorr_files/200721_lvl4all_ligUMAP.RData") 
+} else {
+  source("200326_lvl4_umap.R")
+}
+
+par(mfrow=c(8,4),mar=c(1,1,1,0.5),mgp=c(0,0,0))
+for (LIG in names(lvl4_ligUMAP)) {
+  if (nrow(lvl4_ligUMAP[[LIG]]$layout) > 1000) {
+    temp_pch <- "."; temp_cex <- 3
+  } else {
+    temp_pch <- 20; temp_cex <- 1
+  }
+  temp_col <- as.factor(lvl4_data_all@cdesc[rownames(lvl4_ligUMAP[[LIG]]$layout),"cell_id"])
+  temp_col <- qualitative_hcl(length(levels(temp_col)),palette="dark3",alpha=.7)[temp_col]
+  plot(lvl4_ligUMAP[[LIG]]$layout,pch=temp_pch,cex=temp_cex,xaxt="n",yaxt="n",
+       xlab="UMAP1",ylab="UMAP2",main=paste(LIG,"by cell line"),
+       col=temp_col)
+  
+  temp_col <- as.factor(lvl4_data_all@cdesc[rownames(lvl4_ligUMAP[[LIG]]$layout),"rna_plate"])
+  temp_col <- qualitative_hcl(length(levels(temp_col)),palette="dark3",alpha=.7)[temp_col]
+  plot(lvl4_ligUMAP[[LIG]]$layout,pch=temp_pch,cex=temp_cex,xaxt="n",yaxt="n",
+       xlab="UMAP1",ylab="UMAP2",main=paste(LIG,"by plate"),
+       col=temp_col)
+}
+
+rm(lvl4_ligUMAP,lvl4_data_all)
 rm(list=c("LIG",grep("^temp",ls(),value=T)))
 ```
 
