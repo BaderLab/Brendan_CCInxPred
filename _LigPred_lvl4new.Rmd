@@ -11,8 +11,8 @@ library(kableExtra)
 
 ```{r load_data_lvl4new, message=FALSE, warning=FALSE, include=FALSE}
 if (exists("lvl4new_data")) {
-} else if (file.exists("../CMapCorr_files/lvl4new.RData")) {
-  load("../CMapCorr_files/lvl4new.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl4new.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl4new.RData") 
 } else {
   source("200706_ZscoreFromAssayed.R")
 }
@@ -26,8 +26,8 @@ Since the level 4 data has replicates whereas the level 5 data collapses those i
 [Random forest model source code](https://github.com/BaderLab/Brendan_CCInxPred/blob/master/200707_lvl4new_mixall.R)  
 
 ```{r RF_saturated,echo=FALSE,message=FALSE,warning=FALSE,fig.height=4,fig.width=9,fig.show='hold'}
-if (file.exists("../CMapCorr_files/200707_lvl4new_mixall_balanced_saturated.RData")) {
-  temp <- load("../CMapCorr_files/200707_lvl4new_mixall_balanced_saturated.RData")
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200707_lvl4new_mixall_balanced_saturated.RData")) {
+  temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200707_lvl4new_mixall_balanced_saturated.RData")
 } else {
   source("200707_lvl4new_mixall.R")
 }
@@ -71,8 +71,8 @@ These results are not an improvement in overall accuracy compared to using the l
 
 
 ```{r RFmetadata_samples,echo=FALSE,message=FALSE,warning=FALSE}
-if (file.exists("../CMapCorr_files/200707_lvl4new_mixall_balanced_saturated_metadata.RData")) {
-  temp <- load("../CMapCorr_files/200707_lvl4new_mixall_balanced_saturated_metadata.RData")
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200707_lvl4new_mixall_balanced_saturated_metadata.RData")) {
+  temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200707_lvl4new_mixall_balanced_saturated_metadata.RData")
 } else {
   source("200707_lvl4new_mixall_metadata.R")
 }
@@ -140,14 +140,14 @@ Adding metadata (cell type, treatment dosage and duration) as features in the mo
 
 ```{r vs_lvl5, echo=FALSE,message=FALSE,warning=FALSE}
 if (exists("lvl4_data")) {
-} else if (file.exists("../CMapCorr_files/lvl4_inputs.RData")) {
-  load("../CMapCorr_files/lvl4_inputs.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs.RData") 
 } else {
   source("lvl4_inputs.R")
 }
 
-if (file.exists("../CMapCorr_files/200623_lvl4_mixall_balanced_saturated.RData")) {
-  temp <- load("../CMapCorr_files/200623_lvl4_mixall_balanced_saturated.RData")
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200623_lvl4_mixall_balanced_saturated.RData")) {
+  temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200623_lvl4_mixall_balanced_saturated.RData")
 } else {
   source("200623_lvl4_mixall.R")
 }
@@ -161,8 +161,8 @@ for (N in seq_along(rfresults)) {
 }
 lvl4_acc_saturating <- sapply(temp_acc,diag)
 
-if (file.exists("../CMapCorr_files/200623_lvl4_mixall_balanced_saturated_metadata.RData")) {
-  temp <- load("../CMapCorr_files/200623_lvl4_mixall_balanced_saturated_metadata.RData")
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200623_lvl4_mixall_balanced_saturated_metadata.RData")) {
+  temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200623_lvl4_mixall_balanced_saturated_metadata.RData")
 } else {
   source("200623_lvl4_mixall_metadata.R")
 }
@@ -178,15 +178,15 @@ lvl4_acc_saturating_metadata <- sapply(temp_acc,diag)
 
 
 if (exists("lvl5_data")) {
-} else if (file.exists("../CMapCorr_files/lvl5_inputs.RData")) {
-  load("../CMapCorr_files/lvl5_inputs.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_inputs.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_inputs.RData") 
 } else {
   source("lvl5_inputs.R")
 }
 
 
-if (file.exists("../CMapCorr_files/200427_lvl5_mixall_balanced_saturated.RData")) {
-  temp <- load("../CMapCorr_files/200427_lvl5_mixall_balanced_saturated.RData")
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200427_lvl5_mixall_balanced_saturated.RData")) {
+  temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200427_lvl5_mixall_balanced_saturated.RData")
 } else {
   source("200427_lvl5_mixall.R")
 }
@@ -201,8 +201,8 @@ for (N in seq_along(rfresults)) {
 lvl5_acc_saturating <- sapply(temp_acc,diag)
 
 
-if (file.exists("../CMapCorr_files/200703_lvl5_mixall_balanced_saturated_metadata.RData")) {
-  temp <- load("../CMapCorr_files/200703_lvl5_mixall_balanced_saturated_metadata.RData")
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200703_lvl5_mixall_balanced_saturated_metadata.RData")) {
+  temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200703_lvl5_mixall_balanced_saturated_metadata.RData")
 } else {
   source("200703_lvl5_mixall_metadata.R")
 }

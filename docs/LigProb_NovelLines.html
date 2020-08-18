@@ -11,7 +11,7 @@
 
 
 
-<title>Differentiating ligand-perturbed transcriptomes   by training on all cell types (Level 4 data)</title>
+<title>Probability</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -22,7 +22,6 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
-<script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
 
 <style type="text/css">code{white-space: pre;}</style>
 <style type="text/css">
@@ -291,13 +290,10 @@ $(document).ready(function () {
   <a href="LigPred_lvl4.html">Lvl4 lig pred</a>
 </li>
 <li>
-  <a href="LigPred_lvl4new.html">Lvl4new lig pred</a>
-</li>
-<li>
-  <a href="LigPred_lvl4pca.html">Lvl4 PCA lig pred</a>
-</li>
-<li>
   <a href="LigPred_extrapolate.html">Lig pred on new CT</a>
+</li>
+<li>
+  <a href="LigProb_NovelLines.html">Lig prob on new CT</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
@@ -311,247 +307,53 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Differentiating ligand-perturbed transcriptomes <br> by training on all cell types (Level 4 data)</h1>
+<h1 class="title toc-ignore">Probability</h1>
 
 </div>
 
 
-<p>Since the level 4 data has replicates whereas the level 5 data collapses those into a single value, and training may perform better with more samples, here I repeat the positive control assay training a random forest classifier to identify selected ligand pertubands from transcriptomic changes across cell lines. The distribution of samples across ligands and cell lines is the same as the level 3 data, <a href="./CmapDataSummary_lvl3.html">shown here</a>.</p>
-<div id="data-saturation-testing" class="section level1">
-<h1>Data saturation testing</h1>
-<p><a href="https://github.com/BaderLab/Brendan_CCInxPred/blob/master/200707_lvl4new_mixall.R">Random forest model source code</a></p>
-<p><img src="LigPred_lvl4new_files/figure-html/RF_saturated-1.png" width="864" /></p>
-<p>Training the random forest model was repeated with increasing data, from one sample per ligand (randomly sampled from the 14 cell types) to 418 samples per ligand (all but one sample for most ligands, except EGF).<br />
-Improvements in accuracy from increased training data level off after half the data is used, as was done in the previous models.</p>
-<p>These results are not an improvement in overall accuracy compared to using the level 5 data (as seen <a href="./LigPred_lvl5.html#data-saturation">here</a>).</p>
-</div>
-<div id="improving-prediction-with-metadata-modelling" class="section level1">
-<h1>Improving prediction with metadata modelling</h1>
-<p><a href="https://github.com/BaderLab/Brendan_CCInxPred/blob/master/200707_lvl4new_mixall_metadata.R">Random forest model source code</a></p>
-<table class="table" style="margin-left: auto; margin-right: auto;">
-<thead>
-<tr>
-<th style="text-align:left;">
-</th>
-<th style="text-align:right;">
-BTC
-</th>
-<th style="text-align:right;">
-EGF
-</th>
-<th style="text-align:right;">
-FGF1
-</th>
-<th style="text-align:right;">
-GAS6
-</th>
-<th style="text-align:right;">
-GDNF
-</th>
-<th style="text-align:right;">
-HBEGF
-</th>
-<th style="text-align:right;">
-HGF
-</th>
-<th style="text-align:right;">
-IFNG
-</th>
-<th style="text-align:right;">
-IGF1
-</th>
-<th style="text-align:right;">
-IGF2
-</th>
-<th style="text-align:right;">
-IL17A
-</th>
-<th style="text-align:right;">
-IL4
-</th>
-<th style="text-align:right;">
-IL6
-</th>
-<th style="text-align:right;">
-INS
-</th>
-<th style="text-align:right;">
-TGFA
-</th>
-<th style="text-align:right;">
-TNF
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left;">
-training
-</td>
-<td style="text-align:right;">
-300
-</td>
-<td style="text-align:right;">
-300
-</td>
-<td style="text-align:right;">
-300
-</td>
-<td style="text-align:right;">
-300
-</td>
-<td style="text-align:right;">
-300
-</td>
-<td style="text-align:right;">
-300
-</td>
-<td style="text-align:right;">
-300
-</td>
-<td style="text-align:right;">
-300
-</td>
-<td style="text-align:right;">
-300
-</td>
-<td style="text-align:right;">
-300
-</td>
-<td style="text-align:right;">
-300
-</td>
-<td style="text-align:right;">
-300
-</td>
-<td style="text-align:right;">
-300
-</td>
-<td style="text-align:right;">
-300
-</td>
-<td style="text-align:right;">
-300
-</td>
-<td style="text-align:right;">
-300
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-testing
-</td>
-<td style="text-align:right;">
-113
-</td>
-<td style="text-align:right;">
-505
-</td>
-<td style="text-align:right;">
-119
-</td>
-<td style="text-align:right;">
-108
-</td>
-<td style="text-align:right;">
-110
-</td>
-<td style="text-align:right;">
-119
-</td>
-<td style="text-align:right;">
-137
-</td>
-<td style="text-align:right;">
-113
-</td>
-<td style="text-align:right;">
-121
-</td>
-<td style="text-align:right;">
-121
-</td>
-<td style="text-align:right;">
-118
-</td>
-<td style="text-align:right;">
-115
-</td>
-<td style="text-align:right;">
-116
-</td>
-<td style="text-align:right;">
-121
-</td>
-<td style="text-align:right;">
-120
-</td>
-<td style="text-align:right;">
-103
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-total
-</td>
-<td style="text-align:right;">
-413
-</td>
-<td style="text-align:right;">
-805
-</td>
-<td style="text-align:right;">
-419
-</td>
-<td style="text-align:right;">
-408
-</td>
-<td style="text-align:right;">
-410
-</td>
-<td style="text-align:right;">
-419
-</td>
-<td style="text-align:right;">
-437
-</td>
-<td style="text-align:right;">
-413
-</td>
-<td style="text-align:right;">
-421
-</td>
-<td style="text-align:right;">
-421
-</td>
-<td style="text-align:right;">
-418
-</td>
-<td style="text-align:right;">
-415
-</td>
-<td style="text-align:right;">
-416
-</td>
-<td style="text-align:right;">
-421
-</td>
-<td style="text-align:right;">
-420
-</td>
-<td style="text-align:right;">
-403
-</td>
-</tr>
-</tbody>
-</table>
-<p>Example distribution from the saturating test, at 300 training samples.</p>
-<p><img src="LigPred_lvl4new_files/figure-html/RFmetadata_matrix-1.png" width="672" /></p>
-<p><img src="LigPred_lvl4new_files/figure-html/RF_saturated_metadata-1.png" width="864" /></p>
-<p>Adding metadata (cell type, treatment dosage and duration) as features in the model did not improve prediction accuracy in any appreciable manner.</p>
-<p><img src="LigPred_lvl4new_files/figure-html/vs_lvl5_plot-1.png" width="864" /></p>
-<p>When trained on level 4 data (including metadata) less training samples were needed to achieve maximum accuracy, but maximum accuracy was pretty similar across the board (actually best in the first model).</p>
+<div id="breast-lines-only-level-5-data" class="section level2">
+<h2>Breast lines only, level 5 data</h2>
+<p><img src="LigProb_NovelLines_files/figure-html/lvl5_breast_heatmap-1.png" width="672" /></p>
+<p><img src="LigProb_NovelLines_files/figure-html/lvl5_breast_MA-1.png" width="864" /></p>
+<p><img src="LigProb_NovelLines_files/figure-html/lvl5_breast_inspect-1.png" width="864" /><img src="LigProb_NovelLines_files/figure-html/lvl5_breast_inspect-2.png" width="864" /></p>
+<p><img src="LigProb_NovelLines_files/figure-html/lvl5_breast_MA_MCC-1.png" width="864" /></p>
 <hr />
+</div>
+<div id="breast-lines-only-level-4-data" class="section level2">
+<h2>Breast lines only, level 4 data</h2>
+<p><img src="LigProb_NovelLines_files/figure-html/lvl4_breast_heatmap-1.png" width="672" /></p>
+<p><img src="LigProb_NovelLines_files/figure-html/lvl4_breast_MA-1.png" width="864" /></p>
+<p><img src="LigProb_NovelLines_files/figure-html/lvl4_breast_MA_MCC-1.png" width="864" /></p>
+<hr />
+</div>
+<div id="breast-lines-only-level-3-data" class="section level2">
+<h2>Breast lines only, level 3 data</h2>
+<p><img src="LigProb_NovelLines_files/figure-html/lvl3_breast_heatmap-1.png" width="672" /></p>
+<p><img src="LigProb_NovelLines_files/figure-html/lvl3_breast_MA-1.png" width="864" /></p>
+<p><img src="LigProb_NovelLines_files/figure-html/lvl3_breast_inspect-1.png" width="864" /></p>
+<p><img src="LigProb_NovelLines_files/figure-html/lvl3_breast_MA_MCC-1.png" width="864" /></p>
+<hr />
+</div>
+<div id="all-cell-lines-level-5-data" class="section level2">
+<h2>All cell lines, level 5 data</h2>
+<p><img src="LigProb_NovelLines_files/figure-html/lvl5_heatmap-1.png" width="864" /></p>
+<p><img src="LigProb_NovelLines_files/figure-html/lvl5_MA-1.png" width="864" /></p>
+<p><img src="LigProb_NovelLines_files/figure-html/lvl5_MA_MCC-1.png" width="864" /></p>
+<hr />
+</div>
+<div id="all-cell-lines-level-4-data" class="section level2">
+<h2>All cell lines, level 4 data</h2>
+<p><img src="LigProb_NovelLines_files/figure-html/lvl4_heatmap-1.png" width="864" /></p>
+<p><img src="LigProb_NovelLines_files/figure-html/lvl4_MA-1.png" width="864" /></p>
+<p><img src="LigProb_NovelLines_files/figure-html/lvl4_MA_MCC-1.png" width="864" /></p>
+<hr />
+</div>
+<div id="all-cell-lines-level-3-data" class="section level2">
+<h2>All cell lines, level 3 data</h2>
+<p><img src="LigProb_NovelLines_files/figure-html/lvl3_heatmap-1.png" width="864" /></p>
+<p><img src="LigProb_NovelLines_files/figure-html/lvl3_MA-1.png" width="864" /></p>
+<p><img src="LigProb_NovelLines_files/figure-html/lvl3_MA_MCC-1.png" width="864" /></p>
 </div>
 
 

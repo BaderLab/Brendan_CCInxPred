@@ -12,23 +12,23 @@ library(kableExtra)
 
 ```{r load_data, echo=FALSE,message=FALSE,warning=FALSE}
 if (exists("lvl3_data")) {
-} else if (file.exists("../CMapCorr_files/lvl3_inputs.RData")) {
-  load("../CMapCorr_files/lvl3_inputs.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl3_inputs.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl3_inputs.RData") 
 } else {
   source("lvl3_inputs.R")
 }
 
 if (exists("lvl4_data")) {
-} else if (file.exists("../CMapCorr_files/lvl4_inputs.RData")) {
-  load("../CMapCorr_files/lvl4_inputs.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs.RData") 
 } else {
   source("lvl4_inputs.R")
 }
 
 
 if (exists("lvl5_data")) {
-} else if (file.exists("../CMapCorr_files/lvl5_inputs.RData")) {
-  load("../CMapCorr_files/lvl5_inputs.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_inputs.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_inputs.RData") 
 } else {
   source("lvl5_inputs.R")
 }
@@ -122,8 +122,8 @@ Level 3 data (1000 random samples shown above) are normally distributed with a m
 
 ```{r ctl_tx_corr_plot, echo=FALSE,message=FALSE,warning=FALSE,fig.height=4.5,fig.width=9,fig.show='hold'}
 if (exists("lvl3_ctl_corr")) {
-} else if (file.exists("../CMapCorr_files/200615_lvl3ctlcorr.RData")) {
-  temp <- load("../CMapCorr_files/200615_lvl3ctlcorr.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200615_lvl3ctlcorr.RData")) {
+  temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200615_lvl3ctlcorr.RData") 
 } else {
   source("200615_ctlcorr_inputs.R")
 }
@@ -183,8 +183,8 @@ Correlation between normalized transcriptomes within each cell type is pretty go
 
 ```{r lvl3_corr, echo=FALSE,message=FALSE,warning=FALSE}
 if (exists("lvl3_lig_corr_tx")) {
-} else if (file.exists("../CMapCorr_files/200617_lvl3corr.RData")) {
-  load("../CMapCorr_files/200617_lvl3corr.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200617_lvl3corr.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/200617_lvl3corr.RData") 
 } else {
   source("200615_ctlcorr_inputs.R")
 }
@@ -271,8 +271,8 @@ Cell type transcriptomes are similar to each other despite different ligand trea
 
 ```{r lvl4_corr, echo=FALSE,message=FALSE,warning=FALSE}
 if (exists("lvl4_ctl_corr_plate")) {
-} else if (file.exists("../CMapCorr_files/200625_lvl4corr.RData")) {
-  temp <- load("../CMapCorr_files/200625_lvl4corr.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200625_lvl4corr.RData")) {
+  temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200625_lvl4corr.RData") 
 } else {
   source("200615_ctlcorr_inputs.R")
 }
@@ -363,8 +363,8 @@ Differentially expressed genes are identified as those with z-scores > 1.645, co
 
 ```{r lvl4_de_jaccard_hist, echo=FALSE,message=FALSE,warning=FALSE,fig.height=8,fig.width=9,fig.show='hold'}
 if (exists("lvl4_jacc_ct")) {
-} else if (file.exists("../CMapCorr_files/200624_lvl4jacc.RData")) {
-  temp <- load("../CMapCorr_files/200624_lvl4jacc.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200624_lvl4jacc.RData")) {
+  temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200624_lvl4jacc.RData") 
 } else {
   source("200624_DEjaccard.R")
 }
@@ -409,8 +409,8 @@ par(mfrow=c(3,1),mar=c(3,3,2,1),mgp=2:0)
 
 if (exists("lvl4_OVLPact_ct")) {
   temp <- NULL
-} else if (file.exists("../CMapCorr_files/200702_lvl4_OVLP_ct.RData")) {
-  temp <- load("../CMapCorr_files/200702_lvl4_OVLP_ct.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200702_lvl4_OVLP_ct.RData")) {
+  temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200702_lvl4_OVLP_ct.RData") 
 } else {
   source("200624_DEoverlaptest.R")
 }
@@ -430,8 +430,8 @@ for (X in names(temp_x)) { points(temp_x[[X]],temp_y[[X]],type="l",col=temp_col[
 
 if (exists("lvl4_OVLPact_lig")) {
   temp <- NULL
-} else if (file.exists("../CMapCorr_files/200702_lvl4_OVLP_lig.RData")) {
-  temp <- load("../CMapCorr_files/200702_lvl4_OVLP_lig.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200702_lvl4_OVLP_lig.RData")) {
+  temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200702_lvl4_OVLP_lig.RData") 
 } else {
   source("200624_DEoverlaptest.R")
 }
@@ -459,8 +459,8 @@ for (X in names(temp_x)) {
 
 if (exists("lvl4_OVLPact_lig_ct")) {
   temp <- NULL
-} else if (file.exists("../CMapCorr_files/200702_lvl4_OVLP_lig_ct.RData")) {
-  temp <- load("../CMapCorr_files/200702_lvl4_OVLP_lig_ct.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200702_lvl4_OVLP_lig_ct.RData")) {
+  temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200702_lvl4_OVLP_lig_ct.RData") 
 } else {
   source("200624_DEoverlaptest.R")
 }
@@ -504,8 +504,8 @@ for (X in names(temp_y)) {
 
 ```{r lvl5_corr, echo=FALSE,message=FALSE,warning=FALSE}
 if (exists("lvl5_lig_corr")) {
-} else if (file.exists("../CMapCorr_files/200617_lvl5corr.RData")) {
-  temp <- load("../CMapCorr_files/200617_lvl5corr.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200617_lvl5corr.RData")) {
+  temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200617_lvl5corr.RData") 
 } else {
   source("200615_ctlcorr_inputs.R")
 }
@@ -552,8 +552,8 @@ rm(list=c(grep("^corr_",ls(),value=T),grep("^temp",ls(),value=T)))
 As expected based on the level 4 data, the level 5 z-scores also show poor correlation.
 
 ```{r load_pred_results, echo=FALSE,message=FALSE,warning=FALSE}
-if (file.exists("../CMapCorr_files/200524_lvl5_mixall_balanced_leave1out_results.RData")) {
-  temp <- load("../CMapCorr_files/200524_lvl5_mixall_balanced_leave1out_results.RData")
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200524_lvl5_mixall_balanced_leave1out_results.RData")) {
+  temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200524_lvl5_mixall_balanced_leave1out_results.RData")
 } else {
   source("200524_lvl5_mixall_leave1out.R")
 }
@@ -612,8 +612,8 @@ Differentially expressed genes are identified as those with z-scores > 1.645, co
 
 ```{r lvl5_de_jaccard_hist, echo=FALSE,message=FALSE,warning=FALSE,fig.height=8,fig.width=9,fig.show='hold'}
 if (exists("lvl5_jacc_ct")) {
-} else if (file.exists("../CMapCorr_files/200624_lvl5jacc.RData")) {
-  temp <- load("../CMapCorr_files/200624_lvl5jacc.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200624_lvl5jacc.RData")) {
+  temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200624_lvl5jacc.RData") 
 } else {
   source("200624_DEjaccard.R")
 }
@@ -658,8 +658,8 @@ par(mfrow=c(3,1),mar=c(3,3,2,1),mgp=2:0)
 
 if (exists("lvl5_OVLPact_ct")) {
   temp <- NULL
-} else if (file.exists("../CMapCorr_files/200702_lvl5_OVLP_ct.RData")) {
-  temp <- load("../CMapCorr_files/200702_lvl5_OVLP_ct.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200702_lvl5_OVLP_ct.RData")) {
+  temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200702_lvl5_OVLP_ct.RData") 
 } else {
   source("200624_DEoverlaptest.R")
 }
@@ -679,8 +679,8 @@ for (X in names(temp_x)) { points(temp_x[[X]],temp_y[[X]],type="l",col=temp_col[
 
 if (exists("lvl5_OVLPact_lig")) {
   temp <- NULL
-} else if (file.exists("../CMapCorr_files/200702_lvl5_OVLP_lig.RData")) {
-  temp <- load("../CMapCorr_files/200702_lvl5_OVLP_lig.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200702_lvl5_OVLP_lig.RData")) {
+  temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200702_lvl5_OVLP_lig.RData") 
 } else {
   source("200624_DEoverlaptest.R")
 }
@@ -708,8 +708,8 @@ for (X in names(temp_x)) {
 
 if (exists("lvl5_OVLPact_lig_ct")) {
   temp <- NULL
-} else if (file.exists("../CMapCorr_files/200702_lvl5_OVLP_lig_ct.RData")) {
-  temp <- load("../CMapCorr_files/200702_lvl5_OVLP_lig_ct.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200702_lvl5_OVLP_lig_ct.RData")) {
+  temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200702_lvl5_OVLP_lig_ct.RData") 
 } else {
   source("200624_DEoverlaptest.R")
 }
@@ -753,8 +753,8 @@ for (X in names(temp_y)) {
 
 ```{r lvl4new_load, echo=FALSE,message=FALSE,warning=FALSE,fig.height=4,fig.width=6,fig.show='hold'}
 if (exists("lvl4new_data")) {
-} else if (file.exists("../CMapCorr_files/lvl4new.RData")) {
-  load("../CMapCorr_files/lvl4new.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl4new.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl4new.RData") 
 } else {
   source("200706_ZscoreFromAssayed.R")
 }
@@ -775,8 +775,8 @@ mtext(paste("PCC =",
 
 ```{r lvl4new_corr, echo=FALSE,message=FALSE,warning=FALSE}
 if (exists("lvl4new_ctl_corr_plate")) {
-} else if (file.exists("../CMapCorr_files/200706_lvl4newcorr.RData")) {
-  temp <- load("../CMapCorr_files/200706_lvl4newcorr.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200706_lvl4newcorr.RData")) {
+  temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200706_lvl4newcorr.RData") 
 } else {
   source("200615_ctlcorr_inputs.R")
 }
@@ -842,8 +842,8 @@ Differentially expressed genes are identified as those with z-scores > 1.645, co
 
 ```{r lvl4new_de_jaccard_hist, echo=FALSE,message=FALSE,warning=FALSE,fig.height=8,fig.width=9,fig.show='hold'}
 if (exists("lvl4new_jacc_ct")) {
-} else if (file.exists("../CMapCorr_files/200706_lvl4newjacc.RData")) {
-  temp <- load("../CMapCorr_files/200706_lvl4newjacc.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200706_lvl4newjacc.RData")) {
+  temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200706_lvl4newjacc.RData") 
 } else {
   source("200624_DEjaccard.R")
 }
@@ -888,8 +888,8 @@ par(mfrow=c(3,1),mar=c(3,3,2,1),mgp=2:0)
 
 if (exists("lvl4new_OVLPact_ct")) {
   temp <- NULL
-} else if (file.exists("../CMapCorr_files/200707_lvl4new_OVLP_ct.RData")) {
-  temp <- load("../CMapCorr_files/200707_lvl4new_OVLP_ct.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200707_lvl4new_OVLP_ct.RData")) {
+  temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200707_lvl4new_OVLP_ct.RData") 
 } else {
   source("200624_DEoverlaptest.R")
 }
@@ -909,8 +909,8 @@ for (X in names(temp_x)) { points(temp_x[[X]],temp_y[[X]],type="l",col=temp_col[
 
 if (exists("lvl4new_OVLPact_lig")) {
   temp <- NULL
-} else if (file.exists("../CMapCorr_files/200707_lvl4new_OVLP_lig.RData")) {
-  temp <- load("../CMapCorr_files/200707_lvl4new_OVLP_lig.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200707_lvl4new_OVLP_lig.RData")) {
+  temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200707_lvl4new_OVLP_lig.RData") 
 } else {
   source("200624_DEoverlaptest.R")
 }
@@ -938,8 +938,8 @@ for (X in names(temp_x)) {
 
 if (exists("lvl4new_OVLPact_lig_ct")) {
   temp <- NULL
-} else if (file.exists("../CMapCorr_files/200707_lvl4new_OVLP_lig_ct.RData")) {
-  temp <- load("../CMapCorr_files/200707_lvl4new_OVLP_lig_ct.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200707_lvl4new_OVLP_lig_ct.RData")) {
+  temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200707_lvl4new_OVLP_lig_ct.RData") 
 } else {
   source("200624_DEoverlaptest.R")
 }

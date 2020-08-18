@@ -15,8 +15,8 @@ library(kableExtra)
 
 ```{r load_data_lvl3, message=FALSE, warning=FALSE, include=FALSE}
 if (exists("lvl3_data")) {
-} else if (file.exists("../CMapCorr_files/lvl3_inputs.RData")) {
-  load("../CMapCorr_files/lvl3_inputs.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl3_inputs.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl3_inputs.RData") 
 } else {
   source("lvl3_inputs.R")
 }
@@ -80,8 +80,8 @@ In a subset of cell lines, ligands were tested over a variety of doses and times
 # Distribution of samples between cell types and ligands
 
 ```{r lvl3_pca, echo=FALSE, message=FALSE, warning=FALSE, fig.height=9,fig.width=9, fig.show='hold'}
-if (file.exists("../CMapCorr_files/200326_lvl3pca.RData") & !exists("lvl3pca")) {
-  load("../CMapCorr_files/200326_lvl3pca.RData") 
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200326_lvl3pca.RData") & !exists("lvl3pca")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/200326_lvl3pca.RData") 
 } else {
   source("200326_lvl3_pca_umap.R")
 }
@@ -110,8 +110,8 @@ rm(list=grep("^temp",ls(),value=T))
 ```
 
 ```{r lvl3_umap, echo=FALSE, message=FALSE, warning=FALSE, fig.height=6, fig.width=9, fig.show='hold'}
-if (file.exists("../CMapCorr_files/200326_lvl3umap.RData") & !exists("lvl3umap")) {
-  load("../CMapCorr_files/200326_lvl3umap.RData") 
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200326_lvl3umap.RData") & !exists("lvl3umap")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/200326_lvl3umap.RData") 
 } else {
   source("200326_lvl3_pca_umap.R")
 }
@@ -134,8 +134,8 @@ plot(lvl3umap$layout[colnames(lvl3_data@mat),],
        length(unique(lvl3_data@cdesc$cell_id)),
        palette="dark3",alpha=.7)[as.factor(lvl3_data@cdesc$cell_id)])
 
-if (file.exists("../CMapCorr_files/200326_lvl3umap_raw.RData") & !exists("lvl3umap_raw")) {
-  load("../CMapCorr_files/200326_lvl3umap_raw.RData") 
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200326_lvl3umap_raw.RData") & !exists("lvl3umap_raw")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/200326_lvl3umap_raw.RData") 
 } else {
   source("200326_lvl3_pca_umap.R")
 }
@@ -166,8 +166,8 @@ Above are PCA and UMAP projections of all Connectivity Map ligand-treated and co
 Below are UMAP projections of selected cell types that represent patterns of data distribution between controls and treatments that we see in the CMap data. BT20 is a breast tumour line where very few ligands were tested, but they were tested in depth, and thus there are more treated samples (as a whole) than controls.  VCAP is a prostate tumour line where many ligands were minimally tested, with many controls.  The MCF7 breast tumour line is unique in that many ligands were tested in depth, so as a whole there is a balance between treated and control samples.  
 
 ```{r lvl3_umap_ct, echo=FALSE, message=FALSE, warning=FALSE, fig.height=18, fig.width=9, fig.show='hold'}
-if (file.exists("../CMapCorr_files/200326_ctUMAP.RData") & !exists("ctUMAP")) {
-  load("../CMapCorr_files/200326_ctUMAP.RData") 
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200326_ctUMAP.RData") & !exists("ctUMAP")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/200326_ctUMAP.RData") 
 } else {
   source("200326_lvl3_pca_umap.R")
 }

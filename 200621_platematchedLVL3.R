@@ -1,6 +1,6 @@
 if (exists("lvl3_data")) {
-} else if (file.exists("../CMapCorr_files/lvl3_inputs.RData")) {
-  load("../CMapCorr_files/lvl3_inputs.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl3_inputs.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl3_inputs.RData") 
 } else {
   source("lvl3_inputs.R")
 }

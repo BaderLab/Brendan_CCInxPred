@@ -1,0 +1,268 @@
+---
+title: "Probability"
+---
+  
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
+library(cmapR)
+library(colorspace)
+```
+
+```{r load_data_lvl4, message=FALSE, warning=FALSE, include=FALSE}
+if (exists("lvl4_data")) {
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs.RData") 
+} else {
+  source("lvl4_inputs.R")
+}
+rm(lvl4_data_ctl)
+```
+
+
+
+[Random forest model source code](https://github.com/BaderLab/Brendan_CCInxPred/blob/master/200721_probs_mixall_lvl4.R)  
+
+Playing with test data first (10 iterations of leaving out one ligand-treated sample per training run).
+
+## Unbalanced cell types
+
+```{r testnobal_load,echo=FALSE,message=FALSE,warning=FALSE}
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200721_lvl4_probs_nobal_TESTING.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/200721_lvl4_probs_nobal_TESTING.RData")
+} else {
+  source("200721_lvl4_mixall_probs.R")
+}
+```
+
+```{r testnobal_datacheck, echo=F,message=F,warning=F,fig.height=4.5,fig.width=9,fig.show='hold'}
+temp_label <- as.factor(rep(names(scores_nobal),ncol(lvl4_data@mat)))
+temp_mean <- as.vector(sapply(scores_nobal,function(X) apply(sapply(X,"[[","score"),1,mean)))
+temp_sd <- as.vector(sapply(scores_nobal,function(X) apply(sapply(X,"[[","score"),1,sd)))
+Z <- sample(length(temp_label))
+
+par(mfrow=c(1,2),mar=c(3,3,1,1),mgp=2:0)
+plot(temp_mean[Z],temp_sd[Z],pch=".",cex=2,xlab="Mean of rep scores",ylab="SD of rep scores",
+     col=qualitative_hcl(length(levels(temp_label)),palette="dark3",alpha=0.7)[temp_label[Z]])
+
+for (LIG in names(scores_nobal)) {
+  for (X in seq_along(scores_nobal[[LIG]])) {
+    scores_nobal[[LIG]][[X]]$label <- lvl4_data@cdesc[rownames(scores_nobal[[LIG]][[X]]),"pert_iname"] == LIG
+  }
+}
+
+temp <- list(
+  neg_train = unlist(lapply(scores_nobal,function(X) 
+    unlist(lapply(X,function(Y) Y$score[Y$source == "train" & !Y$label])))),
+  neg_test = unlist(lapply(scores_nobal,function(X) 
+    unlist(lapply(X,function(Y) Y$score[Y$source == "test" & !Y$label])))),
+  pos_train = unlist(lapply(scores_nobal,function(X) 
+    unlist(lapply(X,function(Y) Y$score[Y$source == "train" & Y$label])))),
+  pos_test = unlist(lapply(scores_nobal,function(X) 
+    unlist(lapply(X,function(Y) Y$score[Y$source == "test" & Y$label]))))
+)  
+boxplot(temp,ylim=0:1,ylab="Scores")
+
+rm(list=c(grep("^temp",ls(),value=T),"LIG","X","Z"))
+```
+
+
+```{r testnobal_samplescores, echo=F,message=F,warning=F}
+score_nobal <- sapply(scores_nobal,function(X) apply(sapply(X,"[[","score"),1,max))
+rownames(score_nobal) <- rownames(lvl4_data@cdesc)
+class_nobal <- data.frame(
+  label=colnames(score_nobal)[apply(score_nobal,1,which.max)],
+  score=apply(score_nobal,1,max),
+  truth=lvl4_data@cdesc$pert_iname,
+  stringsAsFactors=F
+)
+class_nobal$truth[!class_nobal$truth %in% lig16] <- NA
+
+sum(class_nobal$label == class_nobal$truth,na.rm=T) / sum(!is.na(class_nobal$truth))
+```
+
+```{r echo=F,message=F,warning=F}
+
+```
+
+
+## Balanced cell types by upsampling
+
+```{r testupbalCT_load,echo=FALSE,message=FALSE,warning=FALSE}
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200721_lvl4_probs_upbalCT_TESTING.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/200721_lvl4_probs_upbalCT_TESTING.RData")
+} else {
+  source("200721_lvl4_mixall_probs.R")
+}
+```
+
+```{r testupbalCT_datacheck, echo=F,message=F,warning=F,fig.height=4.5,fig.width=9,fig.show='hold'}
+temp_label <- as.factor(rep(names(scores_upbalCT),ncol(lvl4_data@mat)))
+temp_ct <- as.factor(rep(lvl4_data@cdesc$cell_id,length(scores_upbalCT)))
+temp_mean <- as.vector(sapply(scores_upbalCT,function(X) apply(sapply(X,"[[","score"),1,mean)))
+temp_sd <- as.vector(sapply(scores_upbalCT,function(X) apply(sapply(X,"[[","score"),1,sd)))
+Z <- sample(length(temp_label))
+
+par(mfrow=c(1,2),mar=c(3,3,1,1),mgp=2:0)
+plot(temp_mean[Z],temp_sd[Z],pch=".",cex=2,xlab="Mean of rep scores",ylab="SD of rep scores",
+     col=qualitative_hcl(length(levels(temp_label)),palette="dark3",alpha=0.7)[temp_label[Z]])
+     # col=qualitative_hcl(length(levels(temp_ct)),palette="dark3",alpha=0.7)[temp_ct[Z]])
+
+for (LIG in names(scores_upbalCT)) {
+  for (X in seq_along(scores_upbalCT[[LIG]])) {
+    scores_upbalCT[[LIG]][[X]]$label <- lvl4_data@cdesc[rownames(scores_upbalCT[[LIG]][[X]]),"pert_iname"] == LIG
+  }
+}
+
+temp <- list(
+  neg_train = unlist(lapply(scores_upbalCT,function(X) 
+    unlist(lapply(X,function(Y) Y$score[Y$source == "train" & !Y$label])))),
+  neg_test = unlist(lapply(scores_upbalCT,function(X) 
+    unlist(lapply(X,function(Y) Y$score[Y$source == "test" & !Y$label])))),
+  pos_train = unlist(lapply(scores_upbalCT,function(X) 
+    unlist(lapply(X,function(Y) Y$score[Y$source == "train" & Y$label])))),
+  pos_test = unlist(lapply(scores_upbalCT,function(X) 
+    unlist(lapply(X,function(Y) Y$score[Y$source == "test" & Y$label]))))
+)  
+boxplot(temp,ylim=0:1,ylab="Scores")
+
+rm(list=c(grep("^temp",ls(),value=T),"LIG","X","Z"))
+```
+
+
+```{r testupbalCT_samplescores, echo=F,message=F,warning=F}
+score_upbalCT <- sapply(scores_upbalCT,function(X) apply(sapply(X,"[[","score"),1,max))
+rownames(score_upbalCT) <- rownames(lvl4_data@cdesc)
+class_upbalCT <- data.frame(
+  label=colnames(score_upbalCT)[apply(score_upbalCT,1,which.max)],
+  score=apply(score_upbalCT,1,max),
+  truth=lvl4_data@cdesc$pert_iname,
+  stringsAsFactors=F
+)
+class_upbalCT$truth[!class_upbalCT$truth %in% lig16] <- NA
+
+sum(class_upbalCT$label == class_upbalCT$truth,na.rm=T) / sum(!is.na(class_upbalCT$truth))
+
+
+scores_upbalCT_testonly <- scores_upbalCT
+for (LIG in names(scores_nobal)) {
+  for (X in seq_along(scores_nobal[[LIG]])) {
+    scores_upbalCT_testonly[[LIG]][[X]]$score[scores_upbalCT_testonly[[LIG]][[X]]$source == "train"] <- NA
+  }
+}
+score_upbalCT_testonly <- sapply(scores_upbalCT_testonly,function(X) 
+  apply(sapply(X,"[[","score"),1,max,na.rm=T))
+rownames(score_upbalCT_testonly) <- rownames(lvl4_data@cdesc)
+class_upbalCT_testonly <- data.frame(
+  label=colnames(score_upbalCT_testonly)[apply(score_upbalCT_testonly,1,which.max)],
+  score=apply(score_upbalCT_testonly,1,max),
+  truth=lvl4_data@cdesc$pert_iname,
+  stringsAsFactors=F
+)
+class_upbalCT_testonly$truth[!class_upbalCT_testonly$truth %in% lig16] <- NA
+
+sum(class_upbalCT_testonly$label == class_upbalCT_testonly$truth,na.rm=T) / sum(!is.na(class_upbalCT_testonly$truth))
+
+```
+
+
+## Balanced cell types by a mix of upsampling and downsampling
+
+```{r testbalCT_load,echo=FALSE,message=FALSE,warning=FALSE}
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200721_lvl4_probs_balCT_TESTING.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/200721_lvl4_probs_balCT_TESTING.RData")
+} else {
+  source("200721_lvl4_mixall_probs.R")
+}
+```
+
+```{r testbalCT_datacheck, echo=F,message=F,warning=F,fig.height=4.5,fig.width=9,fig.show='hold'}
+temp_label <- as.factor(rep(names(scores_balCT),ncol(lvl4_data@mat)))
+temp_mean <- as.vector(sapply(scores_balCT,function(X) apply(sapply(X,"[[","score"),1,mean)))
+temp_sd <- as.vector(sapply(scores_balCT,function(X) apply(sapply(X,"[[","score"),1,sd)))
+Z <- sample(length(temp_label))
+
+par(mfrow=c(1,2),mar=c(3,3,1,1),mgp=2:0)
+plot(temp_mean[Z],temp_sd[Z],pch=".",cex=2,xlab="Mean of rep scores",ylab="SD of rep scores",
+     col=qualitative_hcl(length(levels(temp_label)),palette="dark3",alpha=0.7)[temp_label[Z]])
+
+for (LIG in names(scores_balCT)) {
+  for (X in seq_along(scores_balCT[[LIG]])) {
+    scores_balCT[[LIG]][[X]]$label <- lvl4_data@cdesc[rownames(scores_balCT[[LIG]][[X]]),"pert_iname"] == LIG
+  }
+}
+
+temp <- list(
+  neg_train = unlist(lapply(scores_balCT,function(X) 
+    unlist(lapply(X,function(Y) Y$score[Y$source == "train" & !Y$label])))),
+  neg_test = unlist(lapply(scores_balCT,function(X) 
+    unlist(lapply(X,function(Y) Y$score[Y$source == "test" & !Y$label])))),
+  pos_train = unlist(lapply(scores_balCT,function(X) 
+    unlist(lapply(X,function(Y) Y$score[Y$source == "train" & Y$label])))),
+  pos_test = unlist(lapply(scores_balCT,function(X) 
+    unlist(lapply(X,function(Y) Y$score[Y$source == "test" & Y$label]))))
+)  
+boxplot(temp,ylim=0:1,ylab="Scores")
+
+rm(list=c(grep("^temp",ls(),value=T),"LIG","X","Z"))
+```
+
+
+```{r testbalCT_samplescores, echo=F,message=F,warning=F}
+score_balCT <- sapply(scores_balCT,function(X) apply(sapply(X,"[[","score"),1,max))
+rownames(score_balCT) <- rownames(lvl4_data@cdesc)
+class_balCT <- data.frame(
+  label=colnames(score_balCT)[apply(score_balCT,1,which.max)],
+  score=apply(score_balCT,1,max),
+  truth=lvl4_data@cdesc$pert_iname,
+  stringsAsFactors=F
+)
+class_balCT$truth[!class_balCT$truth %in% lig16] <- NA
+
+sum(class_balCT$label == class_balCT$truth,na.rm=T) / sum(!is.na(class_balCT$truth))
+
+
+scores_balCT_testonly <- scores_balCT
+for (LIG in names(scores_nobal)) {
+  for (X in seq_along(scores_nobal[[LIG]])) {
+    scores_balCT_testonly[[LIG]][[X]]$score[scores_balCT_testonly[[LIG]][[X]]$source == "train"] <- NA
+  }
+}
+score_balCT_testonly <- sapply(scores_balCT_testonly,function(X) 
+  apply(sapply(X,"[[","score"),1,max,na.rm=T))
+rownames(score_balCT_testonly) <- rownames(lvl4_data@cdesc)
+class_balCT_testonly <- data.frame(
+  label=colnames(score_balCT_testonly)[apply(score_balCT_testonly,1,which.max)],
+  score=apply(score_balCT_testonly,1,max),
+  truth=lvl4_data@cdesc$pert_iname,
+  stringsAsFactors=F
+)
+class_balCT_testonly$truth[!class_balCT_testonly$truth %in% lig16] <- NA
+
+sum(class_balCT_testonly$label == class_balCT_testonly$truth,na.rm=T) / sum(!is.na(class_balCT_testonly$truth))
+
+```
+
+****
+
+```{r, eval=FALSE, echo=F,message=F,warning=F}
+par(mfrow=c(2,1),mar=c(2,3,1,1),mgp=2:0)
+hist(score_nobal$score[!score_nobal$class],
+     freq=F,xlim=0:1,main="Unbalanced cell types",col=scales::alpha("red",0.5))
+hist(score_nobal$score[score_nobal$class],
+     freq=F,add=TRUE,col=scales::alpha("dodgerblue",0.5))
+abline(v=0.5,col="red")
+hist(score_balCT$score[!score_balCT$class],
+     freq=F,xlim=0:1,main="Balanced cell types by upsampling",col=scales::alpha("red",0.5))
+hist(score_balCT$score[score_balCT$class],
+     freq=F,add=TRUE,col=scales::alpha("dodgerblue",0.5))
+abline(v=0.5,col="red")
+
+boxplot(score~source,data=score_nobal[!score_nobal$class,],
+        main="FALSE scores, unbalanced cell types")
+boxplot(score~source,data=score_balCT[!score_balCT$class,],
+        main="FALSE scores, balanced by upsampling")
+
+par(mfrow=c(1,1),mar=c(3,3,1,1))
+boxplot(list(noBal=score_nobal$score[score_nobal$class],
+             balCT=score_balCT$score[score_balCT$class]),
+        horizontal=T,ylim=0:1,main="TRUE scores")
+```

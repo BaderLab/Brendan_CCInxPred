@@ -3,8 +3,8 @@ setwd("~/Dropbox/GDB/CMapCorr/")
 
 # lvl3 ----
 if (exists("lvl3_data")) {
-} else if (file.exists("../CMapCorr_files/lvl3_inputs.RData")) {
-  load("../CMapCorr_files/lvl3_inputs.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl3_inputs.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl3_inputs.RData") 
 } else {
   source("lvl3_inputs.R")
 }
@@ -105,8 +105,8 @@ rm(list=c("LIG",grep("^temp",ls(),value=T),grep("^lvl3_(lig|ct)",ls(),value=T)))
 
 # lvl4 ----
 if (exists("lvl4_data")) {
-} else if (file.exists("../CMapCorr_files/lvl4_inputs.RData")) {
-  load("../CMapCorr_files/lvl4_inputs.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs.RData") 
 } else {
   source("lvl4_inputs.R")
 }
@@ -177,14 +177,14 @@ lvl4_lig_corr_tx <- sapply(lvl4_lig_corr_tx,unlist,simplify=F)
 
 
 save(list=ls()[grepl("lvl4",ls()) & grepl("corr",ls())],
-     file="../CMapCorr_files/200625_lvl4corr.RData")
+     file="~/Dropbox/GDB_archive/CMapCorr_files/200625_lvl4corr.RData")
 rm(list=c("LIG",grep("^temp",ls(),value=T),grep("^lvl4_(lig|ct)",ls(),value=T)))
 
 
 # lvl5 ----
 if (exists("lvl5_data")) {
-} else if (file.exists("../CMapCorr_files/lvl5_inputs.RData")) {
-  load("../CMapCorr_files/lvl5_inputs.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_inputs.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_inputs.RData") 
 } else {
   source("lvl5_inputs.R")
 }
@@ -249,8 +249,8 @@ save(list=ls()[grepl("lvl5",ls()) & grepl("corr",ls())],
 
 # lvl4new ----
 if (exists("lvl4new_data")) {
-} else if (file.exists("../CMapCorr_files/lvl4new.RData")) {
-  load("../CMapCorr_files/lvl4new.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl4new.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl4new.RData") 
 } else {
   source("200706_ZscoreFromAssayed.R")
 }
@@ -314,7 +314,7 @@ lvl4new_lig_corr_tx <- sapply(lvl4new_lig_corr_tx,unlist,simplify=F)
 
 
 save(list=ls()[grepl("lvl4new",ls()) & grepl("corr",ls())],
-     file="../CMapCorr_files/200706_lvl4newcorr.RData")
+     file="~/Dropbox/GDB_archive/CMapCorr_files/200706_lvl4newcorr.RData")
 rm(list=c("LIG",grep("^temp",ls(),value=T),grep("^lvl4new_(lig|ct)",ls(),value=T)))
 
 

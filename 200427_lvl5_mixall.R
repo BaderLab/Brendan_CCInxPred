@@ -3,8 +3,8 @@ library(ranger)
 
 # prepping data ---
 if (exists("lvl5_data")) {
-} else if (file.exists("../CMapCorr_files/lvl5_inputs.RData")) {
-  load("../CMapCorr_files/lvl5_inputs.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_inputs.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_inputs.RData") 
 } else {
   source("lvl5_inputs.R")
 }
@@ -24,7 +24,7 @@ rfmodel <- ranger(x=t(lvl5_data@mat[,trainIDs]),
 rfresults <- predict(rfmodel,t(lvl5_data@mat[,testIDs]))
 
 save(rfmodel,rfresults,trainIDs,testIDs,
-     file="../CMapCorr_files/200427_lvl5_mixall.RData")
+     file="~/Dropbox/GDB_archive/CMapCorr_files/200427_lvl5_mixall.RData")
 
 
 # balancing data ----
@@ -51,7 +51,7 @@ rfmodel <- ranger(x=t(lvl5_data@mat[,trainIDs]),
 rfresults <- predict(rfmodel,t(lvl5_data@mat[,testIDs]))
 
 save(rfmodel,rfresults,trainIDs,testIDs,
-     file="../CMapCorr_files/200427_lvl5_mixall_balanced.RData")
+     file="~/Dropbox/GDB_archive/CMapCorr_files/200427_lvl5_mixall_balanced.RData")
 
 
 # Data saturation test ----
@@ -85,4 +85,4 @@ rfresults <- sapply(seq_along(rfmodel),function(N)
   simplify=F)
 
 save(rfmodel,rfresults,trainIDs,testIDs,
-     file="../CMapCorr_files/200427_lvl5_mixall_balanced_saturated.RData")
+     file="~/Dropbox/GDB_archive/CMapCorr_files/200427_lvl5_mixall_balanced_saturated.RData")

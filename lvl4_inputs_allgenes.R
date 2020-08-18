@@ -2,7 +2,7 @@ library(cmapR)
 
 rm(list=ls())
 setwd("~/Dropbox/GDB/CMapCorr/")
-temp <- load("../CMapCorr_files/lvl3_inputs.RData")
+temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/lvl3_inputs.RData")
 rm(list=ls()[!ls() %in% c("ct14","lig16")])
 
 temp_cmap_path <- "~/Data_LINCS/phase1"

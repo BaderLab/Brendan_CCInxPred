@@ -13,8 +13,8 @@ library(kableExtra)
 
 ```{r load_data_lvl4, message=FALSE, warning=FALSE, include=FALSE}
 if (exists("lvl4_data")) {
-} else if (file.exists("../CMapCorr_files/lvl4_inputs.RData")) {
-  load("../CMapCorr_files/lvl4_inputs.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs.RData") 
 } else {
   source("lvl4_inputs.R")
 }
@@ -23,8 +23,8 @@ if (exists("lvl4_data")) {
 [Random forest model source code](https://github.com/BaderLab/Brendan_CCInxPred/blob/master/200708_lvl4_withhold1CT.R)  
 
 ```{r RFwithholdCT,echo=FALSE,message=FALSE,warning=FALSE,fig.height=4,fig.width=9,fig.show='hold'}
-if (file.exists("../CMapCorr_files/200708_lvl4_withhold1CT.RData")) {
-  temp <- load("../CMapCorr_files/200708_lvl4_withhold1CT.RData")
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200708_lvl4_withhold1CT.RData")) {
+  temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200708_lvl4_withhold1CT.RData")
 } else {
   source("200708_lvl4_withhold1CT.R")
 }
@@ -99,8 +99,8 @@ text(as.vector(sapply(1:ncol(lvl4_counts),function(X) rep(X,nrow(lvl4_counts))))
 
 ```{r load_data_lvl5, message=FALSE, warning=FALSE, include=FALSE}
 if (exists("lvl5_data")) {
-} else if (file.exists("../CMapCorr_files/lvl5_inputs.RData")) {
-  load("../CMapCorr_files/lvl5_inputs.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_inputs.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_inputs.RData") 
 } else {
   source("lvl5_inputs.R")
 }
@@ -109,8 +109,8 @@ if (exists("lvl5_data")) {
 [Random forest model source code](https://github.com/BaderLab/Brendan_CCInxPred/blob/master/200708_lvl5_withhold1CT.R)  
 
 ```{r lv5_RFwithholdCT,echo=FALSE,message=FALSE,warning=FALSE,fig.height=4,fig.width=9,fig.show='hold'}
-if (file.exists("../CMapCorr_files/200708_lvl5_withhold1CT.RData")) {
-  temp <- load("../CMapCorr_files/200708_lvl5_withhold1CT.RData")
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200708_lvl5_withhold1CT.RData")) {
+  temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200708_lvl5_withhold1CT.RData")
 } else {
   source("200708_lvl5_withhold1CT.R")
 }
@@ -184,8 +184,8 @@ text(as.vector(sapply(1:ncol(lvl5_counts),function(X) rep(X,nrow(lvl5_counts))))
 
 
 ```{r RF_leave1out,echo=FALSE,message=FALSE,warning=FALSE}
-if (file.exists("../CMapCorr_files/200524_lvl5_mixall_balanced_leave1out_results.RData")) {
-  temp <- load("../CMapCorr_files/200524_lvl5_mixall_balanced_leave1out_results.RData")
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200524_lvl5_mixall_balanced_leave1out_results.RData")) {
+  temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200524_lvl5_mixall_balanced_leave1out_results.RData")
 } else {
   source("200524_lvl5_mixall_leave1out.R")
 }

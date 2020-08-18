@@ -11,8 +11,8 @@ library(kableExtra)
 
 ```{r load_data_lvl5, message=FALSE, warning=FALSE, include=FALSE}
 if (exists("lvl5_data")) {
-} else if (file.exists("../CMapCorr_files/lvl5_inputs.RData")) {
-  load("../CMapCorr_files/lvl5_inputs.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_inputs.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_inputs.RData") 
 } else {
   source("lvl5_inputs.R")
 }
@@ -24,8 +24,8 @@ Since the replicate-aggregated Z-scores incorporate both ligand-treated and untr
 [Random forest model source code](https://github.com/BaderLab/Brendan_CCInxPred/blob/master/200427_lvl5_mixall.R)  
 
 ```{r RF_unbalanced,echo=FALSE,message=FALSE,warning=FALSE,fig.height=7,fig.width=7,fig.show='hold'}
-if (file.exists("../CMapCorr_files/200427_lvl5_mixall.RData")) {
-  temp <- load("../CMapCorr_files/200427_lvl5_mixall.RData")
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200427_lvl5_mixall.RData")) {
+  temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200427_lvl5_mixall.RData")
 } else {
   source("200427_lvl5_mixall.R")
 }
@@ -71,8 +71,8 @@ To address the balancing issue, the training set was adjusted to ensure equal sa
 [Random forest model source code](https://github.com/BaderLab/Brendan_CCInxPred/blob/master/200427_lvl5_mixall.R)  
 
 ```{r RF_balanced,echo=FALSE,message=FALSE,warning=FALSE,fig.height=7,fig.width=9,fig.show='hold'}
-if (file.exists("../CMapCorr_files/200427_lvl5_mixall_balanced.RData")) {
-  temp <- load("../CMapCorr_files/200427_lvl5_mixall_balanced.RData")
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200427_lvl5_mixall_balanced.RData")) {
+  temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200427_lvl5_mixall_balanced.RData")
 } else {
   source("200427_lvl5_mixall.R")
 }
@@ -122,8 +122,8 @@ rm(list=grep("^temp",ls(),value=T))
 [Random forest model source code](https://github.com/BaderLab/Brendan_CCInxPred/blob/master/200427_lvl5_mixall.R)  
 
 ```{r RF_saturated,echo=FALSE,message=FALSE,warning=FALSE,fig.height=3,fig.width=7,fig.show='hold'}
-if (file.exists("../CMapCorr_files/200427_lvl5_mixall_balanced_saturated.RData")) {
-  temp <- load("../CMapCorr_files/200427_lvl5_mixall_balanced_saturated.RData")
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200427_lvl5_mixall_balanced_saturated.RData")) {
+  temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200427_lvl5_mixall_balanced_saturated.RData")
 } else {
   source("200427_lvl5_mixall.R")
 }
@@ -162,8 +162,8 @@ Below are UMAP projections of all cells used in these models, coloured by cell t
 ```{r UMAP_ct,echo=FALSE,message=FALSE,warning=FALSE,fig.height=9,fig.width=9,fig.show='hold'}
 if (exists("lvl5_umap_lig16")) {
   temp <- NULL
-} else if (file.exists("../CMapCorr_files/200701_lvl5_umap_lig16.RData")) {
-  load("../CMapCorr_files/200701_lvl5_umap_lig16.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200701_lvl5_umap_lig16.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/200701_lvl5_umap_lig16.RData") 
 } else {
   source("200701_lvl5_umap.R")
 }
@@ -250,8 +250,8 @@ Given that nearly all highlighted genes are from the two most predictable ligand
 The following figure shows classification accuracy per cell (top row, darker indicates higher frequency of correct classification) and Z-scores of a selection of genes that strongly respond to the indicated ligand (from the above figure).  
 
 ```{r RF_leave1out,echo=FALSE,message=FALSE,warning=FALSE}
-if (file.exists("../CMapCorr_files/200524_lvl5_mixall_balanced_leave1out_results.RData")) {
-  temp <- load("../CMapCorr_files/200524_lvl5_mixall_balanced_leave1out_results.RData")
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200524_lvl5_mixall_balanced_leave1out_results.RData")) {
+  temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200524_lvl5_mixall_balanced_leave1out_results.RData")
 } else {
   source("200524_lvl5_mixall_leave1out.R")
 }
@@ -309,8 +309,8 @@ rm(X)
 ```{r UMAP_marker_gene,echo=FALSE,message=FALSE,warning=FALSE,fig.height=8.5,fig.width=9,fig.show='hold'}
 if (exists("lvl5_umap_lig16")) {
   temp <- NULL
-} else if (file.exists("../CMapCorr_files/200701_lvl5_umap_lig16.RData")) {
-  load("../CMapCorr_files/200701_lvl5_umap_lig16.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200701_lvl5_umap_lig16.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/200701_lvl5_umap_lig16.RData") 
 } else {
   source("200701_lvl5_umap.R")
 }
@@ -561,8 +561,8 @@ for (L in 1:nrow(temp)) {
 Rather than let the model implicitly learn metadata characteristics such as cell line, treatment duration, and dosage, perhaps it would improve accuracy if these were explicitly provided as features.  
 
 ```{r RF_saturated_metadata,echo=FALSE,message=FALSE,warning=FALSE,fig.height=3,fig.width=9,fig.show='hold'}
-if (file.exists("../CMapCorr_files/200703_lvl5_mixall_balanced_saturated_metadata.RData")) {
-  temp <- load("../CMapCorr_files/200703_lvl5_mixall_balanced_saturated_metadata.RData")
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200703_lvl5_mixall_balanced_saturated_metadata.RData")) {
+  temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200703_lvl5_mixall_balanced_saturated_metadata.RData")
 } else {
   source("200703_lvl5_mixall_metadata.R")
 }

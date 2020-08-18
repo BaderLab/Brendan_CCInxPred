@@ -5,8 +5,8 @@ setwd("~/Dropbox/GDB/CMapCorr/")
 # LVL4 ----
 
 if (exists("lvl4_data")) {
-} else if (file.exists("../CMapCorr_files/lvl4_inputs.RData")) {
-  load("../CMapCorr_files/lvl4_inputs.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs.RData") 
 } else {
   source("lvl4_inputs.R")
 }
@@ -195,8 +195,8 @@ if (!file.exists("~/Dropbox/GDB/CMapCorr_files/200702_lvl4_OVLP_lig_ct.RData")) 
 # LVL5 ----
 
 if (exists("lvl5_data")) {
-} else if (file.exists("../CMapCorr_files/lvl5_inputs.RData")) {
-  load("../CMapCorr_files/lvl5_inputs.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_inputs.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_inputs.RData") 
 } else {
   source("lvl5_inputs.R")
 }
@@ -387,8 +387,8 @@ if (!file.exists("~/Dropbox/GDB/CMapCorr_files/200702_lvl5_OVLP_lig_ct.RData")) 
 # lvl4new ----
 
 if (exists("lvl4new_data")) {
-} else if (file.exists("../CMapCorr_files/lvl4new.RData")) {
-  load("../CMapCorr_files/lvl4new.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl4new.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl4new.RData") 
 } else {
   source("200706_ZscoreFromAssayed.R")
 }

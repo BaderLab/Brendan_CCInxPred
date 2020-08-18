@@ -12,8 +12,8 @@ library(kableExtra)
 
 ```{r load_data_lvl5, message=FALSE, warning=FALSE, include=FALSE}
 if (exists("lvl5_data")) {
-} else if (file.exists("../CMapCorr_files/lvl5_inputs.RData")) {
-  load("../CMapCorr_files/lvl5_inputs.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_inputs.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_inputs.RData") 
 } else {
   source("lvl5_inputs.R")
 }
@@ -77,8 +77,8 @@ In a subset of cell lines, ligands were tested over a variety of doses and times
 ```{r lvl5_umap, echo=FALSE, message=FALSE, warning=FALSE, fig.height=4.5, fig.width=9, fig.show='hold'}
 if (exists("lvl5umap_raw")) {
   temp <- NULL
-} else if (file.exists("../CMapCorr_files/200426_lvl5umap_raw.RData")) {
-  load("../CMapCorr_files/200426_lvl5umap_raw.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200426_lvl5umap_raw.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/200426_lvl5umap_raw.RData") 
 } else {
   source("200426_lvl5_pca_umap.R")
 }
@@ -109,8 +109,8 @@ UMAP projections from the ~1000 assayed genes for all 14 cell types individually
 
 ```{r lvl5_umap_ct, echo=FALSE, message=FALSE, warning=FALSE, fig.height=32, fig.width=9, fig.show='hold'}
 if (exists("ctUMAPraw")) {
-} else if (file.exists("../CMapCorr_files/200426_lvl5_ctUMAP.RData")) {
-  load("../CMapCorr_files/200426_lvl5_ctUMAP.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200426_lvl5_ctUMAP.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/200426_lvl5_ctUMAP.RData") 
 } else {
   source("200426_lvl5_pca_umap.R")
 }
@@ -152,8 +152,8 @@ UMAP projections from the ~1000 assayed genes for each of the 15 ligands assayed
 ```{r lvl5_umap_lig,echo=FALSE,message=FALSE,warning=FALSE,fig.height=18,fig.width=9,fig.show='hold'}
 if (exists("ligUMAP")) {
   temp <- NULL
-} else if (file.exists("../CMapCorr_files/200426_lvl5_ligUMAP.RData")) {
-  load("../CMapCorr_files/200426_lvl5_ligUMAP.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200426_lvl5_ligUMAP.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/200426_lvl5_ligUMAP.RData") 
 } else {
   source("200426_lvl5_pca_umap.R")
 }

@@ -444,8 +444,8 @@ Using each of the 15 ligands tested in all cells as a test case, we trained a ra
 ## Generalizing to novel cell types
 
 ```{r RF_leaveout1, echo=TRUE, message=FALSE, warning=FALSE, fig.height=8, fig.width=8, fig.show='hold'}
-if (file.exists("../CMapCorr_files/200327_leaveout1_PM.RData")) {
-  temp <- load("../CMapCorr_files/200327_leaveout1_PM.RData")
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200327_leaveout1_PM.RData")) {
+  temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200327_leaveout1_PM.RData")
 } else {
   source("200327_lvl3_leaveout1_PlateMatched.R")
 }
@@ -489,8 +489,8 @@ rm(list=grep("^temp",ls(),value=T))
 ```
 
 ```{r tx_vs_ctl_umap_ct, echo=TRUE, message=FALSE, warning=FALSE, fig.height=4, fig.width=8, fig.show='hold'}
-if (file.exists("../CMapCorr_files/200328_ctpmUMAP.RData") & !exists("ctUMAPpm")) {
-  load("../CMapCorr_files/200328_ctpmUMAP.RData") 
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200328_ctpmUMAP.RData") & !exists("ctUMAPpm")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/200328_ctpmUMAP.RData") 
 } else {
   source("200326_lvl3_pca_umap.R")
 }

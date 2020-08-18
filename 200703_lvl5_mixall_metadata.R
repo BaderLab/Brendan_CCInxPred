@@ -4,8 +4,8 @@ library(pbapply)
 
 # prepping data ---
 if (exists("lvl5_data")) {
-} else if (file.exists("../CMapCorr_files/lvl5_inputs.RData")) {
-  load("../CMapCorr_files/lvl5_inputs.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_inputs.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_inputs.RData") 
 } else {
   source("lvl5_inputs.R")
 }
@@ -47,4 +47,4 @@ rfresults <- pbsapply(seq_along(rfmodel),function(N)
   simplify=F)
 
 save(rfmodel,rfresults,trainIDs,testIDs,
-     file="../CMapCorr_files/200703_lvl5_mixall_balanced_saturated_metadata.RData")
+     file="~/Dropbox/GDB_archive/CMapCorr_files/200703_lvl5_mixall_balanced_saturated_metadata.RData")

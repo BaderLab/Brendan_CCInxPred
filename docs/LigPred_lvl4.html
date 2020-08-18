@@ -291,13 +291,10 @@ $(document).ready(function () {
   <a href="LigPred_lvl4.html">Lvl4 lig pred</a>
 </li>
 <li>
-  <a href="LigPred_lvl4new.html">Lvl4new lig pred</a>
-</li>
-<li>
-  <a href="LigPred_lvl4pca.html">Lvl4 PCA lig pred</a>
-</li>
-<li>
   <a href="LigPred_extrapolate.html">Lig pred on new CT</a>
+</li>
+<li>
+  <a href="LigProb_NovelLines.html">Lig prob on new CT</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
@@ -316,19 +313,21 @@ $(document).ready(function () {
 </div>
 
 
+<div id="level-4-data" class="section level1">
+<h1>Level 4 data</h1>
 <p>Since the level 4 data has replicates whereas the level 5 data collapses those into a single value, and training may perform better with more samples, here I repeat the positive control assay training a random forest classifier to identify selected ligand pertubands from transcriptomic changes across cell lines. The distribution of samples across ligands and cell lines is the same as the level 3 data, <a href="./CmapDataSummary.html">shown here</a>.</p>
-<div id="data-saturation-testing" class="section level1">
-<h1>Data saturation testing</h1>
+<div id="data-saturation-testing" class="section level2">
+<h2>Data saturation testing</h2>
 <p><a href="https://github.com/BaderLab/Brendan_CCInxPred/blob/master/200623_lvl4_mixall.R">Random forest model source code</a></p>
-<p><img src="LigPred_lvl4_files/figure-html/RF_saturated-1.png" width="864" /></p>
+<p><img src="LigPred_lvl4_files/figure-html/lvl4_RF_saturated-1.png" width="864" /></p>
 <p>Training the random forest model was repeated with increasing data, from one sample per ligand (randomly sampled from the 14 cell types) to 418 samples per ligand (all but one sample for most ligands, except EGF).<br />
 Improvements in accuracy from increased training data level off after half the data is used, as was done in the previous models.</p>
 <p>These results are not an improvement in overall accuracy compared to using the level 5 data (as seen <a href="./LigPred_lvl5.html#data-saturation">here</a>).</p>
 </div>
-<div id="improving-prediction-with-metadata-modelling" class="section level1">
-<h1>Improving prediction with metadata modelling</h1>
+<div id="improving-prediction-with-metadata-modelling" class="section level2">
+<h2>Improving prediction with metadata modelling</h2>
 <p><a href="https://github.com/BaderLab/Brendan_CCInxPred/blob/master/200623_lvl4_mixall_metadata.R">Random forest model source code</a></p>
-<p><img src="LigPred_lvl4_files/figure-html/RF_saturated_metadata-1.png" width="864" /></p>
+<p><img src="LigPred_lvl4_files/figure-html/lvl4_RF_saturated_metadata-1.png" width="864" /></p>
 <p>Adding metadata (cell type, treatment dosage and duration) as features in the model did not improve prediction accuracy in any appreciable manner.</p>
 <p>Example sample distribution and results from the saturating test, at 300 training samples.</p>
 <table class="table" style="margin-left: auto; margin-right: auto;">
@@ -548,10 +547,487 @@ total
 </tr>
 </tbody>
 </table>
-<p><img src="LigPred_lvl4_files/figure-html/RFmetadata_matrix-1.png" width="672" /></p>
-<p><img src="LigPred_lvl4_files/figure-html/vs_lvl5_plot-1.png" width="864" /></p>
+<p><img src="LigPred_lvl4_files/figure-html/lvl4_RFmetadata_matrix-1.png" width="672" /></p>
+<p><img src="LigPred_lvl4_files/figure-html/lvl4_vs_lvl5_plot-1.png" width="864" /></p>
 <p>When trained on level 4 data (including metadata) less training samples were needed to achieve maximum accuracy, but maximum accuracy was pretty similar across the board (actually best in the first model).</p>
 <hr />
+</div>
+</div>
+<div id="level-4-data-recalculated" class="section level1">
+<h1>Level 4 data recalculated</h1>
+<div id="data-saturation-testing-1" class="section level2">
+<h2>Data saturation testing</h2>
+<p><a href="https://github.com/BaderLab/Brendan_CCInxPred/blob/master/200707_lvl4new_mixall.R">Random forest model source code</a></p>
+<p><img src="LigPred_lvl4_files/figure-html/lvl4new_RF_saturated-1.png" width="864" /></p>
+<p>Training the random forest model was repeated with increasing data, from one sample per ligand (randomly sampled from the 14 cell types) to 418 samples per ligand (all but one sample for most ligands, except EGF).<br />
+Improvements in accuracy from increased training data level off after half the data is used, as was done in the previous models.</p>
+<p>These results are not an improvement in overall accuracy compared to using the level 5 data (as seen <a href="./LigPred_lvl5.html#data-saturation">here</a>).</p>
+</div>
+<div id="improving-prediction-with-metadata-modelling-1" class="section level2">
+<h2>Improving prediction with metadata modelling</h2>
+<p><a href="https://github.com/BaderLab/Brendan_CCInxPred/blob/master/200707_lvl4new_mixall_metadata.R">Random forest model source code</a></p>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+BTC
+</th>
+<th style="text-align:right;">
+EGF
+</th>
+<th style="text-align:right;">
+FGF1
+</th>
+<th style="text-align:right;">
+GAS6
+</th>
+<th style="text-align:right;">
+GDNF
+</th>
+<th style="text-align:right;">
+HBEGF
+</th>
+<th style="text-align:right;">
+HGF
+</th>
+<th style="text-align:right;">
+IFNG
+</th>
+<th style="text-align:right;">
+IGF1
+</th>
+<th style="text-align:right;">
+IGF2
+</th>
+<th style="text-align:right;">
+IL17A
+</th>
+<th style="text-align:right;">
+IL4
+</th>
+<th style="text-align:right;">
+IL6
+</th>
+<th style="text-align:right;">
+INS
+</th>
+<th style="text-align:right;">
+TGFA
+</th>
+<th style="text-align:right;">
+TNF
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+training
+</td>
+<td style="text-align:right;">
+300
+</td>
+<td style="text-align:right;">
+300
+</td>
+<td style="text-align:right;">
+300
+</td>
+<td style="text-align:right;">
+300
+</td>
+<td style="text-align:right;">
+300
+</td>
+<td style="text-align:right;">
+300
+</td>
+<td style="text-align:right;">
+300
+</td>
+<td style="text-align:right;">
+300
+</td>
+<td style="text-align:right;">
+300
+</td>
+<td style="text-align:right;">
+300
+</td>
+<td style="text-align:right;">
+300
+</td>
+<td style="text-align:right;">
+300
+</td>
+<td style="text-align:right;">
+300
+</td>
+<td style="text-align:right;">
+300
+</td>
+<td style="text-align:right;">
+300
+</td>
+<td style="text-align:right;">
+300
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+testing
+</td>
+<td style="text-align:right;">
+113
+</td>
+<td style="text-align:right;">
+505
+</td>
+<td style="text-align:right;">
+119
+</td>
+<td style="text-align:right;">
+108
+</td>
+<td style="text-align:right;">
+110
+</td>
+<td style="text-align:right;">
+119
+</td>
+<td style="text-align:right;">
+137
+</td>
+<td style="text-align:right;">
+113
+</td>
+<td style="text-align:right;">
+121
+</td>
+<td style="text-align:right;">
+121
+</td>
+<td style="text-align:right;">
+118
+</td>
+<td style="text-align:right;">
+115
+</td>
+<td style="text-align:right;">
+116
+</td>
+<td style="text-align:right;">
+121
+</td>
+<td style="text-align:right;">
+120
+</td>
+<td style="text-align:right;">
+103
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+total
+</td>
+<td style="text-align:right;">
+413
+</td>
+<td style="text-align:right;">
+805
+</td>
+<td style="text-align:right;">
+419
+</td>
+<td style="text-align:right;">
+408
+</td>
+<td style="text-align:right;">
+410
+</td>
+<td style="text-align:right;">
+419
+</td>
+<td style="text-align:right;">
+437
+</td>
+<td style="text-align:right;">
+413
+</td>
+<td style="text-align:right;">
+421
+</td>
+<td style="text-align:right;">
+421
+</td>
+<td style="text-align:right;">
+418
+</td>
+<td style="text-align:right;">
+415
+</td>
+<td style="text-align:right;">
+416
+</td>
+<td style="text-align:right;">
+421
+</td>
+<td style="text-align:right;">
+420
+</td>
+<td style="text-align:right;">
+403
+</td>
+</tr>
+</tbody>
+</table>
+<p>Example distribution from the saturating test, at 300 training samples.</p>
+<p><img src="LigPred_lvl4_files/figure-html/lvl4new_RFmetadata_matrix-1.png" width="672" /></p>
+<p><img src="LigPred_lvl4_files/figure-html/lvl4new_RF_saturated_metadata-1.png" width="864" /></p>
+<p>Adding metadata (cell type, treatment dosage and duration) as features in the model did not improve prediction accuracy in any appreciable manner.</p>
+<pre><code>## NULL</code></pre>
+<pre><code>## NULL</code></pre>
+<p><img src="LigPred_lvl4_files/figure-html/lvl4new_vs_lvl5_plot-1.png" width="864" /></p>
+<p>When trained on level 4 data (including metadata) less training samples were needed to achieve maximum accuracy, but maximum accuracy was pretty similar across the board (actually best in the first model).</p>
+<hr />
+</div>
+</div>
+<div id="pca-of-level-4-data" class="section level1">
+<h1>PCA of level 4 data</h1>
+<div id="data-saturation-testing-2" class="section level2">
+<h2>Data saturation testing</h2>
+<p>First 100 PCs from the assayed Z-scores (level 4 data, ‘landmark’ genes only), with the addition of cell line, treatment dosage, and duration metadata, were used to train the random forest model.</p>
+<p><a href="https://github.com/BaderLab/Brendan_CCInxPred/blob/master/200708_lvl4_mixall_metadata_pca.R">Random forest model source code</a></p>
+<p><img src="LigPred_lvl4_files/figure-html/lvl4pca_RF_saturated-1.png" width="864" /></p>
+<p>Training the random forest model was repeated with increasing data, from one sample per ligand (randomly sampled from the 14 cell types) to 418 samples per ligand (all but one sample for most ligands, except EGF).<br />
+Improvements in accuracy from increased training data level off after half the data is used, as was done in the previous models.</p>
+<p>Example sample distribution and results from the saturating test, at 300 training samples.</p>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+BTC
+</th>
+<th style="text-align:right;">
+EGF
+</th>
+<th style="text-align:right;">
+FGF1
+</th>
+<th style="text-align:right;">
+GAS6
+</th>
+<th style="text-align:right;">
+GDNF
+</th>
+<th style="text-align:right;">
+HBEGF
+</th>
+<th style="text-align:right;">
+HGF
+</th>
+<th style="text-align:right;">
+IFNG
+</th>
+<th style="text-align:right;">
+IGF1
+</th>
+<th style="text-align:right;">
+IGF2
+</th>
+<th style="text-align:right;">
+IL17A
+</th>
+<th style="text-align:right;">
+IL4
+</th>
+<th style="text-align:right;">
+IL6
+</th>
+<th style="text-align:right;">
+INS
+</th>
+<th style="text-align:right;">
+TGFA
+</th>
+<th style="text-align:right;">
+TNF
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+training
+</td>
+<td style="text-align:right;">
+300
+</td>
+<td style="text-align:right;">
+300
+</td>
+<td style="text-align:right;">
+300
+</td>
+<td style="text-align:right;">
+300
+</td>
+<td style="text-align:right;">
+300
+</td>
+<td style="text-align:right;">
+300
+</td>
+<td style="text-align:right;">
+300
+</td>
+<td style="text-align:right;">
+300
+</td>
+<td style="text-align:right;">
+300
+</td>
+<td style="text-align:right;">
+300
+</td>
+<td style="text-align:right;">
+300
+</td>
+<td style="text-align:right;">
+300
+</td>
+<td style="text-align:right;">
+300
+</td>
+<td style="text-align:right;">
+300
+</td>
+<td style="text-align:right;">
+300
+</td>
+<td style="text-align:right;">
+300
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+testing
+</td>
+<td style="text-align:right;">
+131
+</td>
+<td style="text-align:right;">
+524
+</td>
+<td style="text-align:right;">
+138
+</td>
+<td style="text-align:right;">
+126
+</td>
+<td style="text-align:right;">
+128
+</td>
+<td style="text-align:right;">
+138
+</td>
+<td style="text-align:right;">
+175
+</td>
+<td style="text-align:right;">
+132
+</td>
+<td style="text-align:right;">
+139
+</td>
+<td style="text-align:right;">
+140
+</td>
+<td style="text-align:right;">
+118
+</td>
+<td style="text-align:right;">
+133
+</td>
+<td style="text-align:right;">
+135
+</td>
+<td style="text-align:right;">
+140
+</td>
+<td style="text-align:right;">
+139
+</td>
+<td style="text-align:right;">
+122
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+total
+</td>
+<td style="text-align:right;">
+431
+</td>
+<td style="text-align:right;">
+824
+</td>
+<td style="text-align:right;">
+438
+</td>
+<td style="text-align:right;">
+426
+</td>
+<td style="text-align:right;">
+428
+</td>
+<td style="text-align:right;">
+438
+</td>
+<td style="text-align:right;">
+475
+</td>
+<td style="text-align:right;">
+432
+</td>
+<td style="text-align:right;">
+439
+</td>
+<td style="text-align:right;">
+440
+</td>
+<td style="text-align:right;">
+418
+</td>
+<td style="text-align:right;">
+433
+</td>
+<td style="text-align:right;">
+435
+</td>
+<td style="text-align:right;">
+440
+</td>
+<td style="text-align:right;">
+439
+</td>
+<td style="text-align:right;">
+422
+</td>
+</tr>
+</tbody>
+</table>
+<p><img src="LigPred_lvl4_files/figure-html/lvl4pca_RFmetadata_matrix-1.png" width="672" /></p>
+<pre><code>## NULL</code></pre>
+<pre><code>## NULL</code></pre>
+<p><img src="LigPred_lvl4_files/figure-html/lvl4pca_vs_lvl5_plot-1.png" width="864" /></p>
+<p>When trained on level 4 data (including metadata) less training samples were needed to achieve maximum accuracy, but maximum accuracy was pretty similar across the board (actually best in the first model).</p>
+<hr />
+</div>
 </div>
 
 

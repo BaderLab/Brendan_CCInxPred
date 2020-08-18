@@ -4,12 +4,12 @@ library(pbapply)
 
 # prepping data ---
 if (exists("lvl4_data")) {
-} else if (file.exists("../CMapCorr_files/lvl4_inputs.RData")) {
-  load("../CMapCorr_files/lvl4_inputs.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs.RData") 
 } else {
   source("lvl4_inputs.R")
 }
-temp <- load("../CMapCorr_files/lvl5_inputs.RData") 
+temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_inputs.RData") 
 rm(list=c("temp",temp[!temp %in% c("ct14","lig16")]))
 
 # Leave one out ----
@@ -44,7 +44,7 @@ rfmodel <- pbapply::pbapply(trainIDs,2,function(X)
          verbose=F))
 
 save(rfmodel,trainIDs,
-     file="../CMapCorr_files/200623_lvl4_mixall_balanced_metadata_leave1out_model.RData")
+     file="~/Dropbox/GDB_archive/CMapCorr_files/200623_lvl4_mixall_balanced_metadata_leave1out_model.RData")
 
 # ^ testing ----
 rfresults <- pbapply::pbsapply(seq_along(rfmodel),function(N)
@@ -52,4 +52,4 @@ rfresults <- pbapply::pbsapply(seq_along(rfmodel),function(N)
   simplify=F)
 
 save(rfresults,testIDs,
-     file="../CMapCorr_files/200623_lvl4_mixall_balanced_metadata_leave1out_results.RData")
+     file="~/Dropbox/GDB_archive/CMapCorr_files/200623_lvl4_mixall_balanced_metadata_leave1out_results.RData")

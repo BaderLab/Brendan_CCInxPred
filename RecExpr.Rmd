@@ -16,13 +16,13 @@ The quantile-normalized transcriptomes per cell type (level 3 data) will be used
 
 ```{r load_data_lvl3_ctl,echo=FALSE,message=FALSE,warning=FALSE,include=TRUE}
 if (exists("lvl3_ctl")) {
-} else if (file.exists("../CMapCorr_files/lvl3_allgenesctrl.RData")) {
-  load("../CMapCorr_files/lvl3_allgenesctrl.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl3_allgenesctrl.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl3_allgenesctrl.RData") 
 } else {
   source("lvl3_inputs_allgenesctrl.R")
 }
 
-temp <- load(system.file("LigRecDB_RData/BaderCCIeditedbyBI.RData",package="CCInx"))
+temp <- load(system.file("LigRecDB_RData/BaderCCIeditedbyBI_human.RData",package="CCInx"))
 
 lig16R <- sapply(lig16,function(X) {
   temp <- c(inxDB$nodeB[inxDB$nodeA == X],inxDB$nodeA[inxDB$nodeB == X])
@@ -95,16 +95,16 @@ rm(list=grep("^temp",ls(),value=T))
 
 ```{r load_data_lvl5, message=FALSE, warning=FALSE, include=FALSE}
 if (exists("lvl5_data")) {
-} else if (file.exists("../CMapCorr_files/lvl5_inputs.RData")) {
-  load("../CMapCorr_files/lvl5_inputs.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_inputs.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_inputs.RData") 
 } else {
   source("lvl5_inputs.R")
 }
 ```
 
 ```{r RF_leave1out,echo=FALSE,message=FALSE,warning=FALSE}
-if (file.exists("../CMapCorr_files/200524_lvl5_mixall_balanced_leave1out_results.RData")) {
-  temp <- load("../CMapCorr_files/200524_lvl5_mixall_balanced_leave1out_results.RData")
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200524_lvl5_mixall_balanced_leave1out_results.RData")) {
+  temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200524_lvl5_mixall_balanced_leave1out_results.RData")
 } else {
   source("200524_lvl5_mixall_leave1out.R")
 }

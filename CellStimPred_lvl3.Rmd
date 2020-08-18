@@ -11,8 +11,8 @@ library(kableExtra)
 
 ```{r load_data_lvl3, message=FALSE, warning=FALSE, include=FALSE}
 if (exists("lvl3_data")) {
-} else if (file.exists("../CMapCorr_files/lvl3_inputs.RData")) {
-  load("../CMapCorr_files/lvl3_inputs.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl3_inputs.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl3_inputs.RData") 
 } else {
   source("lvl3_inputs.R")
 }
@@ -33,8 +33,8 @@ fx_pre <- function(L,P) { sum(P == "yes" & L == "yes") / sum(P == "yes") }
 fx_rec <- function(L,P) { sum(P == "yes" & L == "yes") / sum(L == "yes") }
 fx_F1 <- function(PRE,REC) { 2 * ( (PRE * REC) / (PRE + REC) )}
 
-if (file.exists("../CMapCorr_files/200326_mixall.RData")) {
-  temp <- load("../CMapCorr_files/200326_mixall.RData")
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200326_mixall.RData")) {
+  temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200326_mixall.RData")
 } else {
   source("200326_lvl3_mixall.R")
 }
@@ -100,8 +100,8 @@ Now we'll start to get into the real question.  We're still just asking the mode
 [Random forest model source code](https://github.com/BaderLab/Brendan_CCInxPred/blob/master/200327_lvl3_leaveout1_PlateMatched.R)  
 
 ```{r RF_leaveout1, echo=FALSE, message=FALSE, warning=FALSE, fig.height=8, fig.width=8, fig.show='hold'}
-if (file.exists("../CMapCorr_files/200327_leaveout1_PM.RData")) {
-  temp <- load("../CMapCorr_files/200327_leaveout1_PM.RData")
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200327_leaveout1_PM.RData")) {
+  temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200327_leaveout1_PM.RData")
 } else {
   source("200327_lvl3_leaveout1_PlateMatched.R")
 }
@@ -151,8 +151,8 @@ rm(list=grep("^temp",ls(),value=T))
 *Note that only plate-matched data was used, in an attempt to reduce noise.*
 
 ```{r tx_vs_ctl_umap_ct, eval=F,echo=FALSE,message=FALSE,warning=FALSE,fig.height=4,fig.width=8,fig.show='hold'}
-if (file.exists("../CMapCorr_files/200328_ctpmUMAP.RData") & !exists("ctUMAPpm")) {
-  load("../CMapCorr_files/200328_ctpmUMAP.RData") 
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200328_ctpmUMAP.RData") & !exists("ctUMAPpm")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/200328_ctpmUMAP.RData") 
 } else {
   source("200326_lvl3_pca_umap.R")
 }

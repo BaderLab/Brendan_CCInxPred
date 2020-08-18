@@ -2,19 +2,19 @@
 title: "Connectivity Map ligand assay data summary"
 ---
 
-```{r setup, echo=FALSE,message=FALSE,warning=FALSE}
+```{r setup, echo=F,message=F,warning=F}
 library(cmapR)
 library(UpSetR)
 library(colorspace)
 library(kableExtra)
 ```
 
-# Quantile-normalized transcriptomes from control and ligand-treated cell lines (level 3 data)
+# **Quantile-normalized transcriptomes from control and ligand-treated cell lines (level 3 data)**
 
-```{r load_data_lvl3, message=FALSE,warning=FALSE,include=FALSE}
+```{r load_data_lvl3, message=F,warning=F,include=F}
 if (exists("lvl3_data")) {
-} else if (file.exists("../CMapCorr_files/lvl3_inputs.RData")) {
-  load("../CMapCorr_files/lvl3_inputs.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl3_inputs.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl3_inputs.RData") 
 } else {
   source("lvl3_inputs.R")
 }
@@ -23,7 +23,7 @@ if (exists("lvl3_data")) {
 
 ## Ligands / cell lines assayed
 
-```{r lvl3_data_summary, echo=FALSE,message=FALSE,warning=FALSE,fig.height=5,fig.width=8,fig.show='hold'}
+```{r lvl3_data_summary, echo=F,message=F,warning=F,fig.height=5,fig.width=8,fig.show='hold'}
 temp_ct <- sapply(ct14,function(X) 
   unique(lvl3_data@cdesc$pert_iname[lvl3_data@cdesc$cell_id == X]),
   simplify=F)
@@ -59,7 +59,7 @@ rm(list=grep("^temp",ls(),value=T))
 In the Connectivity Map data, there are 16 ligands assayed in all 14 cell lines, and 300 ligands assayed in 8 cell lines.
 
 
-```{r lvl3_data_dist, echo=FALSE,message=FALSE,warning=FALSE,fig.show='hold'}
+```{r lvl3_data_dist, echo=F,message=F,warning=F,fig.show='hold'}
 temp <- cbind(sapply(lig16,function(X)
   table(lvl3_data@cdesc$cell_id[lvl3_data@cdesc$pert_iname == X])),
   ctrl=table(lvl3_data_ctl@cdesc$cell_id))
@@ -79,9 +79,9 @@ In a subset of cell lines, ligands were tested over a variety of doses and times
 
 ## Overall UMAP
 
-```{r lvl3_umap, echo=FALSE,message=FALSE,warning=FALSE,fig.height=3,fig.width=9,fig.show='hold'}
-if (file.exists("../CMapCorr_files/200630_lvl3_umap.RData")) {
-  load("../CMapCorr_files/200630_lvl3_umap.RData") 
+```{r lvl3_umap, echo=F,message=F,warning=F,fig.height=3,fig.width=9,fig.show='hold'}
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200630_lvl3_umap.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/200630_lvl3_umap.RData") 
 } else {
   source("200326_lvl3_umap.R")
 }
@@ -110,13 +110,58 @@ rm(list=grep("^temp",ls(),value=T))
 Above are UMAP projections (from assayed genes) of all Connectivity Map ligand-treated and control data coloured by cell type.
 
 
+## UMAP for common ligands only
+
+Zooming in to include only the 16 ligands assayed in all cell types and their plate-matched controls (coloured in black).
+
+```{r lvl3_umap_lig16, echo=F,message=F,warning=F,fig.height=4.5,fig.width=9,fig.show='hold'}
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200728_lvl3_lig16_UMAP.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/200728_lvl3_lig16_UMAP.RData") 
+} else {
+  source("200326_lvl3_umap.R")
+}
+Z <- sample(nrow(lvl3_lig16_umap$layout))
+temp_lig <- factor(lvl3_data@cdesc[rownames(lvl3_lig16_umap$layout),"pert_iname"],
+                   levels=lig16)
+temp_lig_col <- qualitative_hcl(length(lig16),palette="dark3",alpha=0.5)[temp_lig]
+temp_lig_col[is.na(temp_lig_col)] <- scales::alpha("black",0.8)
+temp_lig <- as.character(temp_lig)
+temp_lig[is.na(temp_lig)] <- "ctrl"
+names(temp_lig) <- rownames(lvl3_lig16_umap$layout)
+temp_ctrl <- sample(names(temp_lig)[temp_lig == "ctrl"])
+temp_tx <- sample(names(temp_lig)[temp_lig != "ctrl"])
+
+temp_ct <- factor(lvl3_data@cdesc[rownames(lvl3_lig16_umap$layout),"cell_id"],
+                   levels=ct14)
+names(temp_ct) <- rownames(lvl3_lig16_umap$layout)
+temp_ct[temp_lig == "ctrl"] <- lvl3_data_ctl@cdesc[names(temp_ct)[temp_lig == "ctrl"],"cell_id"]
+temp_ct_col <- qualitative_hcl(length(ct14),palette="dark3",alpha=0.5)[temp_ct]
+names(temp_ct_col) <- names(temp_ct)
+
+
+par(mfrow=c(1,2),mar=c(1.5,1,1,0.5),mgp=c(0,0,0))
+plot(lvl3_lig16_umap$layout[Z,],pch=20,col=temp_lig_col[Z],
+     xaxt="n",yaxt="n",main="Coloured by ligand",xlab="UMAP1",ylab="UMAP2")
+
+plot(lvl3_lig16_umap$layout[temp_tx,],pch=20,col=temp_ct_col[temp_tx],
+     xaxt="n",yaxt="n",xlab="UMAP1",ylab="UMAP2",
+     main="Coloured by cell type (Ctrl over Tx)")
+rect(par("usr")[1],par("usr")[3],par("usr")[2],par("usr")[4],col=scales::alpha("white",.7))
+points(lvl3_lig16_umap$layout[temp_ctrl,],pch=20,col=temp_ct_col[temp_ctrl])
+
+
+rm(list=c("Z",grep("^temp",ls(),value=T)))
+```
+
+
+
 ## UMAP per cell line  
 
 Below are UMAP projections of ligand-treated and control samples for each cell type.  Only the 16 ligands assayed in all cell types and their plate-matched controls (coloured in black) are included.
 
-```{r lvl3_umap_ct, echo=FALSE,message=FALSE,warning=FALSE,fig.height=15,fig.width=9,fig.show='hold'}
-if (file.exists("../CMapCorr_files/200630_lvl3_ctUMAP.RData")) {
-  load("../CMapCorr_files/200630_lvl3_ctUMAP.RData") 
+```{r lvl3_umap_ct, echo=F,message=F,warning=F,fig.height=15,fig.width=9,fig.show='hold'}
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200630_lvl3_ctUMAP.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/200630_lvl3_ctUMAP.RData") 
 } else {
   source("200326_lvl3_umap.R")
 }
@@ -157,9 +202,9 @@ So it seems the plate effect is strong in this data.  Might consider using the p
 
 ## UMAP per ligand treatment  
 
-```{r lvl3_umap_lig, echo=FALSE,message=FALSE,warning=FALSE,fig.height=17,fig.width=9,fig.show='hold'}
-if (file.exists("../CMapCorr_files/200630_lvl3_ligUMAP.RData")) {
-  load("../CMapCorr_files/200630_lvl3_ligUMAP.RData") 
+```{r lvl3_umap_lig, echo=F,message=F,warning=F,fig.height=17,fig.width=9,fig.show='hold'}
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200630_lvl3_ligUMAP.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/200630_lvl3_ligUMAP.RData") 
 } else {
   source("200326_lvl3_umap.R")
 }
@@ -197,25 +242,27 @@ Looks like transcriptomes are entirely delineated by cell type from the ligand p
 
 ****
 
-# Robust Z-scores of differences in cell line transcriptomes following ligand treatment (level 4 data)
+# **Robust Z-scores of differences in cell line transcriptomes following ligand treatment (level 4 data)**
 
-```{r load_data_lvl4, message=FALSE,warning=FALSE,include=FALSE}
+```{r load_data_lvl4, message=F,warning=F,include=F}
+rm(list=grep("umap",ls(),value=T))
+
 if (exists("lvl4_data")) {
-} else if (file.exists("../CMapCorr_files/lvl4_inputs.RData")) {
-  load("../CMapCorr_files/lvl4_inputs.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs.RData") 
 } else {
   source("lvl4_inputs.R")
 }
 
 if (exists("lvl4_data_all")) {
-} else if (file.exists("../CMapCorr_files/lvl4_inputs_allgenes.RData")) {
-  load("../CMapCorr_files/lvl4_inputs_allgenes.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs_allgenes.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs_allgenes.RData") 
 } else {
   source("lvl4_inputs_allgenes.R")
 }
 ```
 
-```{r lvl4_data_dist, echo=FALSE,message=FALSE,warning=FALSE,fig.show='hold'}
+```{r lvl4_data_dist, echo=F,message=F,warning=F,fig.show='hold'}
 temp <- sapply(lig16,function(X)
   table(lvl4_data@cdesc$cell_id[lvl4_data@cdesc$pert_iname == X]))
 temp <- as.data.frame(rbind(temp,Total=colSums(temp)))
@@ -233,11 +280,11 @@ rm(list=grep("^temp",ls(),value=T))
 
 Last line are UMAP projections using all (including inferred) gene Z-scores.  This was included to see whether adding inferred genes improved the structure, but that doesn't seem to be the case.
 
-```{r lvl4_umap, echo=FALSE,message=FALSE,warning=FALSE,fig.height=9,fig.width=9,fig.show='hold'}
+```{r lvl4_umap, echo=F,message=F,warning=F,fig.height=9,fig.width=9,fig.show='hold'}
 par(mfrow=c(3,3),mar=c(1.5,1,1,0.5),mgp=c(0,0,0))
 
-if (file.exists("../CMapCorr_files/200630_lvl4_umap.RData")) {
-  load("../CMapCorr_files/200630_lvl4_umap.RData") 
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200630_lvl4_umap.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/200630_lvl4_umap.RData") 
 } else {
   source("200326_lvl4_umap.R")
 }
@@ -261,8 +308,8 @@ plot(lvl4_umap$layout,pch=".",cex=2,xaxt="n",yaxt="n",
      col=temp_col)
 
 
-if (file.exists("../CMapCorr_files/200630_lvl4_umap_lig16.RData")) {
-  load("../CMapCorr_files/200630_lvl4_umap_lig16.RData") 
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200630_lvl4_umap_lig16.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/200630_lvl4_umap_lig16.RData") 
 } else {
   source("200326_lvl4_umap.R")
 }
@@ -286,8 +333,8 @@ plot(lvl4_umap_lig16$layout,pch=".",cex=3,xaxt="n",yaxt="n",
      col=temp_col)
 
 
-if (file.exists("../CMapCorr_files/200721_lvl4all_umap_lig16.RData")) {
-  load("../CMapCorr_files/200721_lvl4all_umap_lig16.RData") 
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200721_lvl4all_umap_lig16.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/200721_lvl4all_umap_lig16.RData") 
 } else {
   source("200326_lvl4_umap.R")
 }
@@ -322,9 +369,9 @@ Above are UMAP projections (from assayed genes) of all Connectivity Map ligand-t
 
 Below are UMAP projections of ligand-treated and control samples for each cell type.  Only the 16 ligands assayed in all cell types and their plate-matched controls (coloured in black) are included.
 
-```{r lvl4_umap_ct, echo=FALSE,message=FALSE,warning=FALSE,fig.height=15,fig.width=9,fig.show='hold'}
-if (file.exists("../CMapCorr_files/200630_lvl4_ctUMAP.RData")) {
-  load("../CMapCorr_files/200630_lvl4_ctUMAP.RData") 
+```{r lvl4_umap_ct, echo=F,message=F,warning=F,fig.height=15,fig.width=9,fig.show='hold'}
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200630_lvl4_ctUMAP.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/200630_lvl4_ctUMAP.RData") 
 } else {
   source("200327_lvl4_umap.R")
 }
@@ -356,9 +403,9 @@ rm(list=c("CT",grep("^temp",ls(),value=T)))
 
 ## UMAP per ligand treatment  
 
-```{r lvl4_umap_lig, echo=FALSE,message=FALSE,warning=FALSE,fig.height=17,fig.width=9,fig.show='hold'}
-if (file.exists("../CMapCorr_files/200630_lvl4_ligUMAP.RData")) {
-  load("../CMapCorr_files/200630_lvl4_ligUMAP.RData") 
+```{r lvl4_umap_lig, echo=F,message=F,warning=F,fig.height=17,fig.width=9,fig.show='hold'}
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200630_lvl4_ligUMAP.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/200630_lvl4_ligUMAP.RData") 
 } else {
   source("200326_lvl4_umap.R")
 }
@@ -393,9 +440,9 @@ rm(list=c("LIG",grep("^temp",ls(),value=T)))
 
 Rerunning these using *all* genes (including inferred).
 
-```{r lvl4_umap_ct_all, echo=FALSE,message=FALSE,warning=FALSE,fig.height=15,fig.width=9,fig.show='hold'}
-if (file.exists("../CMapCorr_files/200721_lvl4all_ctUMAP.RData")) {
-  load("../CMapCorr_files/200721_lvl4all_ctUMAP.RData") 
+```{r lvl4_umap_ct_all, echo=F,message=F,warning=F,fig.height=15,fig.width=9,fig.show='hold'}
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200721_lvl4all_ctUMAP.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/200721_lvl4all_ctUMAP.RData") 
 } else {
   source("200327_lvl4_umap.R")
 }
@@ -427,9 +474,9 @@ rm(list=c("CT",grep("^temp",ls(),value=T)))
 
 ## UMAP per ligand treatment  
 
-```{r lvl4_umap_lig_all, echo=FALSE,message=FALSE,warning=FALSE,fig.height=17,fig.width=9,fig.show='hold'}
-if (file.exists("../CMapCorr_files/200721_lvl4all_ligUMAP.RData")) {
-  load("../CMapCorr_files/200721_lvl4all_ligUMAP.RData") 
+```{r lvl4_umap_lig_all, echo=F,message=F,warning=F,fig.height=17,fig.width=9,fig.show='hold'}
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200721_lvl4all_ligUMAP.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/200721_lvl4all_ligUMAP.RData") 
 } else {
   source("200326_lvl4_umap.R")
 }
@@ -462,12 +509,12 @@ rm(list=c("LIG",grep("^temp",ls(),value=T)))
 ****  
 
 
-# Replicate-collapsed robust Z-scores of differences in cell line transcriptomes following ligand treatment (level 5 data)
+# **Replicate-collapsed robust Z-scores of differences in cell line transcriptomes following ligand treatment (level 5 data)**
 
-```{r load_data_lvl5, message=FALSE, warning=FALSE, include=FALSE}
+```{r load_data_lvl5, message=F, warning=F, include=F}
 if (exists("lvl5_data")) {
-} else if (file.exists("../CMapCorr_files/lvl5_inputs.RData")) {
-  load("../CMapCorr_files/lvl5_inputs.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_inputs.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_inputs.RData") 
 } else {
   source("lvl5_inputs.R")
 }
@@ -476,7 +523,7 @@ if (exists("lvl5_data")) {
 
 # Ligands / cell lines assayed
 
-```{r lvl5_data_summary, echo=FALSE, message=FALSE, warning=FALSE, fig.height=5, fig.width=8, fig.show='hold'}
+```{r lvl5_data_summary, echo=F, message=F, warning=F, fig.height=5, fig.width=8, fig.show='hold'}
 temp_ct <- sapply(ct14,function(X) 
   unique(lvl5_data@cdesc$pert_iname[lvl5_data@cdesc$cell_id == X]),
   simplify=F)
@@ -511,7 +558,7 @@ rm(list=grep("^temp",ls(),value=T))
 
 In the Connectivity Map data, there are 16 ligands assayed in all 14 cell lines, and 300 ligands assayed in 8 cell lines.
 
-```{r lvl5_data_dist, echo=FALSE, message=FALSE, warning=FALSE, fig.show='hold'}
+```{r lvl5_data_dist, echo=F, message=F, warning=F, fig.show='hold'}
 temp <- sapply(lig16,function(X)
   table(lvl5_data@cdesc$cell_id[lvl5_data@cdesc$pert_iname == X]))
 temp <- as.data.frame(rbind(temp,Totals=colSums(temp)))
@@ -529,11 +576,11 @@ In a subset of cell lines, ligands were tested over a variety of doses and times
 
 ## Overall UMAP
 
-```{r lvl5_umap, echo=FALSE,message=FALSE,warning=FALSE,fig.height=6,fig.width=9,fig.show='hold'}
+```{r lvl5_umap, echo=F,message=F,warning=F,fig.height=6,fig.width=9,fig.show='hold'}
 par(mfrow=c(2,3),mar=c(1.5,1,1,0.5),mgp=c(0,0,0))
 
-if (file.exists("../CMapCorr_files/200701_lvl5_umap.RData")) {
-  load("../CMapCorr_files/200701_lvl5_umap.RData") 
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200701_lvl5_umap.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/200701_lvl5_umap.RData") 
 } else {
   source("200701_lvl5_umap.R")
 }
@@ -557,8 +604,8 @@ plot(lvl5_umap$layout,pch=".",xaxt="n",yaxt="n",
      col=temp_col)
 
 
-if (file.exists("../CMapCorr_files/200701_lvl5_umap_lig16.RData")) {
-  load("../CMapCorr_files/200701_lvl5_umap_lig16.RData") 
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200701_lvl5_umap_lig16.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/200701_lvl5_umap_lig16.RData") 
 } else {
   source("200701_lvl5_umap.R")
 }
@@ -592,9 +639,9 @@ Above are UMAP projections (from assayed genes) of all Connectivity Map ligand-t
 
 Below are UMAP projections of ligand-treated and control samples for each cell type.  Only the 16 ligands assayed in all cell types and their plate-matched controls (coloured in black) are included.
 
-```{r lvl5_umap_ct, echo=FALSE,message=FALSE,warning=FALSE,fig.height=15,fig.width=9,fig.show='hold'}
-if (file.exists("../CMapCorr_files/200701_lvl5_ctUMAP.RData")) {
-  load("../CMapCorr_files/200701_lvl5_ctUMAP.RData") 
+```{r lvl5_umap_ct, echo=F,message=F,warning=F,fig.height=15,fig.width=9,fig.show='hold'}
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200701_lvl5_ctUMAP.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/200701_lvl5_ctUMAP.RData") 
 } else {
   source("200327_lvl5_umap.R")
 }
@@ -626,9 +673,9 @@ rm(list=c("CT",grep("^temp",ls(),value=T)))
 
 ## UMAP per ligand treatment  
 
-```{r lvl5_umap_lig, echo=FALSE,message=FALSE,warning=FALSE,fig.height=17,fig.width=9,fig.show='hold'}
-if (file.exists("../CMapCorr_files/200701_lvl5_ligUMAP.RData")) {
-  load("../CMapCorr_files/200701_lvl5_ligUMAP.RData") 
+```{r lvl5_umap_lig, echo=F,message=F,warning=F,fig.height=17,fig.width=9,fig.show='hold'}
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200701_lvl5_ligUMAP.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/200701_lvl5_ligUMAP.RData") 
 } else {
   source("200701_lvl5_umap.R")
 }

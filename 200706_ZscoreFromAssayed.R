@@ -1,13 +1,13 @@
 if (exists("lvl3_data")) {
-} else if (file.exists("../CMapCorr_files/lvl3_inputs.RData")) {
-  load("../CMapCorr_files/lvl3_inputs.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl3_inputs.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl3_inputs.RData") 
 } else {
   source("lvl3_inputs.R")
 }
 
 if (exists("lvl4_data")) {
-} else if (file.exists("../CMapCorr_files/lvl4_inputs.RData")) {
-  load("../CMapCorr_files/lvl4_inputs.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs.RData") 
 } else {
   source("lvl4_inputs.R")
 }
@@ -42,4 +42,4 @@ lvl4new_data@mat <- zscores
 lvl4new_data@mat <- lvl4new_data@mat[,!apply(lvl4new_data@mat,2,function(X) any(is.na(X)))]
 lvl4new_data@cdesc <- lvl4new_data@cdesc[colnames(lvl4new_data@mat),]
 
-save(lvl4new_data,file="../CMapCorr_files/lvl4new.RData")
+save(lvl4new_data,file="~/Dropbox/GDB_archive/CMapCorr_files/lvl4new.RData")

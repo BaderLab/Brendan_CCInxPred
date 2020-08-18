@@ -3,8 +3,8 @@ library(umap)
 
 setwd("~/Dropbox/GDB/CMapCorr/")
 if (exists("lvl4_data")) {
-} else if (file.exists("../CMapCorr_files/lvl4_inputs.RData")) {
-  load("../CMapCorr_files/lvl4_inputs.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs.RData") 
 } else {
   source("lvl4_inputs.R")
 }
@@ -86,8 +86,8 @@ if (file.exists("~/Dropbox/GDB/CMapCorr_files/200630_lvl4_ligUMAP.RData")) {
 # WITH ALL GENES ----
 rm(list=ls())
 if (exists("lvl4_data_all")) {
-} else if (file.exists("../CMapCorr_files/lvl4_inputs_allgenes.RData")) {
-  load("../CMapCorr_files/lvl4_inputs_allgenes.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs_allgenes.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs_allgenes.RData") 
 } else {
   source("lvl4_inputs_allgenes.R")
 }

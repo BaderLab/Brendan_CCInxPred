@@ -1,0 +1,158 @@
+---
+title: "Probability"
+---
+  
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
+library(cmapR)
+library(colorspace)
+```
+
+```{r load_data_lvl4, message=FALSE, warning=FALSE, include=FALSE}
+if (exists("BRmat")) {
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200730_lvl3_breastonly.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/200730_lvl3_breastonly.RData") 
+} else {
+  source("200730_probs_mixall_breast_lvl3.R")
+}
+```
+
+
+
+[Random forest model source code](https://github.com/BaderLab/Brendan_CCInxPred/blob/master/200730_probs_mixall_breast_lvl3.R)  
+
+Playing with test data first (10 iterations of leaving out one ligand-treated sample per training run).
+
+## Unbalanced cell types
+
+```{r testnobal_load,echo=FALSE,message=FALSE,warning=FALSE}
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200730_probs_mixall_breast_lvl3_nobal.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/200730_probs_mixall_breast_lvl3_nobal.RData")
+} else {
+  source("200730_probs_mixall_breast_lvl3.R")
+}
+```
+
+```{r testnobal_datacheck, echo=F,message=F,warning=F,fig.height=4.5,fig.width=9,fig.show='hold'}
+temp_label <- as.factor(rep(names(scores_nobal),ncol(BRmat)))
+temp_mean <- as.vector(sapply(scores_nobal,function(X) apply(sapply(X,"[[","score"),1,mean)))
+temp_sd <- as.vector(sapply(scores_nobal,function(X) apply(sapply(X,"[[","score"),1,sd)))
+Z <- sample(length(temp_label))
+
+par(mfrow=c(1,2),mar=c(3,3,1,1),mgp=2:0)
+plot(temp_mean[Z],temp_sd[Z],pch=".",cex=2,xlab="Mean of rep scores",ylab="SD of rep scores",
+     col=qualitative_hcl(length(levels(temp_label)),palette="dark3",alpha=0.7)[temp_label[Z]])
+
+for (LIG in names(scores_nobal)) {
+  for (X in seq_along(scores_nobal[[LIG]])) {
+    scores_nobal[[LIG]][[X]]$label <- BRcdesc[rownames(scores_nobal[[LIG]][[X]]),"pert_iname"] == LIG
+  }
+}
+
+temp <- list(
+  neg_train = unlist(lapply(scores_nobal,function(X) 
+    unlist(lapply(X,function(Y) Y$score[Y$source == "train" & !Y$label])))),
+  neg_test = unlist(lapply(scores_nobal,function(X) 
+    unlist(lapply(X,function(Y) Y$score[Y$source == "test" & !Y$label])))),
+  pos_train = unlist(lapply(scores_nobal,function(X) 
+    unlist(lapply(X,function(Y) Y$score[Y$source == "train" & Y$label])))),
+  pos_test = unlist(lapply(scores_nobal,function(X) 
+    unlist(lapply(X,function(Y) Y$score[Y$source == "test" & Y$label]))))
+)  
+boxplot(temp,ylim=0:1,ylab="Scores")
+
+rm(list=c(grep("^temp",ls(),value=T),"LIG","X","Z"))
+```
+
+
+```{r testnobal_samplescores, echo=F,message=F,warning=F}
+score_nobal <- sapply(scores_nobal,function(X) apply(sapply(X,"[[","score"),1,max))
+rownames(score_nobal) <- rownames(BRcdesc)
+class_nobal <- data.frame(
+  label=colnames(score_nobal)[apply(score_nobal,1,which.max)],
+  score=apply(score_nobal,1,max),
+  truth=BRcdesc$pert_iname,
+  stringsAsFactors=F
+)
+# class_nobal$truth[!class_nobal$truth %in% lig29] <- NA
+
+sum(class_nobal$label == class_nobal$truth,na.rm=T) / sum(!is.na(class_nobal$truth))
+```
+
+```{r echo=F,message=F,warning=F}
+
+```
+
+
+
+# Level 4 data
+
+```{r load_data_lvl4, message=FALSE, warning=FALSE, include=FALSE}
+if (exists("BRmat")) {
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200731_lvl4_breastonly.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/200731_lvl4_breastonly.RData") 
+} else {
+  source("200731_probs_mixall_breast_lvl4.R")
+}
+```
+
+
+
+[Random forest model source code](https://github.com/BaderLab/Brendan_CCInxPred/blob/master/200730_probs_mixall_breast_lvl3.R)  
+
+Playing with test data first (10 iterations of leaving out one ligand-treated sample per training run).
+
+## Unbalanced cell types
+
+```{r testnobal_load,echo=FALSE,message=FALSE,warning=FALSE}
+if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200731_probs_mixall_breast_lvl4_nobal.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/200731_probs_mixall_breast_lvl4_nobal.RData")
+} else {
+  source("200731_probs_mixall_breast_lvl4.R")
+}
+```
+
+```{r testnobal_datacheck, echo=F,message=F,warning=F,fig.height=4.5,fig.width=9,fig.show='hold'}
+temp_label <- as.factor(rep(names(scores_nobal),ncol(BRmat)))
+temp_mean <- as.vector(sapply(scores_nobal,function(X) apply(sapply(X,"[[","score"),1,mean)))
+temp_sd <- as.vector(sapply(scores_nobal,function(X) apply(sapply(X,"[[","score"),1,sd)))
+Z <- sample(length(temp_label))
+
+par(mfrow=c(1,2),mar=c(3,3,1,1),mgp=2:0)
+plot(temp_mean[Z],temp_sd[Z],pch=".",cex=2,xlab="Mean of rep scores",ylab="SD of rep scores",
+     col=qualitative_hcl(length(levels(temp_label)),palette="dark3",alpha=0.7)[temp_label[Z]])
+
+for (LIG in names(scores_nobal)) {
+  for (X in seq_along(scores_nobal[[LIG]])) {
+    scores_nobal[[LIG]][[X]]$label <- BRcdesc[rownames(scores_nobal[[LIG]][[X]]),"pert_iname"] == LIG
+  }
+}
+
+temp <- list(
+  neg_train = unlist(lapply(scores_nobal,function(X) 
+    unlist(lapply(X,function(Y) Y$score[Y$source == "train" & !Y$label])))),
+  neg_test = unlist(lapply(scores_nobal,function(X) 
+    unlist(lapply(X,function(Y) Y$score[Y$source == "test" & !Y$label])))),
+  pos_train = unlist(lapply(scores_nobal,function(X) 
+    unlist(lapply(X,function(Y) Y$score[Y$source == "train" & Y$label])))),
+  pos_test = unlist(lapply(scores_nobal,function(X) 
+    unlist(lapply(X,function(Y) Y$score[Y$source == "test" & Y$label]))))
+)  
+boxplot(temp,ylim=0:1,ylab="Scores")
+
+rm(list=c(grep("^temp",ls(),value=T),"LIG","X","Z"))
+```
+
+
+```{r testnobal_samplescores, echo=F,message=F,warning=F}
+score_nobal <- sapply(scores_nobal,function(X) apply(sapply(X,"[[","score"),1,max))
+rownames(score_nobal) <- rownames(BRcdesc)
+class_nobal <- data.frame(
+  label=colnames(score_nobal)[apply(score_nobal,1,which.max)],
+  score=apply(score_nobal,1,max),
+  truth=BRcdesc$pert_iname,
+  stringsAsFactors=F
+)
+# class_nobal$truth[!class_nobal$truth %in% lig29] <- NA
+
+sum(class_nobal$label == class_nobal$truth,na.rm=T) / sum(!is.na(class_nobal$truth))
+```

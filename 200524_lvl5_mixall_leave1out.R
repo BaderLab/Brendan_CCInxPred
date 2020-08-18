@@ -3,8 +3,8 @@ library(ranger)
 
 # prepping data ---
 if (exists("lvl5_data")) {
-} else if (file.exists("../CMapCorr_files/lvl5_inputs.RData")) {
-  load("../CMapCorr_files/lvl5_inputs.RData") 
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_inputs.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_inputs.RData") 
 } else {
   source("lvl5_inputs.R")
 }
@@ -40,6 +40,6 @@ rfresults <- pbapply::pbsapply(seq_along(rfmodel),function(N)
   simplify=F)
 
 save(rfresults,testIDs,
-     file="../CMapCorr_files/200524_lvl5_mixall_balanced_leave1out_results.RData")
+     file="~/Dropbox/GDB_archive/CMapCorr_files/200524_lvl5_mixall_balanced_leave1out_results.RData")
 save(rfmodel,trainIDs,
-     file="../CMapCorr_files/200524_lvl5_mixall_balanced_leave1out_model.RData")
+     file="~/Dropbox/GDB_archive/CMapCorr_files/200524_lvl5_mixall_balanced_leave1out_model.RData")

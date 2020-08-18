@@ -15,12 +15,11 @@ navbar:
     href: RecExpr.html
   - text: "Lvl4 lig pred"
     href: LigPred_lvl4.html
-  - text: "Lvl4new lig pred"
-    href: LigPred_lvl4new.html
-  - text: "Lvl4 PCA lig pred"
-    href: LigPred_lvl4pca.html
   - text: "Lig pred on new CT"
     href: LigPred_extrapolate.html
+  - text: "Lig prob on new CT"
+    href: LigProb_NovelLines.html
+
 output:
   html_document:
     theme: cosmo
