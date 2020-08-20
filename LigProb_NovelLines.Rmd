@@ -144,6 +144,53 @@ DEMOCURVES <- function(LIG,CT) {
 }
 ```
 
+```{r MAplot, echo=F,message=F,warning=F,fig.height=4,fig.width=9,fig.show='hold'}
+# metric_new / metric_all show be matrices where rows are cell lines and ligands are columns.
+MA_PLOT <- function(metric_new,metric_all,cts,ligs,metric_label,lig_label_thresh=0.1) {
+  temp_lig <- factor(sapply(colnames(metric_all),function(X) rep(X,nrow(metric_all))),levels=ligs)
+  temp_ct <- factor(sapply(colnames(metric_all),function(X) rownames(metric_all)),levels=cts)
+  
+  par(mfrow=c(1,2),mar=c(3,3,2,1),mgp=2:0)
+  plot(as.vector(metric_new) - as.vector(metric_all),
+       colMeans(rbind(as.vector(metric_new),as.vector(metric_all))),
+       xlab=paste("Withheld - Control",metric_label),
+       ylab=paste("Mean",metric_label),
+       main="Average per ligand",
+       pch=20,col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_lig])
+  rect(par("usr")[1],par("usr")[3],par("usr")[2],par("usr")[4],
+       col=alpha("white",0.8))
+  abline(v=0,lty=2)
+  temp_x <- tapply(as.vector(metric_new),temp_lig,mean) - 
+    tapply(as.vector(metric_all),temp_lig,mean)
+  temp_y <- colMeans(rbind(tapply(as.vector(metric_new),temp_lig,mean),
+                           tapply(as.vector(metric_all),temp_lig,mean)))
+  points(temp_x,temp_y,pch=19,
+         col=qualitative_hcl(length(levels(temp_lig)),palette="dark3"))
+  text(temp_x[temp_y > lig_label_thresh],temp_y[temp_y > lig_label_thresh],
+       labels=names(temp_y)[temp_y > lig_label_thresh],pos=4,
+       col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_y > lig_label_thresh])
+  
+  plot(as.vector(metric_new) - as.vector(metric_all),
+       colMeans(rbind(as.vector(metric_new),as.vector(metric_all))),
+       xlab=paste("Withheld - Control",metric_label),
+       ylab=paste("Mean",metric_label),
+       main="Average per cell line",
+       pch=20,col=qualitative_hcl(length(levels(temp_ct)),palette="dark3")[temp_ct])
+  rect(par("usr")[1],par("usr")[3],par("usr")[2],par("usr")[4],
+       col=alpha("white",0.8))
+  abline(v=0,lty=2)
+  temp_x <- tapply(as.vector(metric_new),temp_ct,mean) - 
+    tapply(as.vector(metric_all),temp_ct,mean)
+  temp_y <- colMeans(rbind(tapply(as.vector(metric_new),temp_ct,mean),
+                           tapply(as.vector(metric_all),temp_ct,mean)))
+  points(temp_x,temp_y,pch=19,
+         col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"))
+  legend("topleft",bty="n",levels(temp_ct),pch=19,cex=0.9,
+         col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"),
+         text.col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"))
+}
+```
+
 
 ## Breast lines only, level 5 data
 
@@ -153,90 +200,37 @@ temp_load2 <- load("~/Dropbox/GDB_archive/CMapCorr_files/200817_newVall_probs_br
 
 ```
 
-```{r lvl5_breast_heatmap, echo=F,message=F,warning=F,fig.height=9,fig.width=7,fig.show='hold'}
+```{r lvl5_breast_heatmap, echo=F,message=F,warning=F,fig.height=11,fig.width=6,fig.show='hold'}
+temp_ct <- as.vector(sapply(qualitative_hcl(length(ctBR),palette="dark3"),rep,2))
+temp_lig <- qualitative_hcl(length(lig29),palette="dark3")
 temp_both <- do.call(rbind,lapply(rownames(mccf1_all),function(X) { 
   temp <- rbind(mccf1_new[X,],mccf1_all[X,]) 
-  rownames(temp) <- c(X,paste0(X,"_ctrl"))
+  rownames(temp) <- c(names(ctBR)[ctBR == X],
+                      paste0(names(ctBR)[ctBR == X],"_ctrl"))
   return(temp)
 }))
 
-par(mar=c(1,5,7,1),mgp=2:0,las=2)
+par(mar=c(1,5,12,1),mgp=2:0,las=2)
 image(z=temp_both[,seq(ncol(temp_both),1)],
       x=1:nrow(temp_both),y=1:ncol(temp_both),
       col=sequential_hcl(100,palette="inferno",rev=T), #breaks=0:100,
       xaxt="n",yaxt="n",xlab=NA,ylab=NA)
-mtext(rownames(temp_both),side=3,at=1:nrow(temp_both),adj=0,line=0.1)
-mtext("Withheld cell line",side=3,line=5.5,cex=1.5,font=2,las=0)
-mtext(rev(colnames(temp_both)),
+mtext(rownames(temp_both),side=3,at=1:nrow(temp_both),adj=0,line=0.1,col=temp_ct)
+mtext("Withheld cell line",cex=1.5,font=2,las=0,
+      side=2,at=par("usr")[4],adj=0,line=1.5)
+mtext(rev(colnames(temp_both)),col=rev(temp_lig),
       side=2,at=1:ncol(temp_both),adj=1,line=0.1)
 mtext("Ligand",side=2,line=3.5,cex=1.5,font=2,las=0)
 mtext("MCC/F1 metric %",side=1,line=0,at=nrow(temp_both) + 0.5,adj=1,las=0,col="dodgerblue")
 text(as.vector(sapply(1:ncol(temp_both),function(X) 1:nrow(temp_both))),
      as.vector(sapply(ncol(temp_both):1,function(X) rep(X,nrow(temp_both)))),
      labels=as.vector(round(temp_both * 100)),cex=0.8,col="dodgerblue")
-
 ```
 
-```{r lvl5_breast_MA, echo=F,message=F,warning=F,fig.height=8,fig.width=9,fig.show='hold'}
-temp_lig <- factor(sapply(colnames(mccf1_all),function(X) rep(X,nrow(mccf1_all))),levels=lig29)
-temp_ct <- factor(sapply(colnames(mccf1_all),function(X) rownames(mccf1_all)),levels=ctBR)
+```{r lvl5_breast_MA, echo=F,message=F,warning=F,fig.height=4,fig.width=9,fig.show='hold'}
+MA_PLOT(mccf1_new,mccf1_all,ctBR,lig29,"MCC/F1 metric",0.3)
 
-par(mfrow=c(2,2),mar=c(3,3,2,1),mgp=2:0)
-plot(as.vector(mccf1_new) - as.vector(mccf1_all),
-     colMeans(rbind(as.vector(mccf1_new),as.vector(mccf1_all))),
-     xlab="Withheld - Control MCC/F1 metric",ylab="Mean MCC/F1 metric",main="Coloured by ligand",
-     pch=20,col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_lig])
 
-plot(as.vector(mccf1_new) - as.vector(mccf1_all),
-     colMeans(rbind(as.vector(mccf1_new),as.vector(mccf1_all))),
-     xlab="Withheld - Control MCC/F1 metric",ylab="Mean MCC/F1 metric",main="Coloured by cell line",
-     pch=20,col=qualitative_hcl(length(levels(temp_ct)),palette="dark3")[temp_ct])
-
-plot(as.vector(mccf1_new) - as.vector(mccf1_all),
-     colMeans(rbind(as.vector(mccf1_new),as.vector(mccf1_all))),
-     xlab="Withheld - Control MCC/F1 metric",ylab="Mean MCC/F1 metric",main="Average per ligand",
-     pch=20,col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_lig])
-rect(par("usr")[1],par("usr")[3],par("usr")[2],par("usr")[4],
-     col=alpha("white",0.8))
-abline(v=0,lty=2)
-temp_x <- tapply(as.vector(mccf1_new),temp_lig,mean) - 
-  tapply(as.vector(mccf1_all),temp_lig,mean)
-temp_y <- colMeans(rbind(tapply(as.vector(mccf1_new),temp_lig,mean),
-                         tapply(as.vector(mccf1_all),temp_lig,mean)))
-points(temp_x,temp_y,pch=19,
-       col=qualitative_hcl(length(levels(temp_lig)),palette="dark3"))
-temp_ythresh <- 0.3
-text(temp_x[temp_y > temp_ythresh],temp_y[temp_y > temp_ythresh],
-     labels=names(temp_y)[temp_y > temp_ythresh],pos=4,
-     col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_y > temp_ythresh])
-
-plot(as.vector(mccf1_new) - as.vector(mccf1_all),
-     colMeans(rbind(as.vector(mccf1_new),as.vector(mccf1_all))),
-     xlab="Withheld - Control MCC/F1 metric",ylab="Mean MCC/F1 metric",main="Average per cell line",
-     pch=20,col=qualitative_hcl(length(levels(temp_ct)),palette="dark3")[temp_ct])
-rect(par("usr")[1],par("usr")[3],par("usr")[2],par("usr")[4],
-     col=alpha("white",0.8))
-abline(v=0,lty=2)
-temp_x <- tapply(as.vector(mccf1_new),temp_ct,mean) - 
-  tapply(as.vector(mccf1_all),temp_ct,mean)
-temp_y <- colMeans(rbind(tapply(as.vector(mccf1_new),temp_ct,mean),
-                         tapply(as.vector(mccf1_all),temp_ct,mean)))
-points(temp_x,temp_y,pch=19,
-       col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"))
-temp_ythresh <- 0.25
-legend("topleft",bty="n",levels(temp_ct),pch=19,cex=0.9,
-       col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"),
-       text.col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"))
-
-```
-
-```{r lvl5_breast_inspect, echo=F,message=F,warning=F,fig.height=9,fig.width=9,fig.show='hold'}
-DEMOCURVES("TNF","MDAMB231")
-DEMOCURVES("TNF","MCF10A")
-
-```
-
-```{r lvl5_breast_MA_MCC, echo=F,message=F,warning=F,fig.height=8,fig.width=9,fig.show='hold'}
 temp_mcc_all <- sapply(names(scores_all),function(LIG) {
   sapply(names(scores_all[[LIG]]),function(CT) {
     mccr(as.integer(scores_all[[LIG]][[CT]]$label[!scores_all[[LIG]][[CT]]$train]),
@@ -250,55 +244,34 @@ temp_mcc_new <- sapply(names(scores_new),function(LIG) {
   })
 })
 
-temp_lig <- factor(sapply(colnames(temp_mcc_all),function(X) rep(X,nrow(temp_mcc_all))),levels=lig29)
-temp_ct <- factor(sapply(colnames(temp_mcc_all),function(X) rownames(temp_mcc_all)),levels=ctBR)
+MA_PLOT(temp_mcc_new,temp_mcc_all,ctBR,lig29,"MCC",0.15)
 
-par(mfrow=c(2,2),mar=c(3,3,2,1),mgp=2:0)
-plot(as.vector(temp_mcc_new) - as.vector(temp_mcc_all),
-     colMeans(rbind(as.vector(temp_mcc_new),as.vector(temp_mcc_all))),
-     xlab="Withheld - Control MCC @ 0.5",ylab="Mean MCC @ 0.5",main="Coloured by ligand",
-     pch=20,col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_lig])
 
-plot(as.vector(temp_mcc_new) - as.vector(temp_mcc_all),
-     colMeans(rbind(as.vector(temp_mcc_new),as.vector(temp_mcc_all))),
-     xlab="Withheld - Control MCC @ 0.5",ylab="Mean MCC @ 0.5",main="Coloured by cell line",
-     pch=20,col=qualitative_hcl(length(levels(temp_ct)),palette="dark3")[temp_ct])
+temp_all_aupr <- sapply(names(scores_new),function(LIG) {
+  sapply(names(scores_new[[LIG]]),function(CT) {
+    performance(
+      prediction(scores_all[[LIG]][[CT]]$score[!scores_all[[LIG]][[CT]]$train],
+                 as.integer(scores_all[[LIG]][[CT]]$label[!scores_all[[LIG]][[CT]]$train])),
+      "aucpr")@y.values[[1]]
+  })
+})
 
-plot(as.vector(temp_mcc_new) - as.vector(temp_mcc_all),
-     colMeans(rbind(as.vector(temp_mcc_new),as.vector(temp_mcc_all))),
-     xlab="Withheld - Control MCC @ 0.5",ylab="Mean MCC @ 0.5",main="Average per ligand",
-     pch=20,col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_lig])
-rect(par("usr")[1],par("usr")[3],par("usr")[2],par("usr")[4],
-     col=alpha("white",0.8))
-abline(v=0,lty=2)
-temp_x <- tapply(as.vector(temp_mcc_new),temp_lig,mean) - 
-  tapply(as.vector(temp_mcc_all),temp_lig,mean)
-temp_y <- colMeans(rbind(tapply(as.vector(temp_mcc_new),temp_lig,mean),
-                         tapply(as.vector(temp_mcc_all),temp_lig,mean)))
-points(temp_x,temp_y,pch=19,
-       col=qualitative_hcl(length(levels(temp_lig)),palette="dark3"))
-temp_ythresh <- 0.15
-text(temp_x[temp_y > temp_ythresh],temp_y[temp_y > temp_ythresh],
-     labels=names(temp_y)[temp_y > temp_ythresh],pos=4,
-     col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_y > temp_ythresh])
+temp_new_aupr <- sapply(names(scores_new),function(LIG) {
+  sapply(names(scores_new[[LIG]]),function(CT) {
+    performance(
+      prediction(scores_new[[LIG]][[CT]]$score[!scores_new[[LIG]][[CT]]$train],
+                 as.integer(scores_new[[LIG]][[CT]]$label[!scores_new[[LIG]][[CT]]$train])),
+      "aucpr")@y.values[[1]]
+  })
+})
+ 
+MA_PLOT(temp_new_aupr,temp_all_aupr,ctBR,lig29,"AUPR",0.15)
 
-plot(as.vector(temp_mcc_new) - as.vector(temp_mcc_all),
-     colMeans(rbind(as.vector(temp_mcc_new),as.vector(temp_mcc_all))),
-     xlab="Withheld - Control MCC @ 0.5",ylab="Mean MCC @ 0.5",main="Average per cell line",
-     pch=20,col=qualitative_hcl(length(levels(temp_ct)),palette="dark3")[temp_ct])
-rect(par("usr")[1],par("usr")[3],par("usr")[2],par("usr")[4],
-     col=alpha("white",0.8))
-abline(v=0,lty=2)
-temp_x <- tapply(as.vector(temp_mcc_new),temp_ct,mean) - 
-  tapply(as.vector(temp_mcc_all),temp_ct,mean)
-temp_y <- colMeans(rbind(tapply(as.vector(temp_mcc_new),temp_ct,mean),
-                         tapply(as.vector(temp_mcc_all),temp_ct,mean)))
-points(temp_x,temp_y,pch=19,
-       col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"))
-temp_ythresh <- 0.25
-legend("topleft",bty="n",levels(temp_ct),pch=19,cex=0.9,
-       col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"),
-       text.col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"))
+```
+
+```{r lvl5_breast_inspect, echo=F,message=F,warning=F,fig.height=9,fig.width=9,fig.show='hold'}
+DEMOCURVES("TNF","MDAMB231")
+DEMOCURVES("TNF","MCF10A")
 
 ```
 
@@ -317,84 +290,38 @@ temp_load2 <- load("~/Dropbox/GDB_archive/CMapCorr_files/200813_newVall_probs_br
 ```
 
 
-```{r lvl4_breast_heatmap, echo=F,message=F,warning=F,fig.height=9,fig.width=7,fig.show='hold'}
+```{r lvl4_breast_heatmap, echo=F,message=F,warning=F,fig.height=11,fig.width=6,fig.show='hold'}
+temp_ct <- as.vector(sapply(qualitative_hcl(length(ctBR),palette="dark3"),rep,2))
+temp_lig <- qualitative_hcl(length(lig29),palette="dark3")
 temp_both <- do.call(rbind,lapply(rownames(mccf1_all),function(X) { 
   temp <- rbind(mccf1_new[X,],mccf1_all[X,]) 
-  rownames(temp) <- c(X,paste0(X,"_ctrl"))
+  rownames(temp) <- c(names(ctBR)[ctBR == X],
+                      paste0(names(ctBR)[ctBR == X],"_ctrl"))
   return(temp)
 }))
 
-par(mar=c(1,5,7,1),mgp=2:0,las=2)
+par(mar=c(1,5,12,1),mgp=2:0,las=2)
 image(z=temp_both[,seq(ncol(temp_both),1)],
       x=1:nrow(temp_both),y=1:ncol(temp_both),
       col=sequential_hcl(100,palette="inferno",rev=T), #breaks=0:100,
       xaxt="n",yaxt="n",xlab=NA,ylab=NA)
-mtext(rownames(temp_both),side=3,at=1:nrow(temp_both),adj=0,line=0.1)
-mtext("Withheld cell line",side=3,line=5.5,cex=1.5,font=2,las=0)
-mtext(rev(colnames(temp_both)),
+mtext(rownames(temp_both),side=3,at=1:nrow(temp_both),adj=0,line=0.1,col=temp_ct)
+mtext("Withheld cell line",cex=1.5,font=2,las=0,
+      side=2,at=par("usr")[4],adj=0,line=1.5)
+mtext(rev(colnames(temp_both)),col=rev(temp_lig),
       side=2,at=1:ncol(temp_both),adj=1,line=0.1)
 mtext("Ligand",side=2,line=3.5,cex=1.5,font=2,las=0)
 mtext("MCC/F1 metric %",side=1,line=0,at=nrow(temp_both) + 0.5,adj=1,las=0,col="dodgerblue")
 text(as.vector(sapply(1:ncol(temp_both),function(X) 1:nrow(temp_both))),
      as.vector(sapply(ncol(temp_both):1,function(X) rep(X,nrow(temp_both)))),
      labels=as.vector(round(temp_both * 100)),cex=0.8,col="dodgerblue")
-
 ```
 
-```{r lvl4_breast_MA, echo=F,message=F,warning=F,fig.height=8,fig.width=9,fig.show='hold'}
-temp_lig <- factor(sapply(colnames(mccf1_all),function(X) rep(X,nrow(mccf1_all))),levels=lig29)
-temp_ct <- factor(sapply(colnames(mccf1_all),function(X) rownames(mccf1_all)),levels=ctBR)
 
-par(mfrow=c(2,2),mar=c(3,3,2,1),mgp=2:0)
-plot(as.vector(mccf1_new) - as.vector(mccf1_all),
-     colMeans(rbind(as.vector(mccf1_new),as.vector(mccf1_all))),
-     xlab="Withheld - Control MCC/F1 metric",ylab="Mean MCC/F1 metric",main="Coloured by ligand",
-     pch=20,col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_lig])
+```{r lvl4_breast_MA, echo=F,message=F,warning=F,fig.height=4,fig.width=9,fig.show='hold'}
+MA_PLOT(mccf1_new,mccf1_all,ctBR,lig29,"MCC/F1 metric",0.25)
 
-plot(as.vector(mccf1_new) - as.vector(mccf1_all),
-     colMeans(rbind(as.vector(mccf1_new),as.vector(mccf1_all))),
-     xlab="Withheld - Control MCC/F1 metric",ylab="Mean MCC/F1 metric",main="Coloured by cell line",
-     pch=20,col=qualitative_hcl(length(levels(temp_ct)),palette="dark3")[temp_ct])
 
-plot(as.vector(mccf1_new) - as.vector(mccf1_all),
-     colMeans(rbind(as.vector(mccf1_new),as.vector(mccf1_all))),
-     xlab="Withheld - Control MCC/F1 metric",ylab="Mean MCC/F1 metric",main="Average per ligand",
-     pch=20,col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_lig])
-rect(par("usr")[1],par("usr")[3],par("usr")[2],par("usr")[4],
-     col=alpha("white",0.8))
-abline(v=0,lty=2)
-temp_x <- tapply(as.vector(mccf1_new),temp_lig,mean) - 
-  tapply(as.vector(mccf1_all),temp_lig,mean)
-temp_y <- colMeans(rbind(tapply(as.vector(mccf1_new),temp_lig,mean),
-                         tapply(as.vector(mccf1_all),temp_lig,mean)))
-points(temp_x,temp_y,pch=19,
-       col=qualitative_hcl(length(levels(temp_lig)),palette="dark3"))
-temp_ythresh <- 0.25
-text(temp_x[temp_y > temp_ythresh],temp_y[temp_y > temp_ythresh],
-     labels=names(temp_y)[temp_y > temp_ythresh],pos=4,
-     col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_y > temp_ythresh])
-
-plot(as.vector(mccf1_new) - as.vector(mccf1_all),
-     colMeans(rbind(as.vector(mccf1_new),as.vector(mccf1_all))),
-     xlab="Withheld - Control MCC/F1 metric",ylab="Mean MCC/F1 metric",main="Average per cell line",
-     pch=20,col=qualitative_hcl(length(levels(temp_ct)),palette="dark3")[temp_ct])
-rect(par("usr")[1],par("usr")[3],par("usr")[2],par("usr")[4],
-     col=alpha("white",0.8))
-abline(v=0,lty=2)
-temp_x <- tapply(as.vector(mccf1_new),temp_ct,mean) - 
-  tapply(as.vector(mccf1_all),temp_ct,mean)
-temp_y <- colMeans(rbind(tapply(as.vector(mccf1_new),temp_ct,mean),
-                         tapply(as.vector(mccf1_all),temp_ct,mean)))
-points(temp_x,temp_y,pch=19,
-       col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"))
-temp_ythresh <- 0.25
-legend("topleft",bty="n",levels(temp_ct),pch=19,cex=0.9,
-       col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"),
-       text.col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"))
-
-```
-
-```{r lvl4_breast_MA_MCC, echo=F,message=F,warning=F,fig.height=8,fig.width=9,fig.show='hold'}
 temp_mcc_all <- sapply(names(scores_all),function(LIG) {
   sapply(names(scores_all[[LIG]]),function(CT) {
     mccr(as.integer(scores_all[[LIG]][[CT]]$label[!scores_all[[LIG]][[CT]]$train]),
@@ -408,55 +335,28 @@ temp_mcc_new <- sapply(names(scores_new),function(LIG) {
   })
 })
 
-temp_lig <- factor(sapply(colnames(temp_mcc_all),function(X) rep(X,nrow(temp_mcc_all))),levels=lig29)
-temp_ct <- factor(sapply(colnames(temp_mcc_all),function(X) rownames(temp_mcc_all)),levels=ctBR)
+MA_PLOT(temp_mcc_new,temp_mcc_all,ctBR,lig29,"MCC",0.15)
 
-par(mfrow=c(2,2),mar=c(3,3,2,1),mgp=2:0)
-plot(as.vector(temp_mcc_new) - as.vector(temp_mcc_all),
-     colMeans(rbind(as.vector(temp_mcc_new),as.vector(temp_mcc_all))),
-     xlab="Withheld - Control MCC @ 0.5",ylab="Mean MCC @ 0.5",main="Coloured by ligand",
-     pch=20,col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_lig])
 
-plot(as.vector(temp_mcc_new) - as.vector(temp_mcc_all),
-     colMeans(rbind(as.vector(temp_mcc_new),as.vector(temp_mcc_all))),
-     xlab="Withheld - Control MCC @ 0.5",ylab="Mean MCC @ 0.5",main="Coloured by cell line",
-     pch=20,col=qualitative_hcl(length(levels(temp_ct)),palette="dark3")[temp_ct])
+temp_all_aupr <- sapply(names(scores_new),function(LIG) {
+  sapply(names(scores_new[[LIG]]),function(CT) {
+    performance(
+      prediction(scores_all[[LIG]][[CT]]$score[!scores_all[[LIG]][[CT]]$train],
+                 as.integer(scores_all[[LIG]][[CT]]$label[!scores_all[[LIG]][[CT]]$train])),
+      "aucpr")@y.values[[1]]
+  })
+})
 
-plot(as.vector(temp_mcc_new) - as.vector(temp_mcc_all),
-     colMeans(rbind(as.vector(temp_mcc_new),as.vector(temp_mcc_all))),
-     xlab="Withheld - Control MCC @ 0.5",ylab="Mean MCC @ 0.5",main="Average per ligand",
-     pch=20,col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_lig])
-rect(par("usr")[1],par("usr")[3],par("usr")[2],par("usr")[4],
-     col=alpha("white",0.8))
-abline(v=0,lty=2)
-temp_x <- tapply(as.vector(temp_mcc_new),temp_lig,mean) - 
-  tapply(as.vector(temp_mcc_all),temp_lig,mean)
-temp_y <- colMeans(rbind(tapply(as.vector(temp_mcc_new),temp_lig,mean),
-                         tapply(as.vector(temp_mcc_all),temp_lig,mean)))
-points(temp_x,temp_y,pch=19,
-       col=qualitative_hcl(length(levels(temp_lig)),palette="dark3"))
-temp_ythresh <- 0.15
-text(temp_x[temp_y > temp_ythresh],temp_y[temp_y > temp_ythresh],
-     labels=names(temp_y)[temp_y > temp_ythresh],pos=4,
-     col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_y > temp_ythresh])
-
-plot(as.vector(temp_mcc_new) - as.vector(temp_mcc_all),
-     colMeans(rbind(as.vector(temp_mcc_new),as.vector(temp_mcc_all))),
-     xlab="Withheld - Control MCC @ 0.5",ylab="Mean MCC @ 0.5",main="Average per cell line",
-     pch=20,col=qualitative_hcl(length(levels(temp_ct)),palette="dark3")[temp_ct])
-rect(par("usr")[1],par("usr")[3],par("usr")[2],par("usr")[4],
-     col=alpha("white",0.8))
-abline(v=0,lty=2)
-temp_x <- tapply(as.vector(temp_mcc_new),temp_ct,mean) - 
-  tapply(as.vector(temp_mcc_all),temp_ct,mean)
-temp_y <- colMeans(rbind(tapply(as.vector(temp_mcc_new),temp_ct,mean),
-                         tapply(as.vector(temp_mcc_all),temp_ct,mean)))
-points(temp_x,temp_y,pch=19,
-       col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"))
-temp_ythresh <- 0.25
-legend("topleft",bty="n",levels(temp_ct),pch=19,cex=0.9,
-       col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"),
-       text.col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"))
+temp_new_aupr <- sapply(names(scores_new),function(LIG) {
+  sapply(names(scores_new[[LIG]]),function(CT) {
+    performance(
+      prediction(scores_new[[LIG]][[CT]]$score[!scores_new[[LIG]][[CT]]$train],
+                 as.integer(scores_new[[LIG]][[CT]]$label[!scores_new[[LIG]][[CT]]$train])),
+      "aucpr")@y.values[[1]]
+  })
+})
+ 
+MA_PLOT(temp_new_aupr,temp_all_aupr,ctBR,lig29,"AUPR",0.1)
 
 ```
 
@@ -477,89 +377,38 @@ temp_load2 <- load("~/Dropbox/GDB_archive/CMapCorr_files/200813_newVall_probs_br
 ```
 
 
-```{r lvl3_breast_heatmap, echo=F,message=F,warning=F,fig.height=9,fig.width=7,fig.show='hold'}
+```{r lvl3_breast_heatmap, echo=F,message=F,warning=F,fig.height=11,fig.width=6,fig.show='hold'}
+temp_ct <- as.vector(sapply(qualitative_hcl(length(ctBR),palette="dark3"),rep,2))
+temp_lig <- qualitative_hcl(length(lig29),palette="dark3")
 temp_both <- do.call(rbind,lapply(rownames(mccf1_all),function(X) { 
   temp <- rbind(mccf1_new[X,],mccf1_all[X,]) 
-  rownames(temp) <- c(X,paste0(X,"_ctrl"))
+  rownames(temp) <- c(names(ctBR)[ctBR == X],
+                      paste0(names(ctBR)[ctBR == X],"_ctrl"))
   return(temp)
 }))
 
-par(mar=c(1,5,7,1),mgp=2:0,las=2)
+par(mar=c(1,5,12,1),mgp=2:0,las=2)
 image(z=temp_both[,seq(ncol(temp_both),1)],
       x=1:nrow(temp_both),y=1:ncol(temp_both),
       col=sequential_hcl(100,palette="inferno",rev=T), #breaks=0:100,
       xaxt="n",yaxt="n",xlab=NA,ylab=NA)
-mtext(rownames(temp_both),side=3,at=1:nrow(temp_both),adj=0,line=0.1)
-mtext("Withheld cell line",side=3,line=5.5,cex=1.5,font=2,las=0)
-mtext(rev(colnames(temp_both)),
+mtext(rownames(temp_both),side=3,at=1:nrow(temp_both),adj=0,line=0.1,col=temp_ct)
+mtext("Withheld cell line",cex=1.5,font=2,las=0,
+      side=2,at=par("usr")[4],adj=0,line=1.5)
+mtext(rev(colnames(temp_both)),col=rev(temp_lig),
       side=2,at=1:ncol(temp_both),adj=1,line=0.1)
 mtext("Ligand",side=2,line=3.5,cex=1.5,font=2,las=0)
 mtext("MCC/F1 metric %",side=1,line=0,at=nrow(temp_both) + 0.5,adj=1,las=0,col="dodgerblue")
 text(as.vector(sapply(1:ncol(temp_both),function(X) 1:nrow(temp_both))),
      as.vector(sapply(ncol(temp_both):1,function(X) rep(X,nrow(temp_both)))),
      labels=as.vector(round(temp_both * 100)),cex=0.8,col="dodgerblue")
-
 ```
 
-```{r lvl3_breast_MA, echo=F,message=F,warning=F,fig.height=8,fig.width=9,fig.show='hold'}
-temp_lig <- factor(sapply(colnames(mccf1_all),function(X) rep(X,nrow(mccf1_all))),levels=lig29)
-temp_ct <- factor(sapply(colnames(mccf1_all),function(X) rownames(mccf1_all)),levels=ctBR)
 
-par(mfrow=c(2,2),mar=c(3,3,2,1),mgp=2:0)
-plot(as.vector(mccf1_new) - as.vector(mccf1_all),
-     colMeans(rbind(as.vector(mccf1_new),as.vector(mccf1_all))),
-     xlab="Withheld - Control MCC/F1 metric",ylab="Mean MCC/F1 metric",main="Coloured by ligand",
-     pch=20,col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_lig])
+```{r lvl3_breast_MA, echo=F,message=F,warning=F,fig.height=4,fig.width=9,fig.show='hold'}
+MA_PLOT(mccf1_new,mccf1_all,ctBR,lig29,"MCC/F1 metric",0.25)
 
-plot(as.vector(mccf1_new) - as.vector(mccf1_all),
-     colMeans(rbind(as.vector(mccf1_new),as.vector(mccf1_all))),
-     xlab="Withheld - Control MCC/F1 metric",ylab="Mean MCC/F1 metric",main="Coloured by cell line",
-     pch=20,col=qualitative_hcl(length(levels(temp_ct)),palette="dark3")[temp_ct])
 
-plot(as.vector(mccf1_new) - as.vector(mccf1_all),
-     colMeans(rbind(as.vector(mccf1_new),as.vector(mccf1_all))),
-     xlab="Withheld - Control MCC/F1 metric",ylab="Mean MCC/F1 metric",main="Average per ligand",
-     pch=20,col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_lig])
-rect(par("usr")[1],par("usr")[3],par("usr")[2],par("usr")[4],
-     col=alpha("white",0.8))
-abline(v=0,lty=2)
-temp_x <- tapply(as.vector(mccf1_new),temp_lig,mean) - 
-  tapply(as.vector(mccf1_all),temp_lig,mean)
-temp_y <- colMeans(rbind(tapply(as.vector(mccf1_new),temp_lig,mean),
-                         tapply(as.vector(mccf1_all),temp_lig,mean)))
-points(temp_x,temp_y,pch=19,
-       col=qualitative_hcl(length(levels(temp_lig)),palette="dark3"))
-temp_ythresh <- 0.25
-text(temp_x[temp_y > temp_ythresh],temp_y[temp_y > temp_ythresh],
-     labels=names(temp_y)[temp_y > temp_ythresh],pos=4,
-     col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_y > temp_ythresh])
-
-plot(as.vector(mccf1_new) - as.vector(mccf1_all),
-     colMeans(rbind(as.vector(mccf1_new),as.vector(mccf1_all))),
-     xlab="Withheld - Control MCC/F1 metric",ylab="Mean MCC/F1 metric",main="Average per cell line",
-     pch=20,col=qualitative_hcl(length(levels(temp_ct)),palette="dark3")[temp_ct])
-rect(par("usr")[1],par("usr")[3],par("usr")[2],par("usr")[4],
-     col=alpha("white",0.8))
-abline(v=0,lty=2)
-temp_x <- tapply(as.vector(mccf1_new),temp_ct,mean) - 
-  tapply(as.vector(mccf1_all),temp_ct,mean)
-temp_y <- colMeans(rbind(tapply(as.vector(mccf1_new),temp_ct,mean),
-                         tapply(as.vector(mccf1_all),temp_ct,mean)))
-points(temp_x,temp_y,pch=19,
-       col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"))
-temp_ythresh <- 0.25
-legend("topleft",bty="n",levels(temp_ct),pch=19,cex=0.9,
-       col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"),
-       text.col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"))
-
-```
-
-```{r lvl3_breast_inspect, echo=F,message=F,warning=F,fig.height=9,fig.width=9,fig.show='hold'}
-DEMOCURVES("IFNG","MCF10A")
-
-```
-
-```{r lvl3_breast_MA_MCC, echo=F,message=F,warning=F,fig.height=8,fig.width=9,fig.show='hold'}
 temp_mcc_all <- sapply(names(scores_all),function(LIG) {
   sapply(names(scores_all[[LIG]]),function(CT) {
     mccr(as.integer(scores_all[[LIG]][[CT]]$label[!scores_all[[LIG]][[CT]]$train]),
@@ -573,57 +422,36 @@ temp_mcc_new <- sapply(names(scores_new),function(LIG) {
   })
 })
 
-temp_lig <- factor(sapply(colnames(temp_mcc_all),function(X) rep(X,nrow(temp_mcc_all))),levels=lig29)
-temp_ct <- factor(sapply(colnames(temp_mcc_all),function(X) rownames(temp_mcc_all)),levels=ctBR)
+MA_PLOT(temp_mcc_new,temp_mcc_all,ctBR,lig29,"MCC")
 
-par(mfrow=c(2,2),mar=c(3,3,2,1),mgp=2:0)
-plot(as.vector(temp_mcc_new) - as.vector(temp_mcc_all),
-     colMeans(rbind(as.vector(temp_mcc_new),as.vector(temp_mcc_all))),
-     xlab="Withheld - Control MCC @ 0.5",ylab="Mean MCC @ 0.5",main="Coloured by ligand",
-     pch=20,col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_lig])
 
-plot(as.vector(temp_mcc_new) - as.vector(temp_mcc_all),
-     colMeans(rbind(as.vector(temp_mcc_new),as.vector(temp_mcc_all))),
-     xlab="Withheld - Control MCC @ 0.5",ylab="Mean MCC @ 0.5",main="Coloured by cell line",
-     pch=20,col=qualitative_hcl(length(levels(temp_ct)),palette="dark3")[temp_ct])
+temp_all_aupr <- sapply(names(scores_new),function(LIG) {
+  sapply(names(scores_new[[LIG]]),function(CT) {
+    performance(
+      prediction(scores_all[[LIG]][[CT]]$score[!scores_all[[LIG]][[CT]]$train],
+                 as.integer(scores_all[[LIG]][[CT]]$label[!scores_all[[LIG]][[CT]]$train])),
+      "aucpr")@y.values[[1]]
+  })
+})
 
-plot(as.vector(temp_mcc_new) - as.vector(temp_mcc_all),
-     colMeans(rbind(as.vector(temp_mcc_new),as.vector(temp_mcc_all))),
-     xlab="Withheld - Control MCC @ 0.5",ylab="Mean MCC @ 0.5",main="Average per ligand",
-     pch=20,col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_lig])
-rect(par("usr")[1],par("usr")[3],par("usr")[2],par("usr")[4],
-     col=alpha("white",0.8))
-abline(v=0,lty=2)
-temp_x <- tapply(as.vector(temp_mcc_new),temp_lig,mean) - 
-  tapply(as.vector(temp_mcc_all),temp_lig,mean)
-temp_y <- colMeans(rbind(tapply(as.vector(temp_mcc_new),temp_lig,mean),
-                         tapply(as.vector(temp_mcc_all),temp_lig,mean)))
-points(temp_x,temp_y,pch=19,
-       col=qualitative_hcl(length(levels(temp_lig)),palette="dark3"))
-temp_ythresh <- 0.1
-text(temp_x[temp_y > temp_ythresh],temp_y[temp_y > temp_ythresh],
-     labels=names(temp_y)[temp_y > temp_ythresh],pos=4,
-     col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_y > temp_ythresh])
-
-plot(as.vector(temp_mcc_new) - as.vector(temp_mcc_all),
-     colMeans(rbind(as.vector(temp_mcc_new),as.vector(temp_mcc_all))),
-     xlab="Withheld - Control MCC @ 0.5",ylab="Mean MCC @ 0.5",main="Average per cell line",
-     pch=20,col=qualitative_hcl(length(levels(temp_ct)),palette="dark3")[temp_ct])
-rect(par("usr")[1],par("usr")[3],par("usr")[2],par("usr")[4],
-     col=alpha("white",0.8))
-abline(v=0,lty=2)
-temp_x <- tapply(as.vector(temp_mcc_new),temp_ct,mean) - 
-  tapply(as.vector(temp_mcc_all),temp_ct,mean)
-temp_y <- colMeans(rbind(tapply(as.vector(temp_mcc_new),temp_ct,mean),
-                         tapply(as.vector(temp_mcc_all),temp_ct,mean)))
-points(temp_x,temp_y,pch=19,
-       col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"))
-temp_ythresh <- 0.25
-legend("topleft",bty="n",levels(temp_ct),pch=19,cex=0.9,
-       col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"),
-       text.col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"))
+temp_new_aupr <- sapply(names(scores_new),function(LIG) {
+  sapply(names(scores_new[[LIG]]),function(CT) {
+    performance(
+      prediction(scores_new[[LIG]][[CT]]$score[!scores_new[[LIG]][[CT]]$train],
+                 as.integer(scores_new[[LIG]][[CT]]$label[!scores_new[[LIG]][[CT]]$train])),
+      "aucpr")@y.values[[1]]
+  })
+})
+ 
+MA_PLOT(temp_new_aupr,temp_all_aupr,ctBR,lig29,"AUPR")
 
 ```
+
+```{r lvl3_breast_inspect, echo=F,message=F,warning=F,fig.height=9,fig.width=9,fig.show='hold'}
+DEMOCURVES("IFNG","MCF10A")
+
+```
+
 
 ```{r lvl3_breast_cleanup, echo=F,message=F,warning=F}
 rm(list=c(temp_load1,temp_load2,grep("^temp",ls(),value=T)))
@@ -642,83 +470,37 @@ temp_load2 <- load("~/Dropbox/GDB_archive/CMapCorr_files/200817_newVall_probs_lv
 
 
 ```{r lvl5_heatmap, echo=F,message=F,warning=F,fig.height=7,fig.width=9,fig.show='hold'}
+temp_ct <- as.vector(sapply(qualitative_hcl(length(ct14),palette="dark3"),rep,2))
+temp_lig <- qualitative_hcl(length(lig16),palette="dark3")
 temp_both <- do.call(rbind,lapply(rownames(mccf1_all),function(X) { 
   temp <- rbind(mccf1_new[X,],mccf1_all[X,]) 
-  rownames(temp) <- c(X,paste0(X,"_ctrl"))
+  rownames(temp) <- c(names(ct14)[ct14 == X],
+                      paste0(names(ct14)[ct14 == X],"_ctrl"))
   return(temp)
 }))
 
-par(mar=c(1,5,7,1),mgp=2:0,las=2)
+par(mar=c(1,5,13,1),mgp=2:0,las=2)
 image(z=temp_both[,seq(ncol(temp_both),1)],
       x=1:nrow(temp_both),y=1:ncol(temp_both),
       col=sequential_hcl(100,palette="inferno",rev=T), #breaks=0:100,
       xaxt="n",yaxt="n",xlab=NA,ylab=NA)
-mtext(rownames(temp_both),side=3,at=1:nrow(temp_both),adj=0,line=0.1)
-mtext("Withheld cell line",side=3,line=5.5,cex=1.5,font=2,las=0)
-mtext(rev(colnames(temp_both)),
+mtext(rownames(temp_both),side=3,at=1:nrow(temp_both),adj=0,line=0.1,col=temp_ct)
+mtext("Withheld cell line",cex=1.5,font=2,las=0,
+      side=2,at=par("usr")[4],adj=0,line=1.5)
+mtext(rev(colnames(temp_both)),col=rev(temp_lig),
       side=2,at=1:ncol(temp_both),adj=1,line=0.1)
 mtext("Ligand",side=2,line=3.5,cex=1.5,font=2,las=0)
 mtext("MCC/F1 metric %",side=1,line=0,at=nrow(temp_both) + 0.5,adj=1,las=0,col="dodgerblue")
 text(as.vector(sapply(1:ncol(temp_both),function(X) 1:nrow(temp_both))),
      as.vector(sapply(ncol(temp_both):1,function(X) rep(X,nrow(temp_both)))),
      labels=as.vector(round(temp_both * 100)),cex=0.8,col="dodgerblue")
-
 ```
 
-```{r lvl5_MA, echo=F,message=F,warning=F,fig.height=8,fig.width=9,fig.show='hold'}
-temp_lig <- factor(sapply(colnames(mccf1_all),function(X) rep(X,nrow(mccf1_all))),levels=lig16)
-temp_ct <- factor(sapply(colnames(mccf1_all),function(X) rownames(mccf1_all)),levels=ct14)
 
-par(mfrow=c(2,2),mar=c(3,3,2,1),mgp=2:0)
-plot(as.vector(mccf1_new) - as.vector(mccf1_all),
-     colMeans(rbind(as.vector(mccf1_new),as.vector(mccf1_all))),
-     xlab="Withheld - Control MCC/F1 metric",ylab="Mean MCC/F1 metric",main="Coloured by ligand",
-     pch=20,col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_lig])
+```{r lvl5_MA, echo=F,message=F,warning=F,fig.height=4,fig.width=9,fig.show='hold'}
+MA_PLOT(mccf1_new,mccf1_all,ct14,lig16,"MCC/F1 metric",0.25)
 
-plot(as.vector(mccf1_new) - as.vector(mccf1_all),
-     colMeans(rbind(as.vector(mccf1_new),as.vector(mccf1_all))),
-     xlab="Withheld - Control MCC/F1 metric",ylab="Mean MCC/F1 metric",main="Coloured by cell line",
-     pch=20,col=qualitative_hcl(length(levels(temp_ct)),palette="dark3")[temp_ct])
 
-plot(as.vector(mccf1_new) - as.vector(mccf1_all),
-     colMeans(rbind(as.vector(mccf1_new),as.vector(mccf1_all))),
-     xlab="Withheld - Control MCC/F1 metric",ylab="Mean MCC/F1 metric",main="Average per ligand",
-     pch=20,col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_lig])
-rect(par("usr")[1],par("usr")[3],par("usr")[2],par("usr")[4],
-     col=alpha("white",0.8))
-abline(v=0,lty=2)
-temp_x <- tapply(as.vector(mccf1_new),temp_lig,mean) - 
-  tapply(as.vector(mccf1_all),temp_lig,mean)
-temp_y <- colMeans(rbind(tapply(as.vector(mccf1_new),temp_lig,mean),
-                         tapply(as.vector(mccf1_all),temp_lig,mean)))
-points(temp_x,temp_y,pch=19,
-       col=qualitative_hcl(length(levels(temp_lig)),palette="dark3"))
-temp_ythresh <- 0.25
-text(temp_x[temp_y > temp_ythresh],temp_y[temp_y > temp_ythresh],
-     labels=names(temp_y)[temp_y > temp_ythresh],pos=4,
-     col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_y > temp_ythresh])
-
-plot(as.vector(mccf1_new) - as.vector(mccf1_all),
-     colMeans(rbind(as.vector(mccf1_new),as.vector(mccf1_all))),
-     xlab="Withheld - Control MCC/F1 metric",ylab="Mean MCC/F1 metric",main="Average per cell line",
-     pch=20,col=qualitative_hcl(length(levels(temp_ct)),palette="dark3")[temp_ct])
-rect(par("usr")[1],par("usr")[3],par("usr")[2],par("usr")[4],
-     col=alpha("white",0.8))
-abline(v=0,lty=2)
-temp_x <- tapply(as.vector(mccf1_new),temp_ct,mean) - 
-  tapply(as.vector(mccf1_all),temp_ct,mean)
-temp_y <- colMeans(rbind(tapply(as.vector(mccf1_new),temp_ct,mean),
-                         tapply(as.vector(mccf1_all),temp_ct,mean)))
-points(temp_x,temp_y,pch=19,
-       col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"))
-temp_ythresh <- 0.25
-legend("topleft",bty="n",levels(temp_ct),pch=19,cex=0.9,
-       col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"),
-       text.col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"))
-
-```
-
-```{r lvl5_MA_MCC, echo=F,message=F,warning=F,fig.height=8,fig.width=9,fig.show='hold'}
 temp_mcc_all <- sapply(names(scores_all),function(LIG) {
   sapply(names(scores_all[[LIG]]),function(CT) {
     mccr(as.integer(scores_all[[LIG]][[CT]]$label[!scores_all[[LIG]][[CT]]$train]),
@@ -732,55 +514,28 @@ temp_mcc_new <- sapply(names(scores_new),function(LIG) {
   })
 })
 
-temp_lig <- factor(sapply(colnames(temp_mcc_all),function(X) rep(X,nrow(temp_mcc_all))),levels=lig16)
-temp_ct <- factor(sapply(colnames(temp_mcc_all),function(X) rownames(temp_mcc_all)),levels=ct14)
+MA_PLOT(temp_mcc_new,temp_mcc_all,ct14,lig16,"MCC")
 
-par(mfrow=c(2,2),mar=c(3,3,2,1),mgp=2:0)
-plot(as.vector(temp_mcc_new) - as.vector(temp_mcc_all),
-     colMeans(rbind(as.vector(temp_mcc_new),as.vector(temp_mcc_all))),
-     xlab="Withheld - Control MCC @ 0.5",ylab="Mean MCC @ 0.5",main="Coloured by ligand",
-     pch=20,col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_lig])
 
-plot(as.vector(temp_mcc_new) - as.vector(temp_mcc_all),
-     colMeans(rbind(as.vector(temp_mcc_new),as.vector(temp_mcc_all))),
-     xlab="Withheld - Control MCC @ 0.5",ylab="Mean MCC @ 0.5",main="Coloured by cell line",
-     pch=20,col=qualitative_hcl(length(levels(temp_ct)),palette="dark3")[temp_ct])
+temp_all_aupr <- sapply(names(scores_new),function(LIG) {
+  sapply(names(scores_new[[LIG]]),function(CT) {
+    performance(
+      prediction(scores_all[[LIG]][[CT]]$score[!scores_all[[LIG]][[CT]]$train],
+                 as.integer(scores_all[[LIG]][[CT]]$label[!scores_all[[LIG]][[CT]]$train])),
+      "aucpr")@y.values[[1]]
+  })
+})
 
-plot(as.vector(temp_mcc_new) - as.vector(temp_mcc_all),
-     colMeans(rbind(as.vector(temp_mcc_new),as.vector(temp_mcc_all))),
-     xlab="Withheld - Control MCC @ 0.5",ylab="Mean MCC @ 0.5",main="Average per ligand",
-     pch=20,col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_lig])
-rect(par("usr")[1],par("usr")[3],par("usr")[2],par("usr")[4],
-     col=alpha("white",0.8))
-abline(v=0,lty=2)
-temp_x <- tapply(as.vector(temp_mcc_new),temp_lig,mean) - 
-  tapply(as.vector(temp_mcc_all),temp_lig,mean)
-temp_y <- colMeans(rbind(tapply(as.vector(temp_mcc_new),temp_lig,mean),
-                         tapply(as.vector(temp_mcc_all),temp_lig,mean)))
-points(temp_x,temp_y,pch=19,
-       col=qualitative_hcl(length(levels(temp_lig)),palette="dark3"))
-temp_ythresh <- 0.1
-text(temp_x[temp_y > temp_ythresh],temp_y[temp_y > temp_ythresh],
-     labels=names(temp_y)[temp_y > temp_ythresh],pos=4,
-     col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_y > temp_ythresh])
-
-plot(as.vector(temp_mcc_new) - as.vector(temp_mcc_all),
-     colMeans(rbind(as.vector(temp_mcc_new),as.vector(temp_mcc_all))),
-     xlab="Withheld - Control MCC @ 0.5",ylab="Mean MCC @ 0.5",main="Average per cell line",
-     pch=20,col=qualitative_hcl(length(levels(temp_ct)),palette="dark3")[temp_ct])
-rect(par("usr")[1],par("usr")[3],par("usr")[2],par("usr")[4],
-     col=alpha("white",0.8))
-abline(v=0,lty=2)
-temp_x <- tapply(as.vector(temp_mcc_new),temp_ct,mean) - 
-  tapply(as.vector(temp_mcc_all),temp_ct,mean)
-temp_y <- colMeans(rbind(tapply(as.vector(temp_mcc_new),temp_ct,mean),
-                         tapply(as.vector(temp_mcc_all),temp_ct,mean)))
-points(temp_x,temp_y,pch=19,
-       col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"))
-temp_ythresh <- 0.25
-legend("topleft",bty="n",levels(temp_ct),pch=19,cex=0.9,
-       col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"),
-       text.col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"))
+temp_new_aupr <- sapply(names(scores_new),function(LIG) {
+  sapply(names(scores_new[[LIG]]),function(CT) {
+    performance(
+      prediction(scores_new[[LIG]][[CT]]$score[!scores_new[[LIG]][[CT]]$train],
+                 as.integer(scores_new[[LIG]][[CT]]$label[!scores_new[[LIG]][[CT]]$train])),
+      "aucpr")@y.values[[1]]
+  })
+})
+ 
+MA_PLOT(temp_new_aupr,temp_all_aupr,ct14,lig16,"AUPR",0.2)
 
 ```
 
@@ -800,83 +555,36 @@ temp_load2 <- load("~/Dropbox/GDB_archive/CMapCorr_files/200817_newVall_probs_lv
 
 
 ```{r lvl4_heatmap, echo=F,message=F,warning=F,fig.height=7,fig.width=9,fig.show='hold'}
+temp_ct <- as.vector(sapply(qualitative_hcl(length(ct14),palette="dark3"),rep,2))
+temp_lig <- qualitative_hcl(length(lig16),palette="dark3")
 temp_both <- do.call(rbind,lapply(rownames(mccf1_all),function(X) { 
   temp <- rbind(mccf1_new[X,],mccf1_all[X,]) 
-  rownames(temp) <- c(X,paste0(X,"_ctrl"))
+  rownames(temp) <- c(names(ct14)[ct14 == X],
+                      paste0(names(ct14)[ct14 == X],"_ctrl"))
   return(temp)
 }))
 
-par(mar=c(1,5,7,1),mgp=2:0,las=2)
+par(mar=c(1,5,13,1),mgp=2:0,las=2)
 image(z=temp_both[,seq(ncol(temp_both),1)],
       x=1:nrow(temp_both),y=1:ncol(temp_both),
       col=sequential_hcl(100,palette="inferno",rev=T), #breaks=0:100,
       xaxt="n",yaxt="n",xlab=NA,ylab=NA)
-mtext(rownames(temp_both),side=3,at=1:nrow(temp_both),adj=0,line=0.1)
-mtext("Withheld cell line",side=3,line=5.5,cex=1.5,font=2,las=0)
-mtext(rev(colnames(temp_both)),
+mtext(rownames(temp_both),side=3,at=1:nrow(temp_both),adj=0,line=0.1,col=temp_ct)
+mtext("Withheld cell line",cex=1.5,font=2,las=0,
+      side=2,at=par("usr")[4],adj=0,line=1.5)
+mtext(rev(colnames(temp_both)),col=rev(temp_lig),
       side=2,at=1:ncol(temp_both),adj=1,line=0.1)
 mtext("Ligand",side=2,line=3.5,cex=1.5,font=2,las=0)
 mtext("MCC/F1 metric %",side=1,line=0,at=nrow(temp_both) + 0.5,adj=1,las=0,col="dodgerblue")
 text(as.vector(sapply(1:ncol(temp_both),function(X) 1:nrow(temp_both))),
      as.vector(sapply(ncol(temp_both):1,function(X) rep(X,nrow(temp_both)))),
      labels=as.vector(round(temp_both * 100)),cex=0.8,col="dodgerblue")
-
 ```
 
-```{r lvl4_MA, echo=F,message=F,warning=F,fig.height=8,fig.width=9,fig.show='hold'}
-temp_lig <- factor(sapply(colnames(mccf1_all),function(X) rep(X,nrow(mccf1_all))),levels=lig16)
-temp_ct <- factor(sapply(colnames(mccf1_all),function(X) rownames(mccf1_all)),levels=ct14)
+```{r lvl4_MA, echo=F,message=F,warning=F,fig.height=4,fig.width=9,fig.show='hold'}
+MA_PLOT(mccf1_new,mccf1_all,ct14,lig16,"MCC/F1 metric",0.25)
 
-par(mfrow=c(2,2),mar=c(3,3,2,1),mgp=2:0)
-plot(as.vector(mccf1_new) - as.vector(mccf1_all),
-     colMeans(rbind(as.vector(mccf1_new),as.vector(mccf1_all))),
-     xlab="Withheld - Control MCC/F1 metric",ylab="Mean MCC/F1 metric",main="Coloured by ligand",
-     pch=20,col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_lig])
 
-plot(as.vector(mccf1_new) - as.vector(mccf1_all),
-     colMeans(rbind(as.vector(mccf1_new),as.vector(mccf1_all))),
-     xlab="Withheld - Control MCC/F1 metric",ylab="Mean MCC/F1 metric",main="Coloured by cell line",
-     pch=20,col=qualitative_hcl(length(levels(temp_ct)),palette="dark3")[temp_ct])
-
-plot(as.vector(mccf1_new) - as.vector(mccf1_all),
-     colMeans(rbind(as.vector(mccf1_new),as.vector(mccf1_all))),
-     xlab="Withheld - Control MCC/F1 metric",ylab="Mean MCC/F1 metric",main="Average per ligand",
-     pch=20,col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_lig])
-rect(par("usr")[1],par("usr")[3],par("usr")[2],par("usr")[4],
-     col=alpha("white",0.8))
-abline(v=0,lty=2)
-temp_x <- tapply(as.vector(mccf1_new),temp_lig,mean) - 
-  tapply(as.vector(mccf1_all),temp_lig,mean)
-temp_y <- colMeans(rbind(tapply(as.vector(mccf1_new),temp_lig,mean),
-                         tapply(as.vector(mccf1_all),temp_lig,mean)))
-points(temp_x,temp_y,pch=19,
-       col=qualitative_hcl(length(levels(temp_lig)),palette="dark3"))
-temp_ythresh <- 0.25
-text(temp_x[temp_y > temp_ythresh],temp_y[temp_y > temp_ythresh],
-     labels=names(temp_y)[temp_y > temp_ythresh],pos=4,
-     col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_y > temp_ythresh])
-
-plot(as.vector(mccf1_new) - as.vector(mccf1_all),
-     colMeans(rbind(as.vector(mccf1_new),as.vector(mccf1_all))),
-     xlab="Withheld - Control MCC/F1 metric",ylab="Mean MCC/F1 metric",main="Average per cell line",
-     pch=20,col=qualitative_hcl(length(levels(temp_ct)),palette="dark3")[temp_ct])
-rect(par("usr")[1],par("usr")[3],par("usr")[2],par("usr")[4],
-     col=alpha("white",0.8))
-abline(v=0,lty=2)
-temp_x <- tapply(as.vector(mccf1_new),temp_ct,mean) - 
-  tapply(as.vector(mccf1_all),temp_ct,mean)
-temp_y <- colMeans(rbind(tapply(as.vector(mccf1_new),temp_ct,mean),
-                         tapply(as.vector(mccf1_all),temp_ct,mean)))
-points(temp_x,temp_y,pch=19,
-       col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"))
-temp_ythresh <- 0.25
-legend("topleft",bty="n",levels(temp_ct),pch=19,cex=0.9,
-       col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"),
-       text.col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"))
-
-```
-
-```{r lvl4_MA_MCC, echo=F,message=F,warning=F,fig.height=8,fig.width=9,fig.show='hold'}
 temp_mcc_all <- sapply(names(scores_all),function(LIG) {
   sapply(names(scores_all[[LIG]]),function(CT) {
     mccr(as.integer(scores_all[[LIG]][[CT]]$label[!scores_all[[LIG]][[CT]]$train]),
@@ -890,55 +598,28 @@ temp_mcc_new <- sapply(names(scores_new),function(LIG) {
   })
 })
 
-temp_lig <- factor(sapply(colnames(temp_mcc_all),function(X) rep(X,nrow(temp_mcc_all))),levels=lig16)
-temp_ct <- factor(sapply(colnames(temp_mcc_all),function(X) rownames(temp_mcc_all)),levels=ct14)
+MA_PLOT(temp_mcc_new,temp_mcc_all,ct14,lig16,"MCC")
 
-par(mfrow=c(2,2),mar=c(3,3,2,1),mgp=2:0)
-plot(as.vector(temp_mcc_new) - as.vector(temp_mcc_all),
-     colMeans(rbind(as.vector(temp_mcc_new),as.vector(temp_mcc_all))),
-     xlab="Withheld - Control MCC @ 0.5",ylab="Mean MCC @ 0.5",main="Coloured by ligand",
-     pch=20,col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_lig])
 
-plot(as.vector(temp_mcc_new) - as.vector(temp_mcc_all),
-     colMeans(rbind(as.vector(temp_mcc_new),as.vector(temp_mcc_all))),
-     xlab="Withheld - Control MCC @ 0.5",ylab="Mean MCC @ 0.5",main="Coloured by cell line",
-     pch=20,col=qualitative_hcl(length(levels(temp_ct)),palette="dark3")[temp_ct])
+temp_all_aupr <- sapply(names(scores_new),function(LIG) {
+  sapply(names(scores_new[[LIG]]),function(CT) {
+    performance(
+      prediction(scores_all[[LIG]][[CT]]$score[!scores_all[[LIG]][[CT]]$train],
+                 as.integer(scores_all[[LIG]][[CT]]$label[!scores_all[[LIG]][[CT]]$train])),
+      "aucpr")@y.values[[1]]
+  })
+})
 
-plot(as.vector(temp_mcc_new) - as.vector(temp_mcc_all),
-     colMeans(rbind(as.vector(temp_mcc_new),as.vector(temp_mcc_all))),
-     xlab="Withheld - Control MCC @ 0.5",ylab="Mean MCC @ 0.5",main="Average per ligand",
-     pch=20,col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_lig])
-rect(par("usr")[1],par("usr")[3],par("usr")[2],par("usr")[4],
-     col=alpha("white",0.8))
-abline(v=0,lty=2)
-temp_x <- tapply(as.vector(temp_mcc_new),temp_lig,mean) - 
-  tapply(as.vector(temp_mcc_all),temp_lig,mean)
-temp_y <- colMeans(rbind(tapply(as.vector(temp_mcc_new),temp_lig,mean),
-                         tapply(as.vector(temp_mcc_all),temp_lig,mean)))
-points(temp_x,temp_y,pch=19,
-       col=qualitative_hcl(length(levels(temp_lig)),palette="dark3"))
-temp_ythresh <- 0.1
-text(temp_x[temp_y > temp_ythresh],temp_y[temp_y > temp_ythresh],
-     labels=names(temp_y)[temp_y > temp_ythresh],pos=4,
-     col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_y > temp_ythresh])
-
-plot(as.vector(temp_mcc_new) - as.vector(temp_mcc_all),
-     colMeans(rbind(as.vector(temp_mcc_new),as.vector(temp_mcc_all))),
-     xlab="Withheld - Control MCC @ 0.5",ylab="Mean MCC @ 0.5",main="Average per cell line",
-     pch=20,col=qualitative_hcl(length(levels(temp_ct)),palette="dark3")[temp_ct])
-rect(par("usr")[1],par("usr")[3],par("usr")[2],par("usr")[4],
-     col=alpha("white",0.8))
-abline(v=0,lty=2)
-temp_x <- tapply(as.vector(temp_mcc_new),temp_ct,mean) - 
-  tapply(as.vector(temp_mcc_all),temp_ct,mean)
-temp_y <- colMeans(rbind(tapply(as.vector(temp_mcc_new),temp_ct,mean),
-                         tapply(as.vector(temp_mcc_all),temp_ct,mean)))
-points(temp_x,temp_y,pch=19,
-       col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"))
-temp_ythresh <- 0.25
-legend("topleft",bty="n",levels(temp_ct),pch=19,cex=0.9,
-       col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"),
-       text.col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"))
+temp_new_aupr <- sapply(names(scores_new),function(LIG) {
+  sapply(names(scores_new[[LIG]]),function(CT) {
+    performance(
+      prediction(scores_new[[LIG]][[CT]]$score[!scores_new[[LIG]][[CT]]$train],
+                 as.integer(scores_new[[LIG]][[CT]]$label[!scores_new[[LIG]][[CT]]$train])),
+      "aucpr")@y.values[[1]]
+  })
+})
+ 
+MA_PLOT(temp_new_aupr,temp_all_aupr,ct14,lig16,"AUPR")
 
 ```
 
@@ -958,83 +639,36 @@ temp_load2 <- load("~/Dropbox/GDB_archive/CMapCorr_files/200817_newVall_probs_lv
 
 
 ```{r lvl3_heatmap, echo=F,message=F,warning=F,fig.height=7,fig.width=9,fig.show='hold'}
+temp_ct <- as.vector(sapply(qualitative_hcl(length(ct14),palette="dark3"),rep,2))
+temp_lig <- qualitative_hcl(length(lig16),palette="dark3")
 temp_both <- do.call(rbind,lapply(rownames(mccf1_all),function(X) { 
   temp <- rbind(mccf1_new[X,],mccf1_all[X,]) 
-  rownames(temp) <- c(X,paste0(X,"_ctrl"))
+  rownames(temp) <- c(names(ct14)[ct14 == X],
+                      paste0(names(ct14)[ct14 == X],"_ctrl"))
   return(temp)
 }))
 
-par(mar=c(1,5,7,1),mgp=2:0,las=2)
+par(mar=c(1,5,13,1),mgp=2:0,las=2)
 image(z=temp_both[,seq(ncol(temp_both),1)],
       x=1:nrow(temp_both),y=1:ncol(temp_both),
       col=sequential_hcl(100,palette="inferno",rev=T), #breaks=0:100,
       xaxt="n",yaxt="n",xlab=NA,ylab=NA)
-mtext(rownames(temp_both),side=3,at=1:nrow(temp_both),adj=0,line=0.1)
-mtext("Withheld cell line",side=3,line=5.5,cex=1.5,font=2,las=0)
-mtext(rev(colnames(temp_both)),
+mtext(rownames(temp_both),side=3,at=1:nrow(temp_both),adj=0,line=0.1,col=temp_ct)
+mtext("Withheld cell line",cex=1.5,font=2,las=0,
+      side=2,at=par("usr")[4],adj=0,line=1.5)
+mtext(rev(colnames(temp_both)),col=rev(temp_lig),
       side=2,at=1:ncol(temp_both),adj=1,line=0.1)
 mtext("Ligand",side=2,line=3.5,cex=1.5,font=2,las=0)
 mtext("MCC/F1 metric %",side=1,line=0,at=nrow(temp_both) + 0.5,adj=1,las=0,col="dodgerblue")
 text(as.vector(sapply(1:ncol(temp_both),function(X) 1:nrow(temp_both))),
      as.vector(sapply(ncol(temp_both):1,function(X) rep(X,nrow(temp_both)))),
      labels=as.vector(round(temp_both * 100)),cex=0.8,col="dodgerblue")
-
 ```
 
-```{r lvl3_MA, echo=F,message=F,warning=F,fig.height=8,fig.width=9,fig.show='hold'}
-temp_lig <- factor(sapply(colnames(mccf1_all),function(X) rep(X,nrow(mccf1_all))),levels=lig16)
-temp_ct <- factor(sapply(colnames(mccf1_all),function(X) rownames(mccf1_all)),levels=ct14)
+```{r lvl3_MA, echo=F,message=F,warning=F,fig.height=4,fig.width=9,fig.show='hold'}
+MA_PLOT(mccf1_new,mccf1_all,ct14,lig16,"MCC/F1 metric",0.25)
 
-par(mfrow=c(2,2),mar=c(3,3,2,1),mgp=2:0)
-plot(as.vector(mccf1_new) - as.vector(mccf1_all),
-     colMeans(rbind(as.vector(mccf1_new),as.vector(mccf1_all))),
-     xlab="Withheld - Control MCC/F1 metric",ylab="Mean MCC/F1 metric",main="Coloured by ligand",
-     pch=20,col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_lig])
 
-plot(as.vector(mccf1_new) - as.vector(mccf1_all),
-     colMeans(rbind(as.vector(mccf1_new),as.vector(mccf1_all))),
-     xlab="Withheld - Control MCC/F1 metric",ylab="Mean MCC/F1 metric",main="Coloured by cell line",
-     pch=20,col=qualitative_hcl(length(levels(temp_ct)),palette="dark3")[temp_ct])
-
-plot(as.vector(mccf1_new) - as.vector(mccf1_all),
-     colMeans(rbind(as.vector(mccf1_new),as.vector(mccf1_all))),
-     xlab="Withheld - Control MCC/F1 metric",ylab="Mean MCC/F1 metric",main="Average per ligand",
-     pch=20,col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_lig])
-rect(par("usr")[1],par("usr")[3],par("usr")[2],par("usr")[4],
-     col=alpha("white",0.8))
-abline(v=0,lty=2)
-temp_x <- tapply(as.vector(mccf1_new),temp_lig,mean) - 
-  tapply(as.vector(mccf1_all),temp_lig,mean)
-temp_y <- colMeans(rbind(tapply(as.vector(mccf1_new),temp_lig,mean),
-                         tapply(as.vector(mccf1_all),temp_lig,mean)))
-points(temp_x,temp_y,pch=19,
-       col=qualitative_hcl(length(levels(temp_lig)),palette="dark3"))
-temp_ythresh <- 0.25
-text(temp_x[temp_y > temp_ythresh],temp_y[temp_y > temp_ythresh],
-     labels=names(temp_y)[temp_y > temp_ythresh],pos=4,
-     col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_y > temp_ythresh])
-
-plot(as.vector(mccf1_new) - as.vector(mccf1_all),
-     colMeans(rbind(as.vector(mccf1_new),as.vector(mccf1_all))),
-     xlab="Withheld - Control MCC/F1 metric",ylab="Mean MCC/F1 metric",main="Average per cell line",
-     pch=20,col=qualitative_hcl(length(levels(temp_ct)),palette="dark3")[temp_ct])
-rect(par("usr")[1],par("usr")[3],par("usr")[2],par("usr")[4],
-     col=alpha("white",0.8))
-abline(v=0,lty=2)
-temp_x <- tapply(as.vector(mccf1_new),temp_ct,mean) - 
-  tapply(as.vector(mccf1_all),temp_ct,mean)
-temp_y <- colMeans(rbind(tapply(as.vector(mccf1_new),temp_ct,mean),
-                         tapply(as.vector(mccf1_all),temp_ct,mean)))
-points(temp_x,temp_y,pch=19,
-       col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"))
-temp_ythresh <- 0.25
-legend("topleft",bty="n",levels(temp_ct),pch=19,cex=0.9,
-       col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"),
-       text.col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"))
-
-```
-
-```{r lvl3_MA_MCC, echo=F,message=F,warning=F,fig.height=8,fig.width=9,fig.show='hold'}
 temp_mcc_all <- sapply(names(scores_all),function(LIG) {
   sapply(names(scores_all[[LIG]]),function(CT) {
     mccr(as.integer(scores_all[[LIG]][[CT]]$label[!scores_all[[LIG]][[CT]]$train]),
@@ -1048,55 +682,28 @@ temp_mcc_new <- sapply(names(scores_new),function(LIG) {
   })
 })
 
-temp_lig <- factor(sapply(colnames(temp_mcc_all),function(X) rep(X,nrow(temp_mcc_all))),levels=lig16)
-temp_ct <- factor(sapply(colnames(temp_mcc_all),function(X) rownames(temp_mcc_all)),levels=ct14)
+MA_PLOT(temp_mcc_new,temp_mcc_all,ct14,lig16,"MCC")
 
-par(mfrow=c(2,2),mar=c(3,3,2,1),mgp=2:0)
-plot(as.vector(temp_mcc_new) - as.vector(temp_mcc_all),
-     colMeans(rbind(as.vector(temp_mcc_new),as.vector(temp_mcc_all))),
-     xlab="Withheld - Control MCC @ 0.5",ylab="Mean MCC @ 0.5",main="Coloured by ligand",
-     pch=20,col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_lig])
 
-plot(as.vector(temp_mcc_new) - as.vector(temp_mcc_all),
-     colMeans(rbind(as.vector(temp_mcc_new),as.vector(temp_mcc_all))),
-     xlab="Withheld - Control MCC @ 0.5",ylab="Mean MCC @ 0.5",main="Coloured by cell line",
-     pch=20,col=qualitative_hcl(length(levels(temp_ct)),palette="dark3")[temp_ct])
+temp_all_aupr <- sapply(names(scores_new),function(LIG) {
+  sapply(names(scores_new[[LIG]]),function(CT) {
+    performance(
+      prediction(scores_all[[LIG]][[CT]]$score[!scores_all[[LIG]][[CT]]$train],
+                 as.integer(scores_all[[LIG]][[CT]]$label[!scores_all[[LIG]][[CT]]$train])),
+      "aucpr")@y.values[[1]]
+  })
+})
 
-plot(as.vector(temp_mcc_new) - as.vector(temp_mcc_all),
-     colMeans(rbind(as.vector(temp_mcc_new),as.vector(temp_mcc_all))),
-     xlab="Withheld - Control MCC @ 0.5",ylab="Mean MCC @ 0.5",main="Average per ligand",
-     pch=20,col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_lig])
-rect(par("usr")[1],par("usr")[3],par("usr")[2],par("usr")[4],
-     col=alpha("white",0.8))
-abline(v=0,lty=2)
-temp_x <- tapply(as.vector(temp_mcc_new),temp_lig,mean) - 
-  tapply(as.vector(temp_mcc_all),temp_lig,mean)
-temp_y <- colMeans(rbind(tapply(as.vector(temp_mcc_new),temp_lig,mean),
-                         tapply(as.vector(temp_mcc_all),temp_lig,mean)))
-points(temp_x,temp_y,pch=19,
-       col=qualitative_hcl(length(levels(temp_lig)),palette="dark3"))
-temp_ythresh <- 0.1
-text(temp_x[temp_y > temp_ythresh],temp_y[temp_y > temp_ythresh],
-     labels=names(temp_y)[temp_y > temp_ythresh],pos=4,
-     col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_y > temp_ythresh])
-
-plot(as.vector(temp_mcc_new) - as.vector(temp_mcc_all),
-     colMeans(rbind(as.vector(temp_mcc_new),as.vector(temp_mcc_all))),
-     xlab="Withheld - Control MCC @ 0.5",ylab="Mean MCC @ 0.5",main="Average per cell line",
-     pch=20,col=qualitative_hcl(length(levels(temp_ct)),palette="dark3")[temp_ct])
-rect(par("usr")[1],par("usr")[3],par("usr")[2],par("usr")[4],
-     col=alpha("white",0.8))
-abline(v=0,lty=2)
-temp_x <- tapply(as.vector(temp_mcc_new),temp_ct,mean) - 
-  tapply(as.vector(temp_mcc_all),temp_ct,mean)
-temp_y <- colMeans(rbind(tapply(as.vector(temp_mcc_new),temp_ct,mean),
-                         tapply(as.vector(temp_mcc_all),temp_ct,mean)))
-points(temp_x,temp_y,pch=19,
-       col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"))
-temp_ythresh <- 0.25
-legend("topleft",bty="n",levels(temp_ct),pch=19,cex=0.9,
-       col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"),
-       text.col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"))
+temp_new_aupr <- sapply(names(scores_new),function(LIG) {
+  sapply(names(scores_new[[LIG]]),function(CT) {
+    performance(
+      prediction(scores_new[[LIG]][[CT]]$score[!scores_new[[LIG]][[CT]]$train],
+                 as.integer(scores_new[[LIG]][[CT]]$label[!scores_new[[LIG]][[CT]]$train])),
+      "aucpr")@y.values[[1]]
+  })
+})
+ 
+MA_PLOT(temp_new_aupr,temp_all_aupr,ct14,lig16,"AUPR",0.2)
 
 ```
 
