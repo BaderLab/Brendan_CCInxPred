@@ -1,0 +1,390 @@
+---
+title: "Fig 1. Comparison of differentially expressed genes"
+---
+  
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
+library(cmapR)
+library(colorspace)
+library(kableExtra)
+library(pbapply)
+```
+
+
+```{r load_data, echo=FALSE,message=FALSE,warning=FALSE}
+if (exists("lvl4_data")) {
+} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_lig16_inputs.RData")) {
+  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_lig16_inputs.RData") 
+} else {
+  source("lvl4_lig16_inputs.R")
+}
+```
+
+# DE gene overlap within replicates (Level 4 CMap data)
+
+### Differentially expressed gene overlap
+
+Differentially expressed genes are identified as those with z-scores > 1.645, corresponding to the 95th percentile of normally-distributed data and therefore a 5% chance of having a positive difference from plate-matched controls by chance alone.
+
+```{r lvl4_tx_timedose, echo=FALSE,message=FALSE,warning=FALSE,fig.height=4,fig.width=9}
+tx_timedose_ids <- pbapply(unique(lvl4_data@cdesc[,c("pert_iname","cell_id","pert_time","pert_dose")]),1,function(X) {
+  rownames(lvl4_data@cdesc)[apply(lvl4_data@cdesc[,c("pert_iname","cell_id","pert_time","pert_dose")],1,
+                                  function(Y) all(Y == X))]
+})
+names(tx_timedose_ids) <- apply(unique(lvl4_data@cdesc[,c("pert_iname","cell_id","pert_time","pert_dose")]),
+                       1,paste,collapse="_")
+
+
+tx_timedose_de <- pbsapply(tx_timedose_ids[sapply(tx_timedose_ids,length) > 1],function(X) {
+  if (length(X) > 2) {
+    temp <- combn(X,2)
+  } else {
+    temp <- cbind(X)
+  }
+  apply(temp,2,function(Y)
+    length(Reduce(intersect,apply(lvl4_data@mat[,Y],2,
+                                  function(Z) names(Z)[Z > 1.645])))
+  )
+})
+
+tx_timedose_medz <- pbsapply(tx_timedose_ids[sapply(tx_timedose_ids,length) > 1],function(X) {
+  if (length(X) > 2) {
+    temp <- combn(X,2)
+    if (ncol(temp) > 10) {
+      temp <- temp[,sample(ncol(temp),10)]
+    }
+  } else {
+    temp <- cbind(X)
+  }
+  apply(temp,2,function(Y)
+    mean(abs(rowMeans(lvl4_data@mat[,Y],)))
+  )
+})
+
+
+par(mfrow=c(1,2),mar=c(3,3,2,1),mgp=2:0)
+hist(unlist(tx_timedose_de),breaks=50,
+     main="Common DE genes between pairs of time/dose replicates")
+abline(v=mean(unlist(tx_timedose_de)),col="red")
+mtext(signif(mean(unlist(tx_timedose_de)),2),
+      at=mean(unlist(tx_timedose_de)),
+      line=-1,adj=-0.2,col="red")
+
+hist(unlist(tx_timedose_medz),breaks=50,
+     main="Mean |median(Z)| between pairs of time/dose replicates")
+abline(v=mean(unlist(tx_timedose_medz)),col="red")
+mtext(signif(mean(unlist(tx_timedose_medz)),2),
+      at=mean(unlist(tx_timedose_medz)),
+      line=-1,adj=-0.2,col="red")
+
+```
+
+
+```{r lvl4_tx_time, echo=FALSE,message=FALSE,warning=FALSE,fig.height=4,fig.width=9}
+tx_time_ids <- pbapply(unique(lvl4_data@cdesc[,c("pert_iname","cell_id","pert_time")]),1,function(X) {
+  rownames(lvl4_data@cdesc)[apply(lvl4_data@cdesc[,c("pert_iname","cell_id","pert_time")],1,
+                                  function(Y) all(Y == X))]
+})
+names(tx_time_ids) <- apply(unique(lvl4_data@cdesc[,c("pert_iname","cell_id","pert_time")]),
+                       1,paste,collapse="_")
+
+
+tx_time_de <- pbsapply(tx_time_ids[sapply(tx_time_ids,length) > 1],function(X) {
+  if (length(X) > 2) {
+    temp <- combn(X,2)
+  } else {
+    temp <- cbind(X)
+  }
+  apply(temp,2,function(Y)
+    length(Reduce(intersect,apply(lvl4_data@mat[,Y],2,
+                                  function(Z) names(Z)[Z > 1.645])))
+  )
+})
+
+tx_time_medz <- pbsapply(tx_time_ids[sapply(tx_time_ids,length) > 1],function(X) {
+  if (length(X) > 2) {
+    temp <- combn(X,2)
+    if (ncol(temp) > 10) {
+      temp <- temp[,sample(ncol(temp),10)]
+    }
+  } else {
+    temp <- cbind(X)
+  }
+  apply(temp,2,function(Y)
+    mean(abs(rowMeans(lvl4_data@mat[,Y])))
+  )
+})
+
+
+par(mfrow=c(1,2),mar=c(3,3,2,1),mgp=2:0)
+hist(unlist(tx_time_de),breaks=50,
+     main="Common DE genes between pairs of time replicates")
+abline(v=mean(unlist(tx_time_de)),col="red")
+mtext(signif(mean(unlist(tx_time_de)),2),
+      at=mean(unlist(tx_time_de)),
+      line=-1,adj=-0.2,col="red")
+
+hist(unlist(tx_time_medz),breaks=50,
+     main="Mean |mean(Z)| between pairs of time replicates")
+abline(v=mean(unlist(tx_time_medz)),col="red")
+mtext(signif(mean(unlist(tx_time_medz)),2),
+      at=mean(unlist(tx_time_medz)),
+      line=-1,adj=-0.2,col="red")
+
+```
+
+
+```{r lvl4_tx_dose, echo=FALSE,message=FALSE,warning=FALSE,fig.height=4,fig.width=9}
+tx_dose_ids <- pbapply(unique(lvl4_data@cdesc[,c("pert_iname","cell_id","pert_dose")]),1,function(X) {
+  rownames(lvl4_data@cdesc)[apply(lvl4_data@cdesc[,c("pert_iname","cell_id","pert_dose")],1,
+                                  function(Y) all(Y == X))]
+})
+names(tx_dose_ids) <- apply(unique(lvl4_data@cdesc[,c("pert_iname","cell_id","pert_dose")]),
+                       1,paste,collapse="_")
+
+
+tx_dose_de <- pbsapply(tx_dose_ids[sapply(tx_dose_ids,length) > 1],function(X) {
+  if (length(X) > 2) {
+    temp <- combn(X,2)
+  } else {
+    temp <- cbind(X)
+  }
+  apply(temp,2,function(Y)
+    length(Reduce(intersect,apply(lvl4_data@mat[,Y],2,
+                                  function(Z) names(Z)[Z > 1.645])))
+  )
+})
+
+tx_dose_medz <- pbsapply(tx_dose_ids[sapply(tx_dose_ids,length) > 1],function(X) {
+  if (length(X) > 2) {
+    temp <- combn(X,2)
+    if (ncol(temp) > 10) { 
+      temp <- temp[,sample(ncol(temp),10)]
+    }
+  } else {
+    temp <- cbind(X)
+  }
+  apply(temp,2,function(Y)
+    mean(abs(rowMeans(lvl4_data@mat[,Y])))
+  )
+})
+
+par(mfrow=c(1,2),mar=c(3,3,2,1),mgp=2:0)
+hist(unlist(tx_dose_de),breaks=50,
+     main="Common DE genes between pairs of dose replicates")
+abline(v=mean(unlist(tx_dose_de)),col="red")
+mtext(signif(mean(unlist(tx_dose_de)),2),
+      at=mean(unlist(tx_dose_de)),
+      line=-1,adj=-0.2,col="red")
+hist(unlist(tx_dose_medz),breaks=50,
+     main="Mean |mean(Z)| between pairs of dose replicates")
+abline(v=mean(unlist(tx_dose_medz)),col="red")
+mtext(signif(mean(unlist(tx_dose_medz)),2),
+      at=mean(unlist(tx_dose_medz)),
+      line=-1,adj=-0.2,col="red")
+
+```
+
+```{r lvl4_tx_ligcell, echo=FALSE,message=FALSE,warning=FALSE,fig.height=4,fig.width=9}
+tx_ligcell_ids <- pbapply(unique(lvl4_data@cdesc[,c("pert_iname","cell_id")]),1,function(X) {
+  rownames(lvl4_data@cdesc)[apply(lvl4_data@cdesc[,c("pert_iname","cell_id")],1,
+                                  function(Y) all(Y == X))]
+})
+names(tx_ligcell_ids) <- apply(unique(lvl4_data@cdesc[,c("pert_iname","cell_id")]),
+                       1,paste,collapse="_")
+
+
+tx_ligcell_de <- pbsapply(tx_ligcell_ids,function(X) {
+  if (length(X) > 3) {
+    temp <- combn(X,3)
+    if (ncol(temp) > 10) {
+      temp <- temp[,sample(ncol(temp),10)]
+    }
+  } else {
+    temp <- cbind(X)
+  }
+  apply(temp,2,function(Y)
+    length(Reduce(intersect,apply(lvl4_data@mat[,Y],2,
+                                  function(Z) names(Z)[Z > 1.645])))
+  )
+})
+
+tx_ligcell_medz <- pbsapply(tx_ligcell_ids,function(X) {
+  if (length(X) > 3) {
+    temp <- combn(X,3)
+    if (ncol(temp) > 10) { 
+      temp <- temp[,sample(ncol(temp),10)]
+    }
+  } else {
+    temp <- cbind(X)
+  }
+  apply(temp,2,function(Y)
+    mean(abs(rowMeans(lvl4_data@mat[,Y])))
+  )
+})
+
+tx_ligcell_medz_5pct <- pbsapply(tx_ligcell_ids,function(X) {
+  if (length(X) > 3) {
+    temp <- combn(X,3)
+    if (ncol(temp) > 10) { 
+      temp <- temp[,sample(ncol(temp),10)]
+    }
+  } else {
+    temp <- cbind(X)
+  }
+  apply(temp,2,function(Y) {
+    temp <- rowMeans(lvl4_data@mat[,Y])
+    mean(temp[temp > 1.645])
+  })
+})
+
+par(mfrow=c(1,3),mar=c(3,3,2,1),mgp=2:0)
+hist(unlist(tx_ligcell_de),breaks=50,
+     main="Common DE genes between pairs of ligcell replicates")
+abline(v=mean(unlist(tx_ligcell_de)),col="red")
+mtext(signif(mean(unlist(tx_ligcell_de)),2),
+      at=mean(unlist(tx_ligcell_de)),
+      line=-1,adj=-0.2,col="red")
+hist(unlist(tx_ligcell_medz),breaks=50,
+     main="Mean |mean(Z)| between pairs of ligcell replicates")
+abline(v=mean(unlist(tx_ligcell_medz)),col="red")
+mtext(signif(mean(unlist(tx_ligcell_medz)),2),
+      at=mean(unlist(tx_ligcell_medz)),
+      line=-1,adj=-0.2,col="red")
+hist(unlist(tx_ligcell_medz_5pct),breaks=50,
+     main="Mean |mean(Z)| between pairs of ligcell replicates")
+abline(v=mean(unlist(tx_ligcell_medz_5pct)),col="red")
+mtext(signif(mean(unlist(tx_ligcell_medz_5pct)),2),
+      at=mean(unlist(tx_ligcell_medz_5pct)),
+      line=-1,adj=-0.2,col="red")
+
+```
+
+```{r lvl4_tx_cell, echo=FALSE,message=FALSE,warning=FALSE,fig.height=4,fig.width=9}
+tx_cell_ids <- pbapply(unique(lvl4_data@cdesc[,c("cell_id"),drop=F]),1,function(X) {
+  rownames(lvl4_data@cdesc)[apply(lvl4_data@cdesc[,c("cell_id"),drop=F],1,
+                                  function(Y) all(Y == X))]
+})
+names(tx_cell_ids) <- apply(unique(lvl4_data@cdesc[,c("cell_id"),drop=F]),
+                       1,paste,collapse="_")
+
+
+tx_cell_de <- pbsapply(tx_cell_ids,function(X) {
+  temp <- sapply(1:100,function(Z) sample(X,3))
+  apply(temp,2,function(Y)
+    length(Reduce(intersect,apply(lvl4_data@mat[,Y],2,
+                                  function(Z) names(Z)[Z > 1.645])))
+  )
+})
+
+tx_cell_medz <- pbsapply(tx_cell_ids,function(X) {
+  temp <- sapply(1:100,function(Z) sample(X,3))
+  apply(temp,2,function(Y)
+    mean(abs(rowMeans(lvl4_data@mat[,Y])))
+  )
+})
+
+tx_cell_medz_5pct <- pbsapply(tx_cell_ids,function(X) {
+  temp <- sapply(1:100,function(Z) sample(X,3))
+  apply(temp,2,function(Y) {
+    temp <- rowMeans(lvl4_data@mat[,Y])
+    mean(temp[temp > 1.645])
+  })
+})
+
+par(mfrow=c(1,3),mar=c(3,3,2,1),mgp=2:0)
+hist(unlist(tx_cell_de),breaks=50,
+     main="Common DE genes between pairs of cell replicates")
+abline(v=mean(unlist(tx_cell_de)),col="red")
+mtext(signif(mean(unlist(tx_cell_de)),2),
+      at=mean(unlist(tx_cell_de)),
+      line=-1,adj=-0.2,col="red")
+hist(unlist(tx_cell_medz),breaks=50,
+     main="Mean |mean(Z)| between pairs of cell replicates")
+abline(v=mean(unlist(tx_cell_medz)),col="red")
+mtext(signif(mean(unlist(tx_cell_medz)),2),
+      at=mean(unlist(tx_cell_medz)),
+      line=-1,adj=-0.2,col="red")
+hist(unlist(tx_cell_medz_5pct),breaks=50,
+     main="Mean |mean(Z)| between pairs of cell replicates")
+abline(v=mean(unlist(tx_cell_medz_5pct)),col="red")
+mtext(signif(mean(unlist(tx_cell_medz_5pct)),2),
+      at=mean(unlist(tx_cell_medz_5pct)),
+      line=-1,adj=-0.2,col="red")
+
+```
+```{r lvl4_tx_lig, echo=FALSE,message=FALSE,warning=FALSE,fig.height=4,fig.width=9}
+tx_lig_ids <- pbapply(unique(lvl4_data@cdesc[,c("pert_iname"),drop=F]),1,function(X) {
+  rownames(lvl4_data@cdesc)[apply(lvl4_data@cdesc[,c("pert_iname"),drop=F],1,
+                                  function(Y) all(Y == X))]
+})
+names(tx_lig_ids) <- apply(unique(lvl4_data@cdesc[,c("pert_iname"),drop=F]),
+                       1,paste,collapse="_")
+
+
+tx_lig_de <- pbsapply(tx_lig_ids,function(X) {
+  temp <- sapply(1:100,function(Z) sample(X,3))
+  apply(temp,2,function(Y)
+    length(Reduce(intersect,apply(lvl4_data@mat[,Y],2,
+                                  function(Z) names(Z)[Z > 1.645])))
+  )
+})
+
+tx_lig_medz <- pbsapply(tx_lig_ids,function(X) {
+  temp <- sapply(1:100,function(Z) sample(X,3))
+  apply(temp,2,function(Y)
+    mean(abs(rowMeans(lvl4_data@mat[,Y])))
+  )
+})
+
+tx_lig_medz_5pct <- pbsapply(tx_lig_ids,function(X) {
+  temp <- sapply(1:100,function(Z) sample(X,3))
+  apply(temp,2,function(Y) {
+    temp <- rowMeans(lvl4_data@mat[,Y])
+    mean(temp[temp > 1.645])
+  })
+})
+
+par(mfrow=c(1,3),mar=c(3,3,2,1),mgp=2:0)
+hist(unlist(tx_lig_de),breaks=50,
+     main="Common DE genes between pairs of lig replicates")
+abline(v=mean(unlist(tx_lig_de)),col="red")
+mtext(signif(mean(unlist(tx_lig_de)),2),
+      at=mean(unlist(tx_lig_de)),
+      line=-1,adj=-0.2,col="red")
+hist(unlist(tx_lig_medz),breaks=50,
+     main="Mean |mean(Z)| between pairs of lig replicates")
+abline(v=mean(unlist(tx_lig_medz)),col="red")
+mtext(signif(mean(unlist(tx_lig_medz)),2),
+      at=mean(unlist(tx_lig_medz)),
+      line=-1,adj=-0.2,col="red")
+hist(unlist(tx_lig_medz_5pct),breaks=50,
+     main="Mean |mean(Z)| between pairs of lig replicates")
+abline(v=mean(unlist(tx_lig_medz_5pct)),col="red")
+mtext(signif(mean(unlist(tx_lig_medz_5pct)),2),
+      at=mean(unlist(tx_lig_medz_5pct)),
+      line=-1,adj=-0.2,col="red")
+
+```
+
+```{r lvl4_de_overlap, echo=FALSE,message=FALSE,warning=FALSE}
+de <- medz <- reps <- list()
+for (LIG in lig16) {
+  for (CT in ct14) {
+    X <- rownames(lvl4_data@cdesc)[lvl4_data@cdesc$cell_id == CT & lvl4_data@cdesc$pert_iname == LIG]
+    for (TIME in as.character(sort(as.integer(unique(lvl4_data@cdesc[X,"pert_time"]))))) {
+      Y <- X[lvl4_data@cdesc[X,"pert_time"] == TIME]
+      for (DOSE in as.character(sort(as.integer(unique(lvl4_data@cdesc[Y,"pert_dose"]))))) {
+        Z <- Y[lvl4_data@cdesc[Y,"pert_dose"] == DOSE]
+        reps[[LIG]][[CT]][[TIME]][[DOSE]] <- length(Z)
+        medz[[LIG]][[CT]][[TIME]][[DOSE]] <- apply(lvl4_data@mat[,Z],1,median)
+        de[[LIG]][[CT]][[TIME]][[DOSE]] <- Reduce(intersect,
+                                                  apply(lvl4_data@mat[,Z],2,
+                                                        function(X) names(X)[X > 1.645])) # 2.326 for 99th %ile
+      }
+    }
+  }
+}
+
+
+```
+

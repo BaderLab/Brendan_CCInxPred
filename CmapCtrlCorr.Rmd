@@ -200,12 +200,12 @@ temp_min <- do.call(min,mget(grep("^corr_",ls(),value=T)))
 # temp_ctVligct <- wilcox.test(dist_ct,dist_lig_ct,conf.int=T)
 ```
 
-```{r lvl3_corr_hist, echo=FALSE,message=FALSE,warning=FALSE,fig.height=12,fig.width=9,fig.show='hold'}
+```{r lvl3_corr_hist_ctrl, echo=FALSE,message=FALSE,warning=FALSE,fig.height=12,fig.width=9,fig.show='hold'}
 par(mfrow=c(6,1),mar=c(3,3,2,1),mgp=c(2,1,0))
 
 hist(corr_ctl_tx,breaks=100,xlim=c(temp_min,1),
      xlab="Pairwise Pearson correlation coefficient",
-     main="Correlation between controls by cell type per treatment condition")
+     main="Correlation between controls by cell line per treatment condition")
 abline(v=median(corr_ctl_tx),lwd=2,col="red")
 legend("topleft",bty="n",lwd=2,col="red",legend="Median PCC")
 
@@ -213,14 +213,14 @@ hist(corr_ctl_plate,breaks=100,xlim=c(temp_min,1),
      xlab="Pairwise Pearson correlation coefficient",
      main="Correlation between controls by plate per treatment condition")
 abline(v=median(corr_ctl_plate),lwd=2,col="red")
-legend("topleft",bty="n",lwd=2,col="red",legend="Median PCC")
+abline(v=median(corr_ctl_tx),lwd=2,col="dodgerblue")
+temp_diff <- wilcox.test(corr_ctl_tx,corr_ctl_plate)
+legend("topleft",bty="n",lwd=c(2,2,NA),col=c("red","dodgerblue",NA),
+       legend=c("Median PCC between replicate controls by plate",
+                "Median PCC between replicate controls",
+                paste("Wilcoxon rank-sum test p =",
+                      signif(temp_diff$p.value,4))))
 
-
-hist(corr_ct,breaks=100,xlim=c(temp_min,1),
-     xlab="Pairwise Pearson correlation coefficient",
-     main="Correlation between treatments by cell type")
-abline(v=median(corr_ct),lwd=2,col="red")
-legend("topleft",bty="n",lwd=2,col="red",legend="Median PCC")
 
 hist(corr_lig,breaks=100,xlim=c(temp_min,1),
      xlab="Pairwise Pearson correlation coefficient",
@@ -228,25 +228,48 @@ hist(corr_lig,breaks=100,xlim=c(temp_min,1),
 abline(v=median(corr_lig),lwd=2,col="red")
 legend("topleft",bty="n",lwd=2,col="red",legend="Median PCC")
 
+hist(corr_ct,breaks=100,xlim=c(temp_min,1),
+     xlab="Pairwise Pearson correlation coefficient",
+     main="Correlation between treatments by cell line")
+abline(v=median(corr_ct),lwd=2,col="red")
+abline(v=median(corr_lig),lwd=2,col="dodgerblue")
+temp_diff <- wilcox.test(corr_ct,corr_lig)
+legend("topleft",bty="n",lwd=c(2,2,NA),col=c("red","dodgerblue",NA),
+       legend=c("Median PCC between treatments by cell line",
+                "Median PCC between treatments by ligand",
+                paste("Wilcoxon rank-sum test p =",
+                      signif(temp_diff$p.value,4))))
+
 hist(corr_lig_ct,breaks=100,xlim=c(temp_min,1),
      xlab="Pairwise Pearson correlation coefficient",
-     main="Correlation between treatments by ligand per cell type")
+     main="Correlation between treatments by ligand per cell line")
 abline(v=median(corr_lig_ct),lwd=2,col="red")
-legend("topleft",bty="n",lwd=2,col="red",legend="Median PCC")
+abline(v=median(corr_ct),lwd=2,col="dodgerblue")
+temp_diff <- wilcox.test(corr_lig_ct,corr_ct)
+legend("topleft",bty="n",lwd=c(2,2,NA),col=c("red","dodgerblue",NA),
+       legend=c("Median PCC between treatments by ligand per cell line",
+                "Median PCC between treatments by cell line",
+                paste("Wilcoxon rank-sum test p =",
+                      signif(temp_diff$p.value,4))))
 
 hist(corr_lig_tx,breaks=100,xlim=c(temp_min,1),
      xlab="Pairwise Pearson correlation coefficient",
-     main="Correlation between treatments by ligand per treatment condition")
-abline(v=median(corr_lig_tx),lwd=2,col="dodgerblue")
-abline(v=median(corr_ctl_plate),lwd=2,col="red")
-temp_diff <- wilcox.test(corr_ctl_plate,corr_lig_tx)
+     main="Correlation between treatment replicates (same dose / time)")
+abline(v=median(corr_lig_tx),lwd=2,col="red")
+abline(v=median(corr_lig_ct),lwd=2,col="dodgerblue")
+temp_diff <- wilcox.test(corr_lig_tx,corr_lig_ct)
 legend("topleft",bty="n",lwd=c(2,2,NA),col=c("red","dodgerblue",NA),
-       legend=c("Control median PCC",
-                "Treatment median PCC",
-                paste("Wilcoxon p:",round(temp_diff$p.value,2))))
+       legend=c("Median PCC between treatment replicates",
+                "Median PCC between treatments by ligand per cell line",
+                paste("Wilcoxon rank-sum test p =",
+                      signif(temp_diff$p.value,4))))
 
+```
+
+```{r lvl3_corr_cleanup, echo=FALSE,message=FALSE,warning=FALSE}
 rm(list=c(grep("^corr_",ls(),value=T),grep("^temp",ls(),value=T)))
 ```
+
 
 ```{r tx_corr_plot, echo=FALSE,message=FALSE,warning=FALSE,fig.height=4,fig.width=9,fig.show='hold'}
 par(mar=c(2,3,2,3),mgp=2:0)
@@ -287,45 +310,55 @@ rm(X,temp)
 ```
 
 
-```{r lvl4_corr_hist, echo=FALSE,message=FALSE,warning=FALSE,fig.height=10,fig.width=9,fig.show='hold'}
-par(mfrow=c(5,1),mar=c(3,3,2,1),mgp=c(2,1,0))
+```{r lvl4_corr_hist, echo=FALSE,message=FALSE,warning=FALSE,fig.height=8,fig.width=9,fig.show='hold'}
+par(mfrow=c(4,1),mar=c(3,3,2,1),mgp=c(2,1,0))
 
-hist(corr_ctl_plate,breaks=100,xlim=c(temp_min,1),
+hist(corr_ct,breaks=100,xlim=c(-1,1),
      xlab="Pairwise Spearman correlation coefficient",
-     main="Correlation between controls by plate per treatment condition")
-abline(v=median(corr_ctl_plate),lwd=2,col="red")
-legend("topleft",bty="n",lwd=2,col="red",legend="Median")
-
-
-hist(corr_ct,breaks=100,xlim=c(temp_min,1),
-     xlab="Pairwise Spearman correlation coefficient",
-     main="Correlation between treatments by cell type")
+     main="Correlation of treatment Z-scores by cell line")
 abline(v=median(corr_ct),lwd=2,col="red")
-legend("topleft",bty="n",lwd=2,col="red",legend="Median")
+legend("topleft",bty="n",lwd=2,col="red",legend="Median SCC")
 
-hist(corr_lig,breaks=100,xlim=c(temp_min,1),
+hist(corr_lig,breaks=100,xlim=c(-1,1),
      xlab="Pairwise Spearman correlation coefficient",
-     main="Correlation between treatments by ligand")
-abline(v=median(corr_lig),lwd=2,col="red")
-legend("topleft",bty="n",lwd=2,col="red",legend="Median")
-
-hist(corr_lig_ct,breaks=100,xlim=c(temp_min,1),
-     xlab="Pairwise Spearman correlation coefficient",
-     main="Correlation between treatments by ligand per cell type")
-abline(v=median(corr_lig_ct),lwd=2,col="red")
-legend("topleft",bty="n",lwd=2,col="red",legend="Median")
-
-hist(corr_lig_tx,breaks=100,xlim=c(temp_min,1),
-     xlab="Pairwise Spearman correlation coefficient",
-     main="Correlation between treatments by ligand per treatment condition")
-abline(v=median(corr_lig_tx),lwd=2,col="dodgerblue")
-abline(v=median(corr_ctl_plate),lwd=2,col="red")
-temp_diff <- wilcox.test(corr_ctl_plate,corr_lig_tx)
+     main="Correlation of treatment Z-scores by ligand")
+abline(v=median(corr_ct),lwd=2,col="red")
+abline(v=median(corr_lig),lwd=2,col="dodgerblue")
+temp_diff <- wilcox.test(corr_ct,corr_lig)
 legend("topleft",bty="n",lwd=c(2,2,NA),col=c("red","dodgerblue",NA),
-       legend=c("Control median",
-                "Treatment median",
-                paste("Wilcoxon p:",round(temp_diff$p.value,2))))
+       legend=c("Median SCC of treatment Z-scores by ligand",
+                "Median SCC of treatment Z-scores by cell line",
+                paste("Wilcoxon rank-sum test p =",
+                      signif(temp_diff$p.value,4))))
 
+hist(corr_lig_ct,breaks=100,xlim=c(-1,1),
+     xlab="Pairwise Spearman correlation coefficient",
+     main="Correlation of treatment Z-scores by ligand per cell line")
+abline(v=median(corr_lig_ct),lwd=2,col="red")
+abline(v=median(corr_lig),lwd=2,col="dodgerblue")
+temp_diff <- wilcox.test(corr_lig_ct,corr_lig)
+legend("topleft",bty="n",lwd=c(2,2,NA),col=c("red","dodgerblue",NA),
+       legend=c("Median SCC of treatment Z-scores by ligand per cell line",
+                "Median SCC of treatment Z-scores by cell line",
+                paste("Wilcoxon rank-sum test p =",
+                      signif(temp_diff$p.value,4))))
+
+hist(corr_lig_tx,breaks=100,xlim=c(-1,1),
+     xlab="Pairwise Spearman correlation coefficient",
+     main="Correlation of replicate treatment Z-scores (same dose / time)")
+abline(v=median(corr_lig_tx),lwd=2,col="red")
+abline(v=median(corr_lig_ct),lwd=2,col="dodgerblue")
+temp_diff <- wilcox.test(corr_lig_tx,corr_lig_ct)
+legend("topleft",bty="n",lwd=c(2,2,NA),col=c("red","dodgerblue",NA),
+       legend=c("Median SCC of replicate treatment Z-scores",
+                "Median SCC of treatment Z-scores by ligand per cell line",
+                paste("Wilcoxon rank-sum test p =",
+                      signif(temp_diff$p.value,4))))
+
+```
+
+
+```{r lvl4_corr_cleanup, echo=FALSE,message=FALSE,warning=FALSE}
 rm(list=c(grep("^corr_",ls(),value=T),grep("^temp",ls(),value=T)))
 ```
 
