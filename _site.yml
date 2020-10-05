@@ -3,22 +3,30 @@ output_dir: "docs"
 navbar:
   title: "CCinxPred?"
   left:
-  - text: "CMap Data"
-    href: CmapDataSummary.html
-  - text: "Sanity Check"
-    href: CmapCtrlCorr.html
-  - text: "Tx pred"
-    href: CellStimPred_lvl3.html
-  - text: "Lvl5 lig pred"
-    href: LigPred_lvl5.html
-  - text: "Lvl5 followup"
-    href: RecExpr.html
-  - text: "Lvl4 lig pred"
-    href: LigPred_lvl4.html
-  - text: "Lig pred on new CT"
-    href: LigPred_extrapolate.html
-  - text: "Lig prob on new CT"
-    href: LigProb_NovelLines.html
+  - text: "Old Analysis Attempts"
+    menu:
+    - text: "CMap Data"
+      href: CmapDataSummary.html
+    - text: "Sanity Check"
+      href: CmapCtrlCorr.html
+    - text: "Tx pred"
+      href: CellStimPred_lvl3.html
+    - text: "Lvl5 lig pred"
+      href: LigPred_lvl5.html
+    - text: "Lvl5 followup"
+      href: RecExpr.html
+    - text: "Lvl4 lig pred"
+      href: LigPred_lvl4.html
+    - text: "Lig pred on new CT"
+      href: LigPred_extrapolate.html
+    - text: "Lig prob on new CT"
+      href: LigProb_NovelLines.html
+  - text: "Figures For Paper"
+    menu:
+    - text: "Fig 1"
+      href: Fig1.html
+    - text: "Fig 2"
+      href: Fig2.html
 
 output:
   html_document:

@@ -1,10 +1,17 @@
+---
+title: "Fig2: Correlation between samples"
+---
+  
+```{r setup, echo=F,message=F,warning=F}
 library(cmapR)
 library(scales)
 library(colorspace)
 library(pbapply)
 .PAR <- par(no.readonly=T)
+```
 
 
+```{r load_data, echo=F,message=F,warning=F}
 if (exists("lvl4_data")) {
 } else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_lig16_inputs.RData")) {
   load("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_lig16_inputs.RData") 
@@ -13,18 +20,23 @@ if (exists("lvl4_data")) {
 }
 lig16 <- sort(lig16)
 
-# LIG ----
+```
+
+
+## By ligand
+
+```{r lig, echo=F,message=F,warning=F,fig.height=6,fig.width=8,dpi=300}
 lig_id <- sapply(lig16,function(X) rownames(lvl4_data@cdesc)[lvl4_data@cdesc$pert_iname == X])
 lig_mean <- sapply(lig16,function(X) rowMeans(lvl4_data@mat[,lvl4_data@cdesc$pert_iname == X]))
-lig_cor <- pbsapply(lig_id,function(X) {
+lig_cor <- sapply(lig_id,function(X) {
   temp <- cor(lvl4_data@mat[,X])
   return(temp[upper.tri(temp)])
 },simplify=F)
 lig_col <- qualitative_hcl(16,palette="dark3")
 names(lig_col) <- lig16
 
-png("~/Dropbox/GDB/CMapCorr/Fig_corr_lig.png",
-    width=5,height=5,units="in",res=300)
+# png("~/Dropbox/GDB/CMapCorr/Fig_corr_lig.png",
+#     width=5,height=5,units="in",res=300)
 par(mfrow=c(2,1),mar=c(2,4,1,1),mgp=2:0)
 boxplot(lig_mean,outline=T,pch=".",xaxt="n",
         border=lig_col,col=alpha(lig_col,0.5),
@@ -36,22 +48,24 @@ boxplot(lig_cor,outline=F,xaxt="n",
         ylab=paste("Pearson correlation of","Z-scores across samples",sep="\n"))
 abline(h=0,col="red",lty=2)
 mtext(lig16,side=3,at=seq_along(lig16),las=2,xpd=NA,line=2,adj=0.5,col=lig_col)
-dev.off()
-par(.PAR)
+# dev.off()
+# par(.PAR)
+```
 
 
+## By cell line
 
-# CT ----
+```{r ct, echo=F,message=F,warning=F,fig.height=6,fig.width=8,dpi=300}
 ct_id <- sapply(ct14,function(X) rownames(lvl4_data@cdesc)[lvl4_data@cdesc$cell_id == X])
 ct_mean <- sapply(ct14,function(X) rowMeans(lvl4_data@mat[,lvl4_data@cdesc$cell_id == X]))
-ct_cor <- pbsapply(ct_id,function(X) {
+ct_cor <- sapply(ct_id,function(X) {
   temp <- cor(lvl4_data@mat[,X])
   return(temp[upper.tri(temp)])
 },simplify=F)
 ct_col <- qualitative_hcl(14,palette="dark3")
 
-png("~/Dropbox/GDB/CMapCorr/Fig_corr_ct.png",
-    width=5,height=5,units="in",res=300)
+# png("~/Dropbox/GDB/CMapCorr/Fig_corr_ct.png",
+#     width=5,height=5,units="in",res=300)
 par(mfrow=c(2,1),mar=c(2,4,1,1),mgp=2:0)
 boxplot(ct_mean,outline=T,pch=".",xaxt="n",
         border=ct_col,col=alpha(ct_col,0.5),
@@ -64,26 +78,28 @@ boxplot(ct_cor,outline=F,xaxt="n",
 abline(h=0,col="red",lty=2)
 mtext(paste(mapply(sub,pattern=paste0("_",ct14),x=names(ct14),replacement=""),ct14,sep="\n"),
       side=3,at=seq_along(ct14),las=2,xpd=NA,line=2,adj=0.5,cex=0.6,col=ct_col)
-dev.off()
-par(.PAR)
+# dev.off()
+# par(.PAR)
+```
 
 
+## By ligand per cell line
 
-# LIG CT ----
+```{r lig_ct, echo=F,message=F,warning=F,fig.height=6,fig.width=8,dpi=300}
 ligct_id <- sapply(lig16,function(LIG)
   sapply(ct14,function(CT)
     rownames(lvl4_data@cdesc)[lvl4_data@cdesc$cell_id == CT & lvl4_data@cdesc$pert_iname == LIG]
   ),simplify=F)
 ligct_id <- unlist(ligct_id,recursive=F)
 ligct_mean <- sapply(ligct_id,function(X) rowMeans(lvl4_data@mat[,X]))
-ligct_cor <- pbsapply(ligct_id,function(X) {
+ligct_cor <- sapply(ligct_id,function(X) {
   temp <- cor(lvl4_data@mat[,X])
   return(temp[upper.tri(temp)])
 },simplify=F)
 ligct_col <- as.vector(sapply(lig_col,rep,times=14))
 
-png("~/Dropbox/GDB/CMapCorr/Fig_corr_ligct.png",
-    width=5,height=5,units="in",res=300)
+# png("~/Dropbox/GDB/CMapCorr/Fig_corr_ligct.png",
+#     width=5,height=5,units="in",res=300)
 par(mfrow=c(2,1),mar=c(2,4,1,1),mgp=2:0)
 boxplot(ligct_mean,outline=T,pch=".",xaxt="n",
         border=ligct_col,col=alpha(ligct_col,0.5),
@@ -96,12 +112,15 @@ boxplot(ligct_cor,outline=F,xaxt="n",
 abline(h=0,col="red",lty=2)
 mtext(lig16,side=3,at=seq(7.5,by=14,length.out=16),
       las=2,xpd=NA,line=2,adj=0.5,col=lig_col)
-dev.off()
-par(.PAR)
+# dev.off()
+# par(.PAR)
+```
 
 
+## By treatment condition
+(Replicate sharing the same ligand, cell line, dosage, and time of exposure)
 
-# REP ----
+```{r rep, echo=F,message=F,warning=F,fig.height=4,fig.width=8,dpi=300}
 rep_tx <- unique(lvl4_data@cdesc[,c("pert_iname","cell_id","pert_dose","pert_time")])
 rownames(rep_tx) <- apply(rep_tx,1,paste,collapse="_")
 rep_id <- apply(rep_tx,1,function(X)
@@ -111,14 +130,14 @@ rep_id <- apply(rep_tx,1,function(X)
                               lvl4_data@cdesc$pert_time == X[4]])
 rep_id <- rep_id[sort(names(rep_id))]
 rep_id <- rep_id[sapply(rep_id,length) > 1]
-rep_cor <- pbsapply(rep_id,function(X) {
+rep_cor <- sapply(rep_id,function(X) {
   temp <- cor(lvl4_data@mat[,X])
   return(temp[upper.tri(temp)])
 },simplify=F)
 rep_col <- lig_col[sub("_.+$","",names(rep_id))]
 
-png("~/Dropbox/GDB/CMapCorr/Fig_corr_rep.png",
-    width=5,height=5,units="in",res=300)
+# png("~/Dropbox/GDB/CMapCorr/Fig_corr_rep.png",
+#     width=5,height=5,units="in",res=300)
 par(mar=c(1,4,4,1),mgp=2:0)
 boxplot(rep_cor,outline=F,xaxt="n",
         border=rep_col,col=alpha(rep_col,0.5),
@@ -126,13 +145,16 @@ boxplot(rep_cor,outline=F,xaxt="n",
 abline(h=0,col="red",lty=2)
 mtext(lig16,side=3,las=2,adj=-0.1,col=lig_col,
       at=sapply(lig16,function(X) mean(which(sub("_.+$","",names(rep_id)) == X))))
-dev.off()
-par(.PAR)
+# dev.off()
+# par(.PAR)
+```
 
 
-# Compare all ----
-png("~/Dropbox/GDB/CMapCorr/Fig_corr_compareall.png",
-    width=5,height=8,units="in",res=300)
+## Comparison of all correlation distributions
+
+```{r compare_all, echo=F,message=F,warning=F,fig.height=10,fig.width=8,dpi=300}
+# png("~/Dropbox/GDB/CMapCorr/Fig_corr_compareall.png",
+#     width=5,height=8,units="in",res=300)
 par(mfrow=c(4,1),mar=c(4,3,1,1),mgp=2:0)
 hist(unlist(ct_cor),xlim=c(-1,1),breaks=100,main=NA,
      xlab="PCC b/w Z-scores per cell line")
@@ -162,13 +184,15 @@ legend("topleft",lty=c(1,NA),col=c("red",NA),bty="n",
        legend=c("Median PCC",paste("Difference =",
                                    signif(median(unlist(rep_cor)) - 
                                             median(unlist(ligct_cor)),2))))
-dev.off()
-par(.PAR)
+# dev.off()
+# par(.PAR)
+```
 
 
+## Comparison of correlation distributions per ligand
 
-# Compare all per ligand----
-AllCorrByLig <- pbsapply(lig16,function(X) {
+```{r compare_all_by_lig, echo=F,message=F,warning=F,fig.width=9,fig.height=6}
+AllCorrByLig <- sapply(lig16,function(X) {
   list(
     ByLig=lig_cor[[X]],
     ByLigCT=unlist(ligct_cor[sub("\\..+$","",names(ligct_cor)) == X]),
@@ -176,9 +200,8 @@ AllCorrByLig <- pbsapply(lig16,function(X) {
   )
 },simplify=F)
 
-
-png("~/Dropbox/GDB/CMapCorr/Fig_corr_compareallperligand.png",
-    width=6,height=4,units="in",res=300)
+# png("~/Dropbox/GDB/CMapCorr/Fig_corr_compareallperligand.png",
+#     width=6,height=4,units="in",res=300)
 par(mar=c(6,3,4,1),mgp=2:0)
 plot(NA,NA,xlim=c(0,16*3+1),ylim=c(-1,1),xaxt="n",xaxs="i",yaxs="i",
      xlab=NA,ylab="Pearson correlation of Z-scores")
@@ -190,6 +213,6 @@ boxplot(unlist(AllCorrByLig,recursive=F),pch=".",xaxt="n",add=T,
 mtext(lig16,las=2,side=3,at=seq(2,by=3,length.out=16),line=0.1,col=lig_col)
 mtext(rep(c("By ligand","By ligand / cell line","By treatment condition")),
       las=2,side=1,at=seq(1,16*3),line=0.1,adj=1,cex=0.6)
-dev.off()
-par(.PAR)
-
+# dev.off()
+# par(.PAR)
+```
