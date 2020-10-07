@@ -85,3 +85,43 @@ save(meanZligct,countDEligct,pDEligct,scoreDEligct,
      file="~/Dropbox/GDB/CMapCorr/Fig1_ligct.RData")
 
 
+# REP mean Z-score (unweighted) ----
+rep_tx <- unique(lvl4_data@cdesc[,c("pert_iname","cell_id","pert_dose","pert_time")])
+rownames(rep_tx) <- apply(rep_tx,1,paste,collapse="_")
+
+meanZrep <- apply(rep_tx,1,function(X) {
+  temp <- lvl4_data@cdesc$pert_iname == X[1] &
+    lvl4_data@cdesc$cell_id == X[2] &
+    lvl4_data@cdesc$pert_dose == X[3] &
+    lvl4_data@cdesc$pert_time == X[4]
+  if (sum(temp) > 1) {
+    return(rowMeans(lvl4_data@mat[,temp]))
+  } else {
+    return(lvl4_data@mat[,temp])
+  }
+})
+
+countDErep <- apply(meanZrep,2,function(X) sum(X > 1.645))
+samples_rep <- apply(rep_tx,1,function(X) 
+  sum(lvl4_data@cdesc$pert_iname == X[1] &
+        lvl4_data@cdesc$cell_id == X[2] &
+        lvl4_data@cdesc$pert_dose == X[3] &
+        lvl4_data@cdesc$pert_time == X[4]))
+
+pDErep <- pbsapply(names(samples_rep),function(X) {
+  temp <- sapply(1:1e4,function(Z) {
+    if (samples_rep[X] > 1) {
+      return(sum(rowMeans(lvl4_data@mat[,sample(ncol(lvl4_data@mat),samples_rep[X])]) > 1.645))
+    } else {
+      return(sum(lvl4_data@mat[,sample(ncol(lvl4_data@mat),samples_rep[X])] > 1.645))
+    }
+  })
+  return(sum(temp >= countDErep[X]) / length(temp))
+},cl=8)
+
+scoreDErep <- pDErep + 1e-4
+scoreDErep[scoreDErep > 1] <- 1
+scoreDErep <- -log10(scoreDErep)
+
+save(meanZrep,countDErep,pDErep,scoreDErep,
+     file="~/Dropbox/GDB/CMapCorr/Fig1_rep.RData")

@@ -25,7 +25,7 @@ lig16 <- sort(lig16)
 
 ## By ligand
 
-```{r lig, echo=F,message=F,warning=F,fig.height=6,fig.width=8,dpi=300}
+```{r lig, echo=F,message=F,warning=F,fig.height=6,fig.width=8}
 lig_id <- sapply(lig16,function(X) rownames(lvl4_data@cdesc)[lvl4_data@cdesc$pert_iname == X])
 lig_mean <- sapply(lig16,function(X) rowMeans(lvl4_data@mat[,lvl4_data@cdesc$pert_iname == X]))
 lig_cor <- sapply(lig_id,function(X) {
@@ -55,7 +55,7 @@ mtext(lig16,side=3,at=seq_along(lig16),las=2,xpd=NA,line=2,adj=0.5,col=lig_col)
 
 ## By cell line
 
-```{r ct, echo=F,message=F,warning=F,fig.height=6,fig.width=8,dpi=300}
+```{r ct, echo=F,message=F,warning=F,fig.height=6,fig.width=8}
 ct_id <- sapply(ct14,function(X) rownames(lvl4_data@cdesc)[lvl4_data@cdesc$cell_id == X])
 ct_mean <- sapply(ct14,function(X) rowMeans(lvl4_data@mat[,lvl4_data@cdesc$cell_id == X]))
 ct_cor <- sapply(ct_id,function(X) {
@@ -85,7 +85,7 @@ mtext(paste(mapply(sub,pattern=paste0("_",ct14),x=names(ct14),replacement=""),ct
 
 ## By ligand per cell line
 
-```{r lig_ct, echo=F,message=F,warning=F,fig.height=6,fig.width=8,dpi=300}
+```{r lig_ct, echo=F,message=F,warning=F,fig.height=6,fig.width=8}
 ligct_id <- sapply(lig16,function(LIG)
   sapply(ct14,function(CT)
     rownames(lvl4_data@cdesc)[lvl4_data@cdesc$cell_id == CT & lvl4_data@cdesc$pert_iname == LIG]
@@ -120,7 +120,7 @@ mtext(lig16,side=3,at=seq(7.5,by=14,length.out=16),
 ## By treatment condition
 (Replicate sharing the same ligand, cell line, dosage, and time of exposure)
 
-```{r rep, echo=F,message=F,warning=F,fig.height=4,fig.width=8,dpi=300}
+```{r rep, echo=F,message=F,warning=F,fig.height=4,fig.width=8}
 rep_tx <- unique(lvl4_data@cdesc[,c("pert_iname","cell_id","pert_dose","pert_time")])
 rownames(rep_tx) <- apply(rep_tx,1,paste,collapse="_")
 rep_id <- apply(rep_tx,1,function(X)
@@ -152,7 +152,7 @@ mtext(lig16,side=3,las=2,adj=-0.1,col=lig_col,
 
 ## Comparison of all correlation distributions
 
-```{r compare_all, echo=F,message=F,warning=F,fig.height=10,fig.width=8,dpi=300}
+```{r compare_all, echo=F,message=F,warning=F,fig.height=10,fig.width=8}
 # png("~/Dropbox/GDB/CMapCorr/Fig_corr_compareall.png",
 #     width=5,height=8,units="in",res=300)
 par(mfrow=c(4,1),mar=c(4,3,1,1),mgp=2:0)
