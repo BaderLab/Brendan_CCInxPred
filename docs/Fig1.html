@@ -348,9 +348,13 @@ $(document).ready(function () {
 <h2>LIG / CT mean Z-score (unweighted)</h2>
 <p><img src="Fig1_files/figure-html/unnamed-chunk-9-1.png" width="768" /></p>
 </div>
-<div id="compare-z-score-distributions" class="section level2">
-<h2>Compare Z-score distributions</h2>
+<div id="compare-de-count-distributions" class="section level2">
+<h2>Compare DE count distributions</h2>
 <p><img src="Fig1_files/figure-html/unnamed-chunk-11-1.png" width="864" /></p>
+<pre class="r"><code>load(&quot;~/Dropbox/GDB/CMapCorr/Fig1_pDEbackground.RData&quot;)
+boxplot(log10(pDEbackground + 1),pch=&quot;.&quot;,xaxt=&quot;n&quot;)</code></pre>
+<pre class="r"><code>plot(jitter(samples_rep),scoreDErep,pch=&quot;.&quot;,cex=2)</code></pre>
+<p><img src="Fig1_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
 </div>
 
 

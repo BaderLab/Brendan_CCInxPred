@@ -1,6 +1,7 @@
 library(cmapR)
 library(colorspace)
 library(pbapply)
+pboptions(type="timer")
 .PAR <- par(no.readonly=T)
 
 
@@ -123,5 +124,16 @@ scoreDErep <- pDErep + 1e-4
 scoreDErep[scoreDErep > 1] <- 1
 scoreDErep <- -log10(scoreDErep)
 
-save(meanZrep,countDErep,pDErep,scoreDErep,
+save(meanZrep,samples_rep,countDErep,pDErep,scoreDErep,
      file="~/Dropbox/GDB/CMapCorr/Fig1_rep.RData")
+
+
+# pDE background ----
+pDEbackground <- pbsapply(2:max(table(lvl4_data@cdesc$cell_id)),function(X) {
+  sapply(1:1000,function(Y) sum(rowMeans(lvl4_data@mat[,sample(ncol(lvl4_data@mat),X)]) > 1.645))
+},cl=8)
+pDEbackground <- cbind(
+  sapply(1:1000,function(Y) sum(lvl4_data@mat[,sample(ncol(lvl4_data@mat),1)] > 1.645)),
+  pDEbackground
+)
+save(pDEbackground,file="~/Dropbox/GDB/CMapCorr/Fig1_pDEbackground.RData")
