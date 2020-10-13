@@ -27,6 +27,8 @@ navbar:
       href: Fig1.html
     - text: "Fig 2"
       href: Fig2.html
+    - text: "Fig 3"
+      href: Fig3.html
 
 output:
   html_document:

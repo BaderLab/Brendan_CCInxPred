@@ -317,6 +317,9 @@ $(document).ready(function () {
     <li>
       <a href="Fig2.html">Fig 2</a>
     </li>
+    <li>
+      <a href="Fig3.html">Fig 3</a>
+    </li>
   </ul>
 </li>
       </ul>
@@ -351,10 +354,15 @@ $(document).ready(function () {
 <div id="compare-de-count-distributions" class="section level2">
 <h2>Compare DE count distributions</h2>
 <p><img src="Fig1_files/figure-html/unnamed-chunk-11-1.png" width="864" /></p>
+<pre class="r"><code>wilcox.test(scoreDElig,scoreDEct)
+
+wilcox.test(scoreDElig,as.vector(scoreDEligct))
+
+wilcox.test(as.vector(scoreDEligct),as.vector(scoreDErep))</code></pre>
 <pre class="r"><code>load(&quot;~/Dropbox/GDB/CMapCorr/Fig1_pDEbackground.RData&quot;)
 boxplot(log10(pDEbackground + 1),pch=&quot;.&quot;,xaxt=&quot;n&quot;)</code></pre>
 <pre class="r"><code>plot(jitter(samples_rep),scoreDErep,pch=&quot;.&quot;,cex=2)</code></pre>
-<p><img src="Fig1_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<p><img src="Fig1_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
 </div>
 
 

@@ -1,0 +1,84 @@
+---
+title: "Fig3: Classifying ligands by cellular response"
+---
+  
+```{r setup, echo=F,message=F,warning=F}
+library(cmapR)
+library(scales)
+library(colorspace)
+library(pbapply)
+.PAR <- par(no.readonly=T)
+```
+
+```{r load_data, echo=F,message=F,warning=F}
+temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs.RData") 
+
+temp_ligcountsperct <- sapply(unique(lvl4_data@cdesc$cell_id),function(CT)
+  length(unique(lvl4_data@cdesc[lvl4_data@cdesc$cell_id == CT,"pert_iname"])))
+ct9 <- names(temp_ligcountsperct)[temp_ligcountsperct > 100]
+names(ct9) <- sapply(ct9,function(X) names(ct14)[ct14 == X])
+
+lvl4_data@cdesc <- lvl4_data@cdesc[lvl4_data@cdesc$cell_id %in% ct9,]
+lvl4_data@mat <- lvl4_data@mat[,rownames(lvl4_data@cdesc)]
+
+temp_ctcountsperlig <- sapply(unique(lvl4_data@cdesc$pert_iname),function(LIG)
+  length(unique(lvl4_data@cdesc[lvl4_data@cdesc$pert_iname == LIG,"cell_id"])))
+
+lig295 <- names(temp_ctcountsperlig)[temp_ctcountsperlig == 9]
+
+lvl4_data@cdesc <- lvl4_data@cdesc[lvl4_data@cdesc$pert_iname %in% lig295,]
+lvl4_data@mat <- lvl4_data@mat[,rownames(lvl4_data@cdesc)]
+
+rm(list=temp[temp != "lvl4_data"])
+rm(list=grep("^temp",ls(),value=T))
+
+# load Crow et al. https://doi.org/10.1073/pnas.1802973116
+DEprior <- read.table("~/Dropbox/GDB/DE_Prior.txt",header=T,
+                      colClasses=c("integer","character","integer","numeric","character"))
+```
+
+
+
+## Compare DE count distributions
+```{r echo=F,message=F,warning=F,fig.height=8,fig.width=9}
+load("~/Dropbox/GDB/CMapCorr/Fig3_ct.RData")
+scoreDEct <- pDEct + 1e-4
+scoreDEct[scoreDEct > 1] <- 1
+scoreDEct <- -log10(scoreDEct)
+
+load("~/Dropbox/GDB/CMapCorr/Fig3_lig.RData")
+scoreDElig <- pDElig + 1e-4
+scoreDElig[scoreDElig > 1] <- 1
+scoreDElig <- -log10(scoreDElig)
+
+load("~/Dropbox/GDB/CMapCorr/Fig3_ligct.RData")
+load("~/Dropbox/GDB/CMapCorr/Fig3_rep.RData")
+
+par(mfrow=c(4,1),mar=c(3,3,2,1),mgp=2:0)
+hist(scoreDEct,xaxt="n",xlab=NA,main="Averaged per cell line")
+axis(side=1,labels=c("100%","10%","1%","0.1%","< 0.01%"),at=0:4)
+mtext("Probability of at least # DE occuring by chance",side=1,line=2,cex=0.8)
+abline(v=median(scoreDEct),col="red")
+abline(v=mean(scoreDEct),col="dodgerblue")
+legend("topright",legend=c("Median","Mean"),col=c("red","dodgerblue"),lty=1)
+
+hist(scoreDElig,xaxt="n",xlab=NA,main="Averaged per ligand")
+axis(side=1,labels=c("100%","10%","1%","0.1%","< 0.01%"),at=0:4)
+mtext("Probability of at least # DE occuring by chance",side=1,line=2,cex=0.8)
+abline(v=median(scoreDElig),col="red")
+abline(v=mean(scoreDElig),col="dodgerblue")
+
+hist(scoreDEligct,xaxt="n",xlab=NA,main="Averaged per ligand and cell line")
+axis(side=1,labels=c("100%","10%","1%","0.1%","< 0.01%"),at=0:4)
+mtext("Probability of at least # DE occuring by chance",side=1,line=2,cex=0.8)
+abline(v=median(scoreDEligct),col="red")
+abline(v=mean(scoreDEligct),col="dodgerblue")
+
+hist(scoreDErep,xaxt="n",xlab=NA,main="Averaged per replicate set")
+axis(side=1,labels=c("100%","10%","1%","0.1%","< 0.01%"),at=0:4)
+mtext("Probability of at least # DE occuring by chance",side=1,line=2,cex=0.8)
+abline(v=median(scoreDErep),col="red")
+abline(v=mean(scoreDErep),col="dodgerblue")
+
+```
+
