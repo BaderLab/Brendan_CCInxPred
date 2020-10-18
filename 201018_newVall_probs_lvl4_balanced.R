@@ -1,39 +1,15 @@
 library(cmapR)
 library(ranger)
 library(mccf1)
+library(smotefamily)
 
 load("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_lig16_inputs.RData")
 
-### Tuning ----
-# CT <- ct14[1]; LIG <- lig16[1]
-# new_trainID <- rownames(lvl4_data@cdesc)[lvl4_data@cdesc$cell_id != CT]
-# new_trainID_true <- new_trainID[lvl4_data@cdesc[new_trainID,"pert_iname"] == LIG]
-# new_trainID_false <- sample(setdiff(new_trainID,new_trainID_true),
-#                             length(new_trainID_true))
-# new_trainID <- sample(c(new_trainID_true,new_trainID_false))
-# 
-# all_trainID_true <- sample(rownames(lvl4_data@cdesc)[lvl4_data@cdesc$pert_iname == LIG],
-#                            length(new_trainID_true))
-# all_trainID_false <- sample(rownames(lvl4_data@cdesc)[lvl4_data@cdesc$pert_iname != LIG],
-#                             length(new_trainID_false))
-# all_trainID <- sample(c(all_trainID_true,all_trainID_false))
-# all_testID <- setdiff(rownames(lvl4_data@cdesc),all_trainID)
-# 
-# tuning_results <- pbapply::pbsapply(seq(1,201,10),function(X) {
-#   rfmodel <- ranger(x=t(lvl4_data@mat[,all_trainID]),
-#                     y=lvl4_data@cdesc[all_trainID,"pert_iname"] == LIG,
-#                     num.threads=8,num.trees=1e3,probability=T,
-#                     min.node.size=10,verbose=F)
-#   testResults <- predict(rfmodel,t(lvl4_data@mat[,all_testID]))
-#   all_out <- as.data.frame(testResults$predictions[,which(colnames(rfmodel$predictions) == "TRUE")])
-#   rownames(all_out) <- all_testID
-#   colnames(all_out) <- "score"
-#   all_out$label <- lvl4_data@cdesc[all_testID,"pert_iname"] == LIG
-#   print(X)
-#   return(summary(mccf1(as.integer(all_out$label),all_out$score))$mccf1_metric)
-# })
-# plot(seq(1,201,10),tuning_results,pch=20)
-# No correlation between node size and OOB accuracy.
+temp <- table(lvl4_data@cdesc[,c("cell_id","pert_iname")])
+# temp
+# range(temp)
+temp_n <- min(temp[temp > 20])
+
 
 scores_all <- scores_new <- list()
 for (LIG in lig16) {
@@ -45,6 +21,11 @@ for (LIG in lig16) {
 
     # generalize to novel cell line ----
     new_trainID <- rownames(lvl4_data@cdesc)[lvl4_data@cdesc$cell_id != CT]
+    
+temp_cellID <- lvl4_data@cdesc[new_trainID,"cell_id"]
+    
+    
+    
     new_trainID_true <- new_trainID[lvl4_data@cdesc[new_trainID,"pert_iname"] == LIG]
     new_trainID_false <- sample(setdiff(new_trainID,new_trainID_true),
                                 length(new_trainID_true))
@@ -136,4 +117,4 @@ mccf1_new_thresh <- sapply(scores_new,function(X)
 
 
 save(scores_all,scores_new,mccf1_all,mccf1_all_thresh,mccf1_new,mccf1_new_thresh,
-     file="~/Dropbox/GDB_archive/CMapCorr_files/200817_newVall_probs_lvl4.RData")
+     file="~/Dropbox/GDB_archive/CMapCorr_files/201018_newVall_probs_lvl4_balanced.RData")

@@ -11,7 +11,7 @@
 
 
 
-<title>Fig1: Correlation between samples</title>
+<title>Fig4b: Probability-based random forest</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -346,35 +346,20 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Fig1: Correlation between samples</h1>
+<h1 class="title toc-ignore">Fig4b: Probability-based random forest</h1>
 
 </div>
 
 
-<div id="lig-mean-z-score-unweighted" class="section level2">
-<h2>LIG mean Z-score (unweighted)</h2>
-<p><img src="Fig1_files/figure-html/unnamed-chunk-2-1.png" width="864" /></p>
+<div id="breast-only" class="section level2">
+<h2>Breast only</h2>
+<p><img src="Fig4_files/figure-html/BREAST_lvl4_heatmap-1.png" width="768" /></p>
+<p><img src="Fig4_files/figure-html/BREAST_lvl4_MAplot-1.png" width="768" /></p>
 </div>
-<div id="ct-mean-z-score-unweighted" class="section level2">
-<h2>CT mean Z-score (unweighted)</h2>
-<p><img src="Fig1_files/figure-html/unnamed-chunk-5-1.png" width="864" /></p>
-</div>
-<div id="lig-ct-mean-z-score-unweighted" class="section level2">
-<h2>LIG / CT mean Z-score (unweighted)</h2>
-<p><img src="Fig1_files/figure-html/unnamed-chunk-9-1.png" width="768" /></p>
-</div>
-<div id="compare-de-count-distributions" class="section level2">
-<h2>Compare DE count distributions</h2>
-<p><img src="Fig1_files/figure-html/unnamed-chunk-11-1.png" width="864" /></p>
-<pre class="r"><code>wilcox.test(scoreDElig,scoreDEct)
-
-wilcox.test(scoreDElig,as.vector(scoreDEligct))
-
-wilcox.test(as.vector(scoreDEligct),as.vector(scoreDErep))</code></pre>
-<pre class="r"><code>load(&quot;~/Dropbox/GDB_archive/CMapCorr_files/Fig1_pDEbackground.RData&quot;)
-boxplot(log10(pDEbackground + 1),pch=&quot;.&quot;,xaxt=&quot;n&quot;)</code></pre>
-<pre class="r"><code>plot(jitter(samples_rep),scoreDErep,pch=&quot;.&quot;,cex=2)</code></pre>
-<p><img src="Fig1_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+<div id="all-cell-lines" class="section level2">
+<h2>All cell lines</h2>
+<p><img src="Fig4_files/figure-html/ALL_lvl4_heatmap-1.png" width="768" /></p>
+<p><img src="Fig4_files/figure-html/ALL_lvl4_MAplot-1.png" width="768" /></p>
 </div>
 
 

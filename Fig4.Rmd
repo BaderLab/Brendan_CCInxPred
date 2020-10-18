@@ -1,0 +1,222 @@
+---
+title: 'Fig4b: Probability-based random forest'
+---
+
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
+library(cmapR)
+library(colorspace)
+library(scales)
+library(mccf1)
+library(ROCR)
+library(mccr)
+```
+
+```{r MAplot, echo=F,message=F,warning=F,fig.height=4,fig.width=9,fig.show='hold'}
+# metric_new / metric_all show be matrices where rows are cell lines and ligands are columns.
+MA_PLOT <- function(metric_new,metric_all,cts,ligs,metric_label,lig_label_thresh=0.1) {
+  temp_lig <- factor(sapply(colnames(metric_all),function(X) rep(X,nrow(metric_all))),levels=ligs)
+  temp_ct <- factor(sapply(colnames(metric_all),function(X) rownames(metric_all)),levels=cts)
+  
+  par(mfrow=c(1,2),mar=c(3,3,2,1),mgp=2:0)
+  plot(as.vector(metric_new) - as.vector(metric_all),
+       colMeans(rbind(as.vector(metric_new),as.vector(metric_all))),
+       xlab=paste("Withheld - Control",metric_label),
+       ylab=paste("Mean",metric_label),
+       main="Average per ligand",
+       pch=20,col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_lig])
+  rect(par("usr")[1],par("usr")[3],par("usr")[2],par("usr")[4],
+       col=alpha("white",0.7))
+  abline(v=0,lty=2)
+  temp_x <- tapply(as.vector(metric_new),temp_lig,mean) - 
+    tapply(as.vector(metric_all),temp_lig,mean)
+  temp_y <- colMeans(rbind(tapply(as.vector(metric_new),temp_lig,mean),
+                           tapply(as.vector(metric_all),temp_lig,mean)))
+  points(temp_x,temp_y,pch=19,
+         col=qualitative_hcl(length(levels(temp_lig)),palette="dark3"))
+  text(temp_x[temp_y > lig_label_thresh],temp_y[temp_y > lig_label_thresh],
+       labels=names(temp_y)[temp_y > lig_label_thresh],pos=4,
+       col=qualitative_hcl(length(levels(temp_lig)),palette="dark3")[temp_y > lig_label_thresh])
+  
+  plot(as.vector(metric_new) - as.vector(metric_all),
+       colMeans(rbind(as.vector(metric_new),as.vector(metric_all))),
+       xlab=paste("Withheld - Control",metric_label),
+       ylab=paste("Mean",metric_label),
+       main="Average per cell line",
+       pch=20,col=qualitative_hcl(length(levels(temp_ct)),palette="dark3")[temp_ct])
+  rect(par("usr")[1],par("usr")[3],par("usr")[2],par("usr")[4],
+       col=alpha("white",0.7))
+  abline(v=0,lty=2)
+  temp_x <- tapply(as.vector(metric_new),temp_ct,mean) - 
+    tapply(as.vector(metric_all),temp_ct,mean)
+  temp_y <- colMeans(rbind(tapply(as.vector(metric_new),temp_ct,mean),
+                           tapply(as.vector(metric_all),temp_ct,mean)))
+  points(temp_x,temp_y,pch=19,
+         col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"))
+}
+```
+
+## Breast only
+
+```{r echo=F,message=F,warning=F}
+load("~/Dropbox/GDB_archive/CMapCorr_files/200731_lvl4_breastonly.RData")
+temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_lig16_inputs.RData")
+BRcdesc <- BRcdesc[BRcdesc$pert_iname %in% lig16,]
+BRmat <- BRmat[,rownames(BRcdesc)]
+rm(list=c(temp[temp != "lig16"],"temp","lig29"))
+
+load("~/Dropbox/GDB_archive/CMapCorr_files/201018_newVall_probs_breast_lvl4_lig16.RData")
+```
+
+
+```{r echo=F,message=F,warning=F}
+BREAST_aupr_all <- sapply(names(scores_new),function(LIG) {
+  sapply(names(scores_new[[LIG]]),function(CT) {
+    performance(
+      prediction(scores_all[[LIG]][[CT]]$score[!scores_all[[LIG]][[CT]]$train],
+                 as.integer(scores_all[[LIG]][[CT]]$label[!scores_all[[LIG]][[CT]]$train])),
+      "aucpr")@y.values[[1]]
+  })
+})
+
+BREAST_aupr_new <- sapply(names(scores_new),function(LIG) {
+  sapply(names(scores_new[[LIG]]),function(CT) {
+    performance(
+      prediction(scores_new[[LIG]][[CT]]$score[!scores_new[[LIG]][[CT]]$train],
+                 as.integer(scores_new[[LIG]][[CT]]$label[!scores_new[[LIG]][[CT]]$train])),
+      "aucpr")@y.values[[1]]
+  })
+})
+
+```
+
+
+```{r BREAST_lvl4_heatmap, echo=F,message=F,warning=F,fig.height=5,fig.width=8,fig.show='hold'}
+temp_ct <- as.vector(sapply(qualitative_hcl(length(ctBR),palette="dark3"),rep,2))
+temp_lig <- qualitative_hcl(length(lig16),palette="dark3")
+
+temp_both <- do.call(cbind,lapply(rownames(BREAST_aupr_all),function(X) { 
+  temp <- cbind(BREAST_aupr_new[X,],BREAST_aupr_all[X,]) 
+  colnames(temp) <- c(names(ctBR)[ctBR == X],
+                      paste0("CTRL_",names(ctBR)[ctBR == X]))
+  return(temp)
+}))
+
+par(mar=c(2,14,5,1),mgp=2:0,las=2)
+image(z=temp_both[,seq(ncol(temp_both),1)],
+      x=1:nrow(temp_both),y=1:ncol(temp_both),
+      col=sequential_hcl(100,palette="Inferno",rev=T),
+      breaks=seq(0,1,length.out=101),
+      xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+abline(h=seq(2.5,ncol(temp_both) - 1.5,2),col="white")
+
+mtext(rownames(temp_both),side=3,at=1:nrow(temp_both),adj=0,line=0.1,col=temp_lig)
+mtext("Withheld cell line",side=3,line=0.1,at=0.3,adj=1,las=0,font=2,cex=1.5)
+
+mtext(rev(colnames(temp_both)),col=rev(temp_ct),
+      side=2,at=1:ncol(temp_both),adj=1,line=0.1)
+mtext("Ligand",side=3,line=3.5,cex=1.5,font=2,las=0)
+
+text(as.vector(sapply(1:ncol(temp_both),function(X) 1:nrow(temp_both))),
+     as.vector(sapply(ncol(temp_both):1,function(X) rep(X,nrow(temp_both)))),
+     labels=as.vector(round(temp_both * 100)),cex=0.8,col="dodgerblue")
+mtext(paste("% Area Under the","Precision-Recall curve",sep="\n"),
+      side=1,line=1,at=nrow(temp_both) + 0.5,adj=1,las=0,col="dodgerblue")
+
+segments(x0=seq(2,9,length.out=1000),
+         x1=seq(2,9,length.out=1000),
+         y0=rep(-0.1,1000),y1=rep(0.3,1000),
+         xpd=NA,col=sequential_hcl(1000,palette="inferno",rev=T))
+mtext(c("0%","100%"),las=0,side=1,at=c(2,9),adj=c(1.1,-0.1))
+mtext("AUPR",las=0,side=1,line=0.9,at=5.5,adj=0.5)
+```
+
+```{r BREAST_lvl4_MAplot, echo=F,message=F,warning=F,fig.height=4,fig.width=8,fig.show='hold'}
+MA_PLOT(BREAST_aupr_new,BREAST_aupr_all,ctBR,lig16,"AUPR",0.1)
+# legend("topleft",bty="n",levels(temp_ct),pch=19,cex=0.9,
+#        col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"),
+#        text.col=qualitative_hcl(length(levels(temp_ct)),palette="dark3"))
+
+```
+```{r echo=F,message=F,warning=F}
+rm(list=ls()[ls() != "MA_PLOT"])
+```
+
+
+
+## All cell lines
+
+```{r echo=F,message=F,warning=F}
+load("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_lig16_inputs.RData")
+load("~/Dropbox/GDB_archive/CMapCorr_files/200817_newVall_probs_lvl4.RData")
+```
+
+
+```{r echo=F,message=F,warning=F}
+ALL_aupr_all <- sapply(names(scores_new),function(LIG) {
+  sapply(names(scores_new[[LIG]]),function(CT) {
+    performance(
+      prediction(scores_all[[LIG]][[CT]]$score[!scores_all[[LIG]][[CT]]$train],
+                 as.integer(scores_all[[LIG]][[CT]]$label[!scores_all[[LIG]][[CT]]$train])),
+      "aucpr")@y.values[[1]]
+  })
+})
+
+ALL_aupr_new <- sapply(names(scores_new),function(LIG) {
+  sapply(names(scores_new[[LIG]]),function(CT) {
+    performance(
+      prediction(scores_new[[LIG]][[CT]]$score[!scores_new[[LIG]][[CT]]$train],
+                 as.integer(scores_new[[LIG]][[CT]]$label[!scores_new[[LIG]][[CT]]$train])),
+      "aucpr")@y.values[[1]]
+  })
+})
+
+```
+
+
+```{r ALL_lvl4_heatmap, echo=F,message=F,warning=F,fig.height=8,fig.width=8,fig.show='hold'}
+temp_ct <- as.vector(sapply(qualitative_hcl(length(ct14),palette="dark3"),rep,2))
+temp_lig <- qualitative_hcl(length(lig16),palette="dark3")
+
+temp_both <- do.call(cbind,lapply(rownames(ALL_aupr_all),function(X) { 
+  temp <- cbind(ALL_aupr_new[X,],ALL_aupr_all[X,]) 
+  colnames(temp) <- c(names(ct14)[ct14 == X],
+                      paste0("CTRL_",names(ct14)[ct14 == X]))
+  return(temp)
+}))
+
+par(mar=c(2,14,5,1),mgp=2:0,las=2)
+image(z=temp_both[,seq(ncol(temp_both),1)],
+      x=1:nrow(temp_both),y=1:ncol(temp_both),
+      col=sequential_hcl(100,palette="Inferno",rev=T),
+      breaks=seq(0,1,length.out=101),
+      xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+abline(h=seq(2.5,ncol(temp_both) - 1.5,2),col="white")
+
+mtext(rownames(temp_both),side=3,at=1:nrow(temp_both),adj=0,line=0.1,col=temp_lig)
+mtext("Withheld cell line",side=3,line=0.1,at=0.3,adj=1,las=0,font=2,cex=1.5)
+
+mtext(rev(colnames(temp_both)),col=rev(temp_ct),
+      side=2,at=1:ncol(temp_both),adj=1,line=0.1)
+mtext("Ligand",side=3,line=3.5,cex=1.5,font=2,las=0)
+
+text(as.vector(sapply(1:ncol(temp_both),function(X) 1:nrow(temp_both))),
+     as.vector(sapply(ncol(temp_both):1,function(X) rep(X,nrow(temp_both)))),
+     labels=as.vector(round(temp_both * 100)),cex=0.8,col="dodgerblue")
+mtext(paste("% Area Under the","Precision-Recall curve",sep="\n"),
+      side=1,line=1,at=nrow(temp_both) + 0.5,adj=1,las=0,col="dodgerblue")
+
+segments(x0=seq(2,9,length.out=1000),
+         x1=seq(2,9,length.out=1000),
+         y0=rep(-0.1,1000),y1=rep(0.3,1000),
+         xpd=NA,col=sequential_hcl(1000,palette="inferno",rev=T))
+mtext(c("0%","100%"),las=0,side=1,at=c(2,9),adj=c(1.1,-0.1))
+mtext("AUPR",las=0,side=1,line=0.9,at=5.5,adj=0.5)
+```
+
+```{r ALL_lvl4_MAplot, echo=F,message=F,warning=F,fig.height=4,fig.width=8,fig.show='hold'}
+MA_PLOT(ALL_aupr_new,ALL_aupr_all,ct14,lig16,"AUPR",0.2)
+# legend("topleft",bty="n",legend=ct14,pch=19,cex=0.8,
+#        col=qualitative_hcl(length(ct14),palette="dark3"),
+#        text.col=qualitative_hcl(length(ct14),palette="dark3"))
+
+```

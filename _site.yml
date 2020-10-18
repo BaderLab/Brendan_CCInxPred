@@ -35,6 +35,8 @@ navbar:
       href: Fig3.html
     - text: "Fig 3 (all genes)"
       href: Fig3_allgenes.html
+    - text: "Fig 4"
+      href: Fig4.html
 
 output:
   html_document:
