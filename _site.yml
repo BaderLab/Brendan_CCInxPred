@@ -25,10 +25,16 @@ navbar:
     menu:
     - text: "Fig 1"
       href: Fig1.html
+    - text: "Fig 1 (all genes)"
+      href: Fig1_allgenes.html
     - text: "Fig 2"
       href: Fig2.html
+    - text: "Fig 2 (all genes)"
+      href: Fig2_allgenes.html
     - text: "Fig 3"
       href: Fig3.html
+    - text: "Fig 3 (all genes)"
+      href: Fig3_allgenes.html
 
 output:
   html_document:

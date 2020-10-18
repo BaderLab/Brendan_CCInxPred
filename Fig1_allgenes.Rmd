@@ -1,0 +1,368 @@
+---
+title: "Fig1: Correlation between samples"
+---
+
+## (Using all genes)  
+
+
+```{r setup, echo=F,message=F,warning=F}
+library(cmapR)
+library(colorspace)
+library(pbapply)
+library(scales)
+.PAR <- par(no.readonly=T)
+```
+
+
+```{r load_data, echo=F,message=F,warning=F}
+load("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs_allgenes.RData")
+lvl4_data <- lvl4_data_all
+rm(lvl4_data_all)
+lvl4_data@cdesc <- lvl4_data@cdesc[lvl4_data@cdesc$pert_iname %in% lig16,]
+lvl4_data@mat <- lvl4_data@mat[,rownames(lvl4_data@cdesc)]
+
+# load Crow et al. https://doi.org/10.1073/pnas.1802973116
+DEprior <- read.table("~/Dropbox/GDB/DE_Prior.txt",header=T,
+                      colClasses=c("integer","character","integer","numeric","character"))
+```
+
+
+## LIG mean Z-score (unweighted)
+```{r echo=F,message=F,warning=F}
+load("~/Dropbox/GDB_archive/CMapCorr_files/Fig1allgenes_lig.RData")
+
+# trim to genes with <10% probability of change by chance in at least one ligand
+meanZlig <- meanZlig_all[apply(meanZlig_all,1,function(X) any(abs(X) > 1.645)),]
+
+# order ligands
+temp_hROW <- hclust(dist(t(meanZlig)),method="ward.D2")
+
+# order genes
+temp_hGENE <- hclust(dist(meanZlig),method="ward.D2")
+
+# order genes by DE prior
+# all(rownames(meanZlig) %in% DEprior$Gene_EntrezID)
+# meanZlig <- meanZlig[DEprior$Gene_EntrezID[DEprior$Gene_EntrezID %in% rownames(meanZlig)],]
+
+meanZlig <- meanZlig[temp_hGENE$order,temp_hROW$order]
+countDElig <- countDElig[temp_hROW$order]
+pDElig <- pDElig[temp_hROW$order]
+scoreDElig <- pDElig + 1e-4
+scoreDElig[scoreDElig > 1] <- 1
+scoreDElig <- -log10(scoreDElig)
+
+```
+
+```{r echo=F,message=F,warning=F,fig.height=4.5,fig.width=9}
+layout(cbind(2:1),heights=c(1,7))
+par(mar=c(4,6,0,6),mgp=2:0)
+image(z=meanZlig / max(abs(meanZlig)),
+      x=1:nrow(meanZlig),y=1:ncol(meanZlig),
+      col=diverging_hcl(99,palette="Blue-Red"),
+      breaks=seq(-1,1,length.out=100),
+      xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+mtext(sapply(rownames(meanZlig),function(X) 
+  DEprior$Gene_Name[DEprior$Gene_EntrezID == X]),
+  side=1,las=2,at=1:nrow(meanZlig),adj=1.1,cex=0.7)
+mtext("Ligands",side=2,line=4,font=2,cex=1.5,las=0)
+mtext(colnames(meanZlig),side=2,las=2,
+      at=1:ncol(meanZlig),adj=1,line=0.1)
+
+segments(x0=seq(-6,-0.4,length.out=1001),
+         x1=seq(-6,-0.4,length.out=1001),
+         y0=rep(-0.2,1001),y1=rep(-0.8,1001),
+         xpd=NA,col=diverging_hcl(1001,palette="Blue-Red"))
+text(c(-6,-3.2,-0.4),rep(-0.8,3),pos=1,xpd=NA,
+     labels=c(-1 * round(max(abs(meanZlig)),1),0,round(max(abs(meanZlig)),1)))
+text(-3.2,-2.3,xpd=NA,labels="Z-score")
+
+rect(xleft=seq(-6,-0.4,length.out=1001)[round((1.645 / max(abs(meanZlig)) + 1) * 1001 / 2)],
+     xright=-0.4,ybottom=-0.8,ytop=-0.2,xpd=NA,col=NA,border="mediumseagreen")
+text(-0.4,-0.2,adj=c(1,-0.2),xpd=NA,labels="Z > 95%",col="mediumseagreen",cex=0.9)
+
+rect(xleft=rep(par("usr")[2],ncol(meanZlig)),
+     xright=rep(par("usr")[2],ncol(meanZlig)) + 6,
+     ybottom=seq(par("usr")[3],by=1,length.out=ncol(meanZlig)),
+     ytop=seq(par("usr")[3] + 1,by=1,length.out=ncol(meanZlig)),
+     xpd=NA,border=NA,
+     col=sequential_hcl(100,palette="Heat",rev=T)[cut(scoreDElig,100)])
+
+temp_p <- paste0("(p=",pDElig,")")
+temp_p[pDElig == 0] <- "(p < 1e-4)"
+mtext(paste(countDElig,temp_p),side=4,las=2,
+      line=0.1,at=1:ncol(meanZlig),adj=0,cex=0.9,
+      col="mediumseagreen")
+mtext("# of genes with mean Z > 95th percentile",
+      side=4,line=5,las=0,cex=0.9)
+
+rect(xleft=which(meanZlig > 1.645,arr.ind=T)[,1] - 0.5,
+     xright=which(meanZlig > 1.645,arr.ind=T)[,1] + 0.5,
+     ybottom=which(meanZlig > 1.645,arr.ind=T)[,2] - 0.5,
+     ytop=which(meanZlig > 1.645,arr.ind=T)[,2] + 0.5,
+     border="mediumseagreen")
+
+
+par(mar=c(0,6,0.5,6))
+temp_DEprior <- sapply(rownames(meanZlig),function(X) {
+    if (X %in% DEprior$Gene_EntrezID) {
+      DEprior$DE_Prior_Rank[DEprior$Gene_EntrezID == X]
+    } else { 0 }
+  })
+barplot(temp_DEprior,
+        ylim=0:1,xaxt="n",xaxs="i",xlab=NA,yaxt="n",
+        col="thistle4",border=NA)
+axis(side=2,at=c(0,0.5,1),labels=F)
+mtext(c(0,1),side=2,line=0.5,at=c(0,1),adj=c(0.1,0.9))
+mtext(paste("Prior P","of DE",sep="\n"),side=2,line=1.5,las=2)
+
+# par(.PAR)
+```
+
+```{r echo=F,message=F,warning=F}
+rm(list=grep("^temp",ls(),value=T))
+```
+
+
+
+## CT mean Z-score (unweighted)
+```{r echo=F,message=F,warning=F}
+load("~/Dropbox/GDB_archive/CMapCorr_files/Fig1allgenes_ct.RData")
+
+# trim to genes with <10% probability of change by chance in at least one ligand
+meanZct <- meanZct_all[apply(meanZct_all,1,function(X) any(abs(X) > 1.645)),]
+meanZct <- meanZct[rownames(meanZct) %in% DEprior$Gene_EntrezID,]
+
+# order ligands
+temp_hROW <- hclust(dist(t(meanZct)),method="ward.D2")
+
+# order genes
+temp_hGENE <- hclust(dist(meanZct),method="ward.D2")
+
+# order genes by DE prior
+# all(rownames(meanZct) %in% DEprior$Gene_EntrezID)
+# meanZct <- meanZct[DEprior$Gene_EntrezID[DEprior$Gene_EntrezID %in% rownames(meanZct)],]
+
+meanZct <- meanZct[temp_hGENE$order,temp_hROW$order]
+countDEct <- countDEct[temp_hROW$order]
+pDEct <- pDEct[temp_hROW$order]
+scoreDEct <- pDEct + 1e-4
+scoreDEct[scoreDEct > 1] <- 1
+scoreDEct <- -log10(scoreDEct)
+```
+
+
+```{r echo=F,message=F,warning=F,fig.height=4,fig.width=9}
+layout(cbind(2:1),heights=c(1,7))
+par(mar=c(4,10,0,6),mgp=2:0)
+image(z=meanZct / max(abs(meanZct)),
+      x=1:nrow(meanZct),y=1:ncol(meanZct),
+      col=diverging_hcl(99,palette="Blue-Red"),
+      breaks=seq(-1,1,length.out=100),
+      xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+mtext(sapply(rownames(meanZct),function(X) 
+  DEprior$Gene_Name[DEprior$Gene_EntrezID == X]),
+  side=1,las=2,at=1:nrow(meanZct),adj=1.1,cex=0.7)
+mtext("Cell lines",side=3,line=0.1,font=2,cex=1.5,las=0,at=-1,adj=1)
+mtext(colnames(meanZct),side=2,las=2,cex=0.9,
+      at=1:ncol(meanZct),adj=1,line=0.1)
+
+segments(x0=seq(-9,-1,length.out=1001),
+         x1=seq(-9,-1,length.out=1001),
+         y0=rep(-0.4,1001),y1=rep(-1,1001),
+         xpd=NA,col=diverging_hcl(1001,palette="Blue-Red"))
+text(c(-9,-5,-1),rep(-1,3),pos=1,xpd=NA,
+     labels=c(-1 * round(max(abs(meanZct)),1),0,round(max(abs(meanZct)),1)))
+text(-5,-2.5,xpd=NA,labels="Z-score")
+
+rect(xleft=seq(-9,-1,length.out=1001)[round((1.645 / max(abs(meanZlig)) + 1) * 1001 / 2)],
+     xright=-1,ybottom=-1,ytop=-0.4,xpd=NA,col=NA,border="mediumseagreen")
+text(-1,-0.4,adj=c(1,-0.2),xpd=NA,labels="Z > 95%",col="mediumseagreen",cex=0.9)
+
+rect(xleft=rep(par("usr")[2],ncol(meanZct)),
+     xright=rep(par("usr")[2],ncol(meanZct)) + 6,
+     ybottom=seq(par("usr")[3],by=1,length.out=ncol(meanZct)),
+     ytop=seq(par("usr")[3] + 1,by=1,length.out=ncol(meanZct)),
+     xpd=NA,border=NA,
+     col=sequential_hcl(100,palette="Heat",rev=T)[cut(scoreDEct,100)])
+
+temp_p <- paste0("(p=",pDEct,")")
+temp_p[pDEct == 0] <- "(p < 1e-4)"
+mtext(paste(countDEct,temp_p),side=4,las=2,
+      line=0.1,at=1:ncol(meanZct),adj=0,cex=0.9,
+      col="mediumseagreen")
+mtext("# of genes with mean Z > 95th percentile",
+      side=4,line=5,las=0,cex=0.9)
+
+rect(xleft=which(meanZct > 1.645,arr.ind=T)[,1] - 0.5,
+     xright=which(meanZct > 1.645,arr.ind=T)[,1] + 0.5,
+     ybottom=which(meanZct > 1.645,arr.ind=T)[,2] - 0.5,
+     ytop=which(meanZct > 1.645,arr.ind=T)[,2] + 0.5,
+     border="mediumseagreen")
+
+par(mar=c(0,10,0.5,6))
+temp_DEprior <- sapply(rownames(meanZct),function(X) {
+    if (X %in% DEprior$Gene_EntrezID) {
+      DEprior$DE_Prior_Rank[DEprior$Gene_EntrezID == X]
+    } else { 0 }
+  })
+barplot(temp_DEprior,
+        ylim=0:1,xaxt="n",xaxs="i",xlab=NA,yaxt="n",
+        col="thistle4",border=NA)
+axis(side=4,at=c(0,0.5,1),labels=F)
+mtext(c(0,1),side=4,line=0.5,at=c(0,1),adj=c(0.1,0.9))
+mtext(paste("Prior P","of DE",sep="\n"),side=4,line=1.5,las=2)
+
+# par(.PAR)
+```
+
+
+```{r echo=F,message=F,warning=F,fig.height=6,fig.width=9}
+rm(list=grep("^temp",ls(),value=T))
+```
+
+
+
+```{r eval=F,echo=F,message=F,warning=F,fig.height=4,fig.width=4}
+## Correlation within ligand tx Z-scores
+
+LIG <- "TNF"
+zCor <- cor(lvl4_data@mat[,lvl4_data@cdesc$pert_iname == LIG],method="spearman")
+hCOR <- hclust(dist(zCor))
+
+layout(cbind(2:1),heights=c(1,8))
+par(mar=c(1,1,0,1),mgp=2:0)
+image(zCor[hCOR$order,hCOR$order],
+      xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+par(mar=c(0,1,1,1))
+barplot(rep(1,ncol(zCor)),space=0,border=NA,
+        ylim=0:1,xaxt="n",xaxs="i",yaxt="n",xlab=NA,ylab=NA,
+        col=rainbow(14)[as.factor(lvl4_data@cdesc[colnames(zCor),"cell_id"])[hCOR$order]])
+```
+
+## LIG / CT mean Z-score (unweighted)
+
+```{r echo=F,message=F,warning=F,fig.height=6,fig.width=9}
+temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/Fig1allgenes_ligct.RData")
+
+# order ligands
+temp_hLIG <- hclust(dist(scoreDEligct),method="ward.D2")
+
+# order cell types
+temp_hCT <- hclust(dist(t(scoreDEligct)),method="ward.D2")
+
+countDEligct <- countDEligct[temp_hLIG$order,temp_hCT$order]
+pDEligct <- pDEligct[temp_hLIG$order,temp_hCT$order]
+scoreDEligct <- scoreDEligct[temp_hLIG$order,temp_hCT$order]
+```
+
+
+```{r echo=F,message=F,warning=F,fig.height=6,fig.width=8}
+par(mar=c(3,12,5,1),mgp=2:0,las=2)
+image(scoreDEligct,
+      col=sequential_hcl(100,palette="Heat",rev=T),
+      x=1:nrow(scoreDEligct),y=1:ncol(scoreDEligct),
+      xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+mtext(colnames(scoreDEligct),side=2,
+      at=1:ncol(scoreDEligct),adj=1.03,cex=1)
+mtext(rownames(scoreDEligct),side=3,
+      at=1:nrow(scoreDEligct),adj=-0.1,cex=1)
+mtext("Ligands",side=3,line=3.5,las=0,font=2,cex=1.5,
+      at=par("usr")[1] + (par("usr")[2] - par("usr")[1]) / 2,adj=0.5)
+mtext("Cell lines",side=3,line=0,las=0,font=2,cex=1.5,
+      at=par("usr")[1],adj=1.2)
+
+rect(xleft=which(scoreDEligct >= -log10(0.05 + 1e-4),arr.ind=T)[,1] - 0.5,
+     xright=which(scoreDEligct >= -log10(0.05 + 1e-4),arr.ind=T)[,1] + 0.5,
+     ybottom=which(scoreDEligct >= -log10(0.05 + 1e-4),arr.ind=T)[,2] - 0.5,
+     ytop=which(scoreDEligct >= -log10(0.05 + 1e-4),arr.ind=T)[,2] + 0.5,
+     border="dodgerblue")
+
+text(as.vector(sapply(1:ncol(scoreDEligct),function(X) 1:nrow(scoreDEligct))),
+     as.vector(sapply(1:ncol(countDEligct),function(X) rep(X,nrow(scoreDEligct)))),
+     labels=as.vector(countDEligct),cex=0.8,col="mediumseagreen")
+mtext(paste("# of genes with","mean Z > 95th %",sep="\n"),
+      at=par("usr")[2],side=1,line=1,adj=1,las=0,col="mediumseagreen")
+
+segments(x0=seq(2,9,length.out=1000),
+         x1=seq(2,9,length.out=1000),
+         y0=rep(-0.1,1000),y1=rep(0.3,1000),
+         xpd=NA,col=sequential_hcl(1000,palette="Heat",rev=T))
+mtext(c("100%","< 0.01%"),las=0,side=1,at=c(2,9),adj=c(1.1,-0.1))
+mtext("Probability of at least # DE occuring by chance",
+      las=0,side=1,line=1,at=5.5,adj=0.5)
+
+rect(xleft=-log10(0.05 + 1e-4) * (9 - 2) / 4 + 2,
+     xright=9,ybottom=-0.1,ytop=0.3,xpd=NA,col=NA,border="dodgerblue")
+mtext("P <= 5%",at=9,side=1,las=0,col="dodgerblue",
+      cex=0.9,line=1.8,adj=1)
+
+
+# par(.PAR)
+```
+
+
+```{r echo=F,message=F,warning=F,fig.height=6,fig.width=9}
+rm(list=grep("^temp",ls(),value=T))
+```
+
+
+
+## Compare DE count distributions
+```{r echo=F,message=F,warning=F,fig.height=5,fig.width=9}
+load("~/Dropbox/GDB_archive/CMapCorr_files/Fig1allgenes_rep.RData")
+
+Pbylig <- sapply(lig16,function(CT) {
+  list("Ligand"=scoreDElig[CT],
+       "Ligand per line"=scoreDEligct[CT,],
+       "Replicate"=scoreDErep[sub("_.+$","",names(scoreDErep)) == CT])
+},simplify=F)
+
+lig_col <- qualitative_hcl(16,palette="dark3")
+names(lig_col) <- lig16
+
+
+layout(rbind(1:2),widths=c(1,4))
+par(mar=c(6,3,2,0),mgp=2:0)
+boxplot(list("Ligand"=scoreDElig,
+             "Cell line"=scoreDEct,
+             "Ligand per line"=as.vector(scoreDEligct),
+             "Replicate"=scoreDErep),
+        pch=".",cex=2,yaxt="n",xaxt="n")
+axis(side=2,labels=c("100%","10%","1%","0.1%","< 0.01%"),at=0:4)
+mtext("Probability of at least # DE occuring by chance",side=2,line=2)
+mtext(c("Ligand","Cell line","Ligand per line","Replicate"),
+      side=1,at=1:4,las=2,line=0.1,cex=0.9)
+
+par(mar=c(6,0,2,3))
+boxplot(unlist(Pbylig,recursive=F),pch=".",cex=2,xaxt="n",yaxt="n",
+        col=alpha(lig_col[as.vector(sapply(lig16,rep,3))],0.5),
+        border=lig_col[as.vector(sapply(lig16,rep,3))])
+axis(side=4,labels=c("100%","10%","1%","0.1%","< 0.01%"),at=0:4)
+mtext("Probability of at least # DE occuring by chance",side=4,line=2)
+mtext(rep(c("Ligand","Ligand per line","Replicate"),16),
+      side=1,at=seq(1,3*16),las=2,line=0.1,cex=0.7)
+mtext(lig16,at=seq(2,by=3,length.out=16),line=rep(c(0,0.7),2),col=lig_col,cex=0.8)
+
+```
+
+```{r,eval=F}
+wilcox.test(scoreDElig,scoreDEct)
+
+wilcox.test(scoreDElig,as.vector(scoreDEligct))
+
+wilcox.test(as.vector(scoreDEligct),as.vector(scoreDErep))
+
+```
+
+
+```{r, eval=F}
+load("~/Dropbox/GDB_archive/CMapCorr_files/Fig1allgenes_pDEbackground.RData")
+boxplot(log10(pDEbackground + 1),pch=".",xaxt="n")
+```
+
+
+```{r}
+plot(jitter(samples_rep),scoreDErep,pch=".",cex=2)
+
+```
+

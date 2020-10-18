@@ -41,18 +41,18 @@ DEprior <- read.table("~/Dropbox/GDB/DE_Prior.txt",header=T,
 
 ## Compare DE count distributions
 ```{r echo=F,message=F,warning=F,fig.height=8,fig.width=9}
-load("~/Dropbox/GDB/CMapCorr/Fig3_ct.RData")
+load("~/Dropbox/GDB_archive/CMapCorr_files/Fig3_ct.RData")
 scoreDEct <- pDEct + 1e-4
 scoreDEct[scoreDEct > 1] <- 1
 scoreDEct <- -log10(scoreDEct)
 
-load("~/Dropbox/GDB/CMapCorr/Fig3_lig.RData")
+load("~/Dropbox/GDB_archive/CMapCorr_files/Fig3_lig.RData")
 scoreDElig <- pDElig + 1e-4
 scoreDElig[scoreDElig > 1] <- 1
 scoreDElig <- -log10(scoreDElig)
 
-load("~/Dropbox/GDB/CMapCorr/Fig3_ligct.RData")
-load("~/Dropbox/GDB/CMapCorr/Fig3_rep.RData")
+load("~/Dropbox/GDB_archive/CMapCorr_files/Fig3_ligct.RData")
+load("~/Dropbox/GDB_archive/CMapCorr_files/Fig3_rep.RData")
 
 par(mfrow=c(4,1),mar=c(3,3,2,1),mgp=2:0)
 hist(scoreDEct,xaxt="n",xlab=NA,main="Averaged per cell line")
