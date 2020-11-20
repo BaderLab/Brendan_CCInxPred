@@ -1,5 +1,5 @@
 ---
-title: "Fig2: Correlation between samples"
+title: "Correlation between Z-scores (16 ligands)"
 ---
   
 ```{r setup, echo=F,message=F,warning=F}

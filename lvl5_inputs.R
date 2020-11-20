@@ -1,7 +1,5 @@
 library(cmapR)
 
-rm(list=ls())
-setwd("~/Dropbox/GDB/CMapCorr/")
 temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/lvl3_inputs.RData")
 rm(list=ls()[!ls() %in% c("ct14","lig16")])
 
@@ -10,7 +8,7 @@ temp_cmap_path <- "~/Data_LINCS/phase1"
 # sample metadata ----
 temp_coldata <- read.gctx.meta(
   file.path(temp_cmap_path,"annotated_GSE92742_Broad_LINCS_Level5_COMPZ_n473647x12328.gctx"),
-  dimension="column")
+  dim="column")
 
 temp_gene_info <- read.table(file.path(temp_cmap_path,"GSE92742_Broad_LINCS_gene_info.txt"),
                         header=T,sep="\t",row.names=1,colClasses="character",quote="\"")
@@ -49,4 +47,4 @@ lvl5_data@cdesc$pert_dose_unit[lvl5_data@cdesc$pert_dose_unit == "ng/uL"] <- "ng
 
 rm(list=grep("^temp",ls(),value=T))
 
-save(list=ls(),file="~/Dropbox/GDB/CMapCorr_files/lvl5_inputs.RData")
+save(list=ls(),file="~/Dropbox/GDB_archive/CMapCorr_files/lvl5_inputs.RData")

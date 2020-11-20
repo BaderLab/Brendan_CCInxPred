@@ -1,0 +1,168 @@
+---
+title: "Correlation between Z-scores"
+---
+  
+```{r setup, echo=F,message=F,warning=F}
+library(scales)
+library(colorspace)
+.PAR <- par(no.readonly=T)
+```
+
+
+```{r FX, echo=F,message=F,warning=F}
+CORR_BXP <- function(Z) {
+  for (LIG in c("lig16","lig295")) {
+    for (DAT in c("lvl4_data","lvl4_data_all")) {
+      temp <- switch(grepl("all",DAT) + 1,
+                     paste0(LIG,"_corr_",Z,".RData"),
+                     paste0(LIG,"_corr_allgenes_",Z,".RData"))
+      load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/",temp))
+      
+      temp_ds <- paste(
+        switch(LIG,
+               lig16="16 ligands in 14 cell lines,",
+               lig295="295 ligands in 9 cell lines,"),
+        switch(DAT,
+               lvl4_data="landmark genes only.",
+               lvl4_data_all="all genes (including inferred)."))
+      
+      if (Z %in% c("ligct","rep")) {
+        temp_lig <- as.factor(sub("[._][A-Za-z0-9_]+$","",names(CORS)))
+        temp_ord1 <- tapply(CORS,temp_lig,function(X) names(X)[order(sapply(X,median))])
+        temp_ord2 <- order(tapply(CORS,temp_lig,function(X) median(unlist(X))))
+        temp_order <- temp_ord1[temp_ord2]
+        CORS <- CORS[unlist(temp_order)]
+        temp_border <- qualitative_hcl(length(temp_order),palette="dark3")
+        temp_border <- unlist(mapply(rep,
+                                     x=temp_border,
+                                     times=sapply(temp_order,length),
+                                     SIMPLIFY=F))
+        temp_col <- alpha(temp_border,0.5)
+        temp_bot <- switch(1 + (length(temp_order) < 20),1,4)
+      } else {
+        temp_order <- order(sapply(CORS,median))
+        CORS <- CORS[temp_order]
+        temp_border <- qualitative_hcl(length(CORS),palette="dark3")
+        temp_col <- qualitative_hcl(length(CORS),palette="dark3",alpha=0.5)
+        temp_bot <- switch(1 + (length(CORS) < 20),1,4)
+      }
+      if (length(CORS) > 300) {
+        temp_border <- alpha(temp_border,0.5)
+        temp_col <- alpha(temp_col,0.2)
+      }      
+      par(mar=c(temp_bot,4,2,1),mgp=2:0)
+      boxplot(CORS,outline=T,pch=".",xaxt="n",yaxs="i",ylim=c(-1,1),
+              border=temp_border,col=temp_col,
+              ylab=paste("Pairwise Spearman correlation of",
+                         paste("Z-scores per",
+                               switch(Z,
+                                      lig="ligand",
+                                      ct="cell line",
+                                      ligct="ligand & cell line",
+                                      rep="treatment condition")),
+                         sep="\n"),
+              main=temp_ds)
+      if (length(CORS) > 300) {
+        points(sapply(CORS,median),pch=".",col=alpha(temp_border,1))
+      }
+      abline(h=0,col="red",lty=2)
+      if (temp_bot > 1) {
+        if (Z %in% c("ligct","rep")) {
+          mtext(names(temp_order),side=1,
+                at=cumsum(sapply(temp_order,length)) - sapply(temp_order,length) / 2,
+                las=2,xpd=NA,line=0.1,
+                col=alpha(temp_border,1)[cumsum(sapply(temp_order,length))])
+        } else {
+          mtext(names(CORS),side=1,at=seq_along(CORS),
+                las=2,xpd=NA,line=0.1,col=alpha(temp_border,1))
+        }
+      }
+    }
+  }
+}
+```
+
+Datasets tested, in order:
+- 16 ligands in 14 cell lines, landmark genes only.
+- 16 ligands in 14 cell lines, all genes (including inferred).
+- 295 ligands in 9 cell lines, landmark genes only.
+- 295 ligands in 9 cell lines, all genes (including inferred).
+
+
+# Z-score correlation per cell line
+```{r ct, echo=F,message=F,warning=F,fig.height=4,fig.width=9}
+CORR_BXP("ct")
+```
+
+
+# Z-score correlation per ligand
+```{r lig, echo=F,message=F,warning=F,fig.height=4,fig.width=9}
+CORR_BXP("lig")
+```
+
+
+# Z-score correlation per ligand & cell line
+```{r ligct, echo=F,message=F,warning=F,fig.height=4,fig.width=9}
+CORR_BXP("ligct")
+```
+
+
+# Z-score correlation per treatment condition (replicate)
+```{r rep, echo=F,message=F,warning=F,fig.height=4,fig.width=9}
+CORR_BXP("rep")
+```
+
+
+
+# Comparison of all correlation distributions
+
+```{r compare_all, echo=F,message=F,warning=F,fig.height=8,fig.width=4}
+for (LIG in c("lig16","lig295")) {
+  for (DAT in c("lvl4_data","lvl4_data_all")) {
+    par(mfrow=c(4,1),mar=c(3,3,2,1),mgp=2:0)
+    for (Z in c("ct","lig","ligct","rep")) {
+      temp <- switch(grepl("all",DAT) + 1,
+                     paste0(LIG,"_corr_",Z,".RData"),
+                     paste0(LIG,"_corr_allgenes_",Z,".RData"))
+      load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/",temp))
+      if (exists("temp_cors")) { 
+        temp_w <- wilcox.test(unlist(CORS),temp_cors)
+        temp_d <- median(unlist(CORS)) - median(temp_cors)
+       }
+      temp_cors <- unlist(CORS)
+      hist(temp_cors,xlim=c(-1,1),main=NA,
+           xlab=paste("Pairwise Spearman correlation of Z-scores per",
+                      switch(Z,
+                             lig="ligand",
+                             ct="cell line",
+                             ligct="ligand & cell line",
+                             rep="treatment condition")))
+      abline(v=median(temp_cors),col="red")
+      if (Z == "ct") { 
+        title(main=paste(
+          switch(LIG,
+                 lig16="16 ligands in 14 cell lines,",
+                 lig295="295 ligands in 9 cell lines,"),
+          switch(DAT,
+                 lvl4_data="landmark genes only.",
+                 lvl4_data_all="all genes (including inferred).")
+        )) 
+      }
+      if (exists("temp_w")) {
+        legend("topleft",bty="n",lty=c(1,NA,NA),col=c("red",NA,NA),
+               legend=c("Median",
+                        paste("Diff =",signif(temp_d,2)),
+                        paste("p =",signif(temp_w$p.value,3))))
+      } else {
+        legend("topleft",bty="n",lty=1,col="red",legend="Median")
+      }
+      rm(temp_w,temp_d)
+    }
+    rm(temp_cors)
+  }
+}
+
+```
+
+
+

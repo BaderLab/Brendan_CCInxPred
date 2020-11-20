@@ -37,6 +37,19 @@ navbar:
       href: Fig3_allgenes.html
     - text: "Fig 4"
       href: Fig4.html
+  - text: "Paper Figs v2"
+    menu:
+    - text: "Z-score correlation"
+      href: Zcorr.html
+    - text: "DE overlap"
+      href: DEoverlap.html
+    - text: "DE overlap (FDR)"
+      href: DEoverlap_FDR.html
+    - text: "Receptor availability"
+      href: RecExpr_FDR.html
+    - text: "NicheNet"
+      href: NicheNet.html
+
 
 output:
   html_document:

@@ -1,7 +1,5 @@
 library(cmapR)
 
-rm(list=ls())
-setwd("~/Dropbox/GDB/CMapCorr/")
 temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/lvl3_inputs.RData")
 rm(list=ls()[!ls() %in% c("ct14","lig16")])
 
@@ -19,6 +17,8 @@ lvl4_data <- parse.gctx(
   file.path(temp_cmap_path,"GSE92742_Broad_LINCS_Level4_ZSPCINF_mlr12k_n1319138x12328.gctx"),
   cid=rownames(temp_coldata)[temp_coldata$pert_type == "trt_lig"],
   rid=rownames(temp_geneinfo)[temp_geneinfo$pr_is_lm == "1"])
+lvl4_data@rdesc <- temp_geneinfo[lvl4_data@rdesc$id,]
+
 temp_id <- lvl4_data@cdesc$id
 lvl4_data@cdesc <- temp_coldata[temp_id,]
 #fixing fucked-up ligand names (except NRG/ALPHA/BETA)
@@ -54,6 +54,8 @@ lvl4_data_ctl <- parse.gctx(
                                temp_coldata$cell_id %in% 
                                unique(temp_coldata[rownames(lvl4_data@cdesc),"cell_id"])],
   rid=rownames(temp_geneinfo)[temp_geneinfo$pr_is_lm == "1"])
+lvl4_data_ctl@rdesc <- temp_geneinfo[lvl4_data_ctl@rdesc$id,]
+
 temp_id <- lvl4_data_ctl@cdesc$id
 lvl4_data_ctl@cdesc <- temp_coldata[temp_id,]
 #fixing fucked-up ligand names (except NRG/ALPHA/BETA)
@@ -64,4 +66,4 @@ lvl4_data_ctl@cdesc$pert_dose <- sub("\\.?0+$","",lvl4_data_ctl@cdesc$pert_dose)
 
 rm(list=grep("^temp",ls(),value=T))
 
-save(list=ls(),file="~/Dropbox/GDB/CMapCorr_files/lvl4_inputs.RData")
+save(list=ls(),file="~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs.RData")

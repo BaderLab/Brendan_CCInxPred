@@ -1,0 +1,112 @@
+Dataset-id	Accesion	Stimulation	Cell	Cell type	Organism	Type	Timepoints
+GSE18648-BMP4	GSE18648	Bmp4	Intervertebral disc	fibrocartilage	Mouse	Differential expression	0-8
+GSE18648-TGFB1		Tgfb1	Intervertebral disc	fibrocartilage	Mouse	Differential expression	0-8
+GSE23675-NODAL	GSE23675	Nodal	Extraembryonic endoderm stem cells	stem cell	Mouse	Differential expression	0-96
+GSE46903-IL4(1)	GSE46903	IL4	Macrophage cultered in presence of GM-CSF	immune	Human	Differential expression	0-72
+GSE46903-TNF		TNF	Macrophage cultered in presence of GM-CSF	immune	Human	Differential expression	0-72
+GSE46903-IFNG(1)		IFNG	Macrophage cultered in presence of GM-CSF	immune	Human	Differential expression	0-72
+GSE46903-IFNB1		IFNB1	Macrophage cultered in presence of GM-CSF	immune	Human	Differential expression	0-72
+GSE46903-IL13		IL13	Macrophage cultered in presence of GM-CSF	immune	Human	Differential expression	0-72
+GSE46903-IL4(2)		IL4	Macrophage cultered in presence of GM-CSF	immune	Human	Time series	0-6-12-24
+GSE46903-IFNG(2)		IFNG	Macrophage cultered in presence of GM-CSF	immune	Human	Time series	0-6-12-24
+GSE46903-IFNG+TNF		IFNG + TNF	Macrophage cultered in presence of GM-CSF		Human	Differential expression	0-72
+GSE5542-IFNG	GSE5542	IFNG	A549 cell (lung adenocarcinoma cell line)	carcinoma	Human	Time series	0 -6-24
+GSE71404-hHGF	GSE71404	HGF	PC3M cell (prostate adenocarcinoma cell line)	carcinoma	Human	Time series	0-8-16-32
+GSE71404-mHGF		Hgf	PC3M cell (prostate adenocarcinoma cell line)	carcinoma	Human	Time series	0-8-16-32
+GSE71404-TAC1		TAC1	PC3M cell (prostate adenocarcinoma cell line)	carcinoma	Human	Time series	0-8-16-32
+GSE9977-IFNG	GSE9977	Ifng	NIH-3T3 fibroblast cells	fibroblast	Mouse	Time series	0 – 1-3
+GSE9977-IFNA1		Ifna1	NIH-3T3 fibroblast cells	fibroblast	Mouse	Time series	0 – 1-3
+GSE6653-TGFB1	GSE6653	TGFB1	Immortalized ovarian surface epithelial cells	epithelial	Human	Time series	0-3-6-12
+GSE84500-BMP2	GSE84500	BMP2	Mesenchymal stem cells	stem cell	Human	Time series	0-24-48
+GSE47542-IL4	GSE47542	IL4	IMR-90 lung fibroblast cells	fibroblast	Human	Differential expression	0-24
+GSE47542-IL13		IL13	IMR-90 lung fibroblast cells	fibroblast	Human	Differential expression	0-24
+GSE47542-TNF(1)		TNF (plastic substrate)	IMR-90 lung fibroblast cells	fibroblast	Human	Differential expression	0-24
+GSE47542-TNF(2)		TNF (matrigel substrate)	IMR-90 lung fibroblast cells	fibroblast	Human	Differential expression	0-24
+GSE27195-CNTF	GSE27195	Cntf	retinal glial cells	glial	Mouse	Differential expression	0-24
+GSE7216-IL19	GSE7216	IL19	Epidermal keratinocytes	keratinocyte	Human	Differential expression	0-96
+GSE7216-IL20		IL20	Epidermal keratinocytes	keratinocyte	Human	Differential expression	0-96
+GSE7216-IL22		IL22	Epidermal keratinocytes	keratinocyte	Human	Differential expression	0-96
+GSE7216-IL24		IL24	Epidermal keratinocytes	keratinocyte	Human	Differential expression	0-96
+GSE7216-IL1B		IL1B	Epidermal keratinocytes	keratinocyte	Human	Differential expression	0-96
+GSE7216-FGF7		FGF7	Epidermal keratinocytes	keratinocyte	Human	Differential expression	0-96
+GSE7216-IFNG		IFNG	Epidermal keratinocytes	keratinocyte	Human	Differential expression	0-96
+GSE44732-IL27	GSE44732	IL27	Monocyte-derived Dendritic Cells	immune	Human	Differential expression	0-48
+GSE59237-TSLP	GSE59237	TSLP	Blood Dendritic cells	immune	Human	Differential expression	0-6
+GSE15062-TNF	GSE15062	Tnf	Aortic Smooth Muscle Cells	smooth muscle cell	Mouse	Time series	0-2-6-24
+GSE15062-TNF+LTB		Tnf + Ltb	Aortic Smooth Muscle Cells	smooth muscle cell	Mouse	Differential expression	0-24
+GSE46564-PDGFB	GSE46564	Pdgfb	Pericytes	pericyte	Mouse	Differential expression	0-120
+GSE74847-TNFSF11	GSE74847	Tnfsf11	RAW264.7 (macrophage cell line)	immune	Mouse	Differential expression	0-48
+GSE40017-CXCL12(1)	GSE40017	CXCL12 (CXCR4 OE)	SW480 (colon cancer cell line)	carcinoma	Human	Time series	0- 3-12
+GSE40017-CXCL12(2)		CXCL12 (ACKR3 OE)	SW480 (colon cancer cell line)	carcinoma	Human	Time series	0- 3-12
+GSE40017-CXCL12(3)		CXCL12 (CXCR4 + ACKR3 OE)	SW480 (colon cancer cell line)	carcinoma	Human	Time series	0- 3-12
+GSE27467-GNRH1	GSE27467	GNRH1	SLC60 (embryonic kidney cell line)	epithelial	Human	Time series	0-1-8-24
+GSE28569-TGFB1	GSE28569	TGFB1	MCF10A cells (fibroblast cell line)	fibroblast	Human	Differential expression	0-72
+GSE17782-TGFB3	GSE17782	TGFB3	Adipose-derived mesenchymal stem cells	stem cell	Human	Differential expression	0-336
+E-MTAB-2091-EGF	E-MTAB-2091	EGF	Bronchial epithelial cells	epithelial	Human	Differential expression	0-6
+E-MTAB-2091-IFNG		IFNG	Bronchial epithelial cells	epithelial	Human	Differential expression	0-6
+E-MTAB-2091-IL1B		IL1B	Bronchial epithelial cells	epithelial	Human	Differential expression	0-6
+E-MTAB-2091-IL4		IL4	Bronchial epithelial cells	epithelial	Human	Differential expression	0-6
+E-MTAB-2091-INS		INS	Bronchial epithelial cells	epithelial	Human	Differential expression	0-6
+E-MTAB-2091-TGFA		TGFA	Bronchial epithelial cells	epithelial	Human	Differential expression	0-6
+E-MTAB-2091-TNF		TNFA	Bronchial epithelial cells	epithelial	Human	Differential expression	0-6
+E-MTAB-2091-PROK2		PROK2	Bronchial epithelial cells	epithelial	Human	Differential expression	0-6
+GSE19098-VEGFA(1)	GSE19098	VEGFA	Umbilical vein endothelial cells (spreaded)	endothelial	Human	Differential expression	0-2
+GSE19098-VEGFA(2)		VEGFA	Umbilical vein endothelial cells (restricted)	endothelial	Human	Differential expression	0-2
+GSE43955-IL6+TGFB1	GSE43955	TGFB1 + IL6	Th17 cells	immune	Mouse	Time series	0-1-4-10-20
+GSE6789-IL1B	GSE6789	Il1b	Mouse embryonic fibroblast	fibroblast	Mouse	Differential expression	0-4
+GSE72791-IL12B	GSE72791	Il12b	CD8 T cells	immune	Mouse	Differential expression	0-4
+GSE72791-IL12B+IL33		Il12b+Il33	CD8 T cells	immune	Mouse	Differential expression	0-4
+GSE31193-IFNL3	GSE31193	IFNL3	hepatocyte	hepatocyte	Human	Time series	0-6-24
+GSE31193-IFNA1		IFNA1	hepatocyte	hepatocyte	Human	Time series	0-6-24
+GSE23952-TGFB1	GSE23952	TFGB1	Panc-1 pancreatic adenocarcinoma cell line	carcinoma	Human	Differential expression	0-48
+GSE26834-IGF1	GSE26834	IGF1	MCF-7	epithelial	Human	Time series	0-3-24
+GSE36287-TNF	GSE36287	TNF	Keratinocytes	keratinocyte	Human	Differential expression	UNK
+GSE36287-IFNG		IFNG	Keratinocytes	keratinocyte	Human	Differential expression	UNK
+GSE36287-IL4		IL4	Keratinocytes	keratinocyte	Human	Differential expression	UNK
+GSE36287-IFNA1		IFNA1	Keratinocytes	keratinocyte	Human	Differential expression	UNK
+GSE36287-IL17A		IL17A	Keratinocytes	keratinocyte	Human	Differential expression	UNK
+GSE2120-GH1	GSE2120	Gh1	3T3-F442A adipocytes	adipocyte	Mouse	Time series	0-0.5-4-48
+GSE1791-NMU	GSE1791	Nmu	T cells	immune	Mouse	Time series	0-0.8-3-6-12
+GSE68164-TGFB1	GSE68164	TGFB1	Prostate fibroblasts	fibroblast	Human	Differential expression	0-24
+GSE17708-TGFB1	GSE17708	TGFB1	A549 lung epithelial/adenocarcinoma cell line	carcinoma	Human	Differential expression	0-24
+GSE2059-IL15	GSE2059	Il15	CD8 T-cells	immune	Mouse	Differential expression	0-4
+GSE2059-IL21		Il21	CD8 T-cells	immune	Mouse	Differential expression	0-4
+GSE2059-IL15+IL21		Il15+Il21	CD8 T-cells	immune	Mouse	Differential expression	0-4
+GSE6085-IL2	GSE6085	Il2	CD8 T-cells	immune	Mouse	Time series	0-0.5-1-2-4-6-8-10-12-16-24
+GSE59184-IL4	GSE59184	IL4	PBMC	immune	Human	Time series	0-6-24
+GSE59184-IL10		IL10	PBMC	immune	Human	Time series	0-6-24
+GSE59184-IL15		IL15	PBMC	immune	Human	Time series	0-6-24
+GSE7561-IGF1	GSE7561	IGF1	MCF7	epithelial	Human	Time series	0-3-24
+GSE43700-IL10	GSE43700	IL10	PBMC	immune	Human	Differential expression	0-24
+GSE16416-TGFB1	GSE16416	TGFB1	primary fibroblasts	fibroblast	Human	Differential expression	0-2
+GSE26656-WNT1(1)	GSE26656	WNT1	A375 melanoma	melanoma	Human	Differential expression	control vs WNT1 transfection
+GSE26656-WNT1(2)		WNT1	M24met melanoma	melanoma	Human	Differential expression	control vs WNT1 transfection
+GSE32199-BMP2	GSE32199	Bmp2	mouse extraembryonic endoderm	endoderm	Mouse	Differential expression	0-144
+GSE14256-PDGFB	GSE14256	PDGFB	Fibroblast	fibroblast	Human	Time series	0-1-24
+GSE14256-FGF2		FGF2	Fibroblast	fibroblast	Human	Time series	0-1-24
+GSE58203-IL1B	GSE58203	IL1B	Synovial fibroblast	fibroblast	Human	Time series	0-1-2-4-12
+GSE58203-PDGFD		PDGFD	Synovial fibroblast	fibroblast	Human	Time series	0-1-2-4-12
+GSE10315-BMP2	GSE10315	BMP2	Mesenchymal stem cells	stem cell	Human	Time series	0-24-72
+GSE10315-TGFB3		TGFB3	Mesenchymal stem cells	stem cell	Human	Time series	0-24-72
+GSE29316-SHH	GSE29316	SHH	Colon fibroblast	fibroblast	Human	Differential expression	0-72
+GSE42565-SHH	GSE42565	Shh	neural embryoid	neural embryoid	Mouse	Differential expression	0-72
+GSE4936-SHH	GSE4936	Shh	neural embryoid	neural embryoid	Mouse	Differential expression	0-72
+GSE27455-WNT3A	GSE27455	Wnt3a	embryonic stem cells	stem cell	Mouse	Differential expression	0-24
+GSE9169-BDNF(1)	GSE9169	BDNF	neuroblastoma cell line	neuroblastoma	Human	Time series	0-6-24
+GSE9169-BDNF(2)		BDNF	neuroblastoma cell line	neuroblastoma	Human	Time series	0-6-24
+GSE10311-BMP2	GSE10311	BMP2	Osteoblast	osteoblast	Human	Time series	0-2-24
+GSE69639-TNF(1)	GSE69639	TNF	HT-29 cells 	carcinoma	Human	Time series	0-4-8-16
+GSE69639-TNF(2)		TNF	HT-29 cells 	carcinoma	Human	Time series	0-4-8-16
+GSE69639-EGF		EGF	HT-29 cells 	carcinoma	Human	Time series	0-4-8-16
+GSE69639-TNF+EGF (1)		TNF+EGF	HT-29 cells 	carcinoma	Human	Time series	0-4-8-16
+GSE69639-TNF+INS (1)		TNF+INS	HT-29 cells 	carcinoma	Human	Time series	0-4-8-16
+GSE69639-TNF+EGF (2)		TNF+EGF	HT-29 cells 	carcinoma	Human	Time series	0-4-8-16
+GSE69639-TNF+INS (2)		TNF+INS	HT-29 cells 	carcinoma	Human	Time series	0-4-8-16
+GSE60880-TGFB1	GSE60880	TGFB1	Lung fibroblasts	fibroblast	Human	Differential expression	0-8
+GSE60880-EGF		EGF	Lung fibroblasts	fibroblast	Human	Time series	0-0.5-1-2-8
+GSE60880-IL1B		IL1B	Lung fibroblasts	fibroblast	Human	Time series	0-0.5-1-2-8
+GSE32975-EGF	GSE32975	EGF	immortalized keratinocytes	keratinocyte	Human	Differential expression	0-4
+GSE32975-TNF		TNF	immortalized keratinocytes	keratinocyte	Human	Differential expression	0-4
+GSE20854-EGF	GSE20854	EGF	endometrial carcinoma	carcinoma	Human	Time series	0-12-24
+GSE32423-IL4	GSE32423	IL4	CD8 T cells	immune	Mouse	Differential expression	0-20
+GSE32423-IL4+IL7		IL4+IL7	CD8 T cells	immune	Mouse	Differential expression	0-20

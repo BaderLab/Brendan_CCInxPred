@@ -18,6 +18,8 @@ temp_cell_info <- read.table("~/Data_LINCS/phase1/GSE92742_Broad_LINCS_cell_info
 lvl3_data_all <- parse.gctx(
   file.path(temp_cmap_path,"GSE92742_Broad_LINCS_Level3_INF_mlr12k_n1319138x12328.gctx"),
   cid=rownames(temp_coldata)[temp_coldata$pert_type == "trt_lig"])
+lvl3_data_all@rdesc <- temp_geneinfo[lvl3_data_all@rdesc$id,]
+
 temp_id <- lvl3_data_all@cdesc$id
 lvl3_data_all@cdesc <- temp_coldata[temp_id,]
 #fixing fucked-up ligand names (except NRG/ALPHA/BETA)
@@ -52,6 +54,8 @@ lvl3_data_all_ctl <- parse.gctx(
   cid=rownames(temp_coldata)[temp_coldata$pert_type == "ctl_vehicle" &
                                temp_coldata$rna_plate %in% 
                                unique(temp_coldata[rownames(lvl3_data_all@cdesc),"rna_plate"])])
+lvl3_data_all_ctl@rdesc <- temp_geneinfo[lvl3_data_all_ctl@rdesc$id,]
+
 temp_id <- lvl3_data_all_ctl@cdesc$id
 lvl3_data_all_ctl@cdesc <- temp_coldata[temp_id,]
 #fixing fucked-up ligand names
@@ -63,4 +67,4 @@ lvl3_data_all_ctl@cdesc$pert_dose <- sub("\\.?0+$","",lvl3_data_all_ctl@cdesc$pe
 
 rm(list=grep("^temp",ls(),value=T))
 
-save(list=ls(),file="~/Dropbox/GDB/CMapCorr_files/lvl3_inputs_allgenes.RData")
+save(list=ls(),file="~/Dropbox/GDB_archive/CMapCorr_files/lvl3_inputs_allgenes.RData")

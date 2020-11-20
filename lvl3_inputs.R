@@ -1,7 +1,5 @@
 library(cmapR)
 
-rm(list=ls())
-setwd("~/Dropbox/GDB/CMapCorr/")
 temp_cmap_path <- "~/Data_LINCS/phase1"
 temp_coldata <- read.table(file.path(temp_cmap_path,"GSE92742_Broad_LINCS_inst_info.txt"),
                            header=T,sep="\t",row.names=1,colClasses="character",quote="\"")
@@ -19,6 +17,8 @@ lvl3_data <- parse.gctx(
   file.path(temp_cmap_path,"GSE92742_Broad_LINCS_Level3_INF_mlr12k_n1319138x12328.gctx"),
   cid=rownames(temp_coldata)[temp_coldata$pert_type == "trt_lig"],
   rid=rownames(temp_geneinfo)[temp_geneinfo$pr_is_lm == "1"])
+lvl3_data@rdesc <- temp_geneinfo[lvl3_data@rdesc$id,]
+
 temp_id <- lvl3_data@cdesc$id
 lvl3_data@cdesc <- temp_coldata[temp_id,]
 #fixing fucked-up ligand names (except NRG/ALPHA/BETA)
@@ -54,6 +54,8 @@ lvl3_data_ctl <- parse.gctx(
                                temp_coldata$cell_id %in% 
                                unique(temp_coldata[rownames(lvl3_data@cdesc),"cell_id"])],
   rid=rownames(temp_geneinfo)[temp_geneinfo$pr_is_lm == "1"])
+lvl3_data_ctl@rdesc <- temp_geneinfo[lvl3_data_ctl@rdesc$id,]
+
 temp_id <- lvl3_data_ctl@cdesc$id
 lvl3_data_ctl@cdesc <- temp_coldata[temp_id,]
 #fixing fucked-up ligand names
@@ -79,4 +81,4 @@ ct14 <- ct14[order(names(ct14))]
 
 rm(list=grep("^temp",ls(),value=T))
 
-save(list=ls(),file="~/Dropbox/GDB/CMapCorr_files/lvl3_inputs.RData")
+save(list=ls(),file="~/Dropbox/GDB_archive/CMapCorr_files/lvl3_inputs.RData")
