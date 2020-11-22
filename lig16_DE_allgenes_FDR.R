@@ -161,19 +161,19 @@ samples_rep <- apply(temp_tx,1,function(X)
         lvl4_data@cdesc$pert_dose == X[3] &
         lvl4_data@cdesc$pert_time == X[4]))
 
-BKG_rep <- pbsapply(samples_rep,function(X) {
-  temp <- sapply(1:1e1,function(L) 
+BKG_rep <- pbsapply(samples_rep[1:10],function(X) {
+  temp <- pbsapply(1:1e4,function(L) 
     p.adjust(pnorm(-abs(switch(
       (X > 1) + 1,
       lvl4_data@mat[,sample(ncol(lvl4_data@mat),X)],
       rowMeans(lvl4_data@mat[,sample(ncol(lvl4_data@mat),X)])
-    ))))
-  )
+    )))),
+    cl=8)
   return(
     sapply(ALPHA,function(Z) 
       apply(temp,2,function(Y) sum(Y <= Z)))
   )
-},simplify=F,cl=8)
+},simplify=F)
 
 pDE_rep <- sapply(ALPHA,function(Z) {
   temp_count <- apply(FDR_rep,2,function(X) sum(X <= Z))
@@ -183,7 +183,7 @@ pDE_rep <- sapply(ALPHA,function(Z) {
 })
 
 save(FDR_rep,pDE_rep,
-     file=paste0("~/Dropbox/GDB_archive/CMapCorr_files/lig16_DE_allgenes_rep_FDR.RData"))
+     file="~/Dropbox/GDB_archive/CMapCorr_files/lig16_DE_allgenes_rep_FDR.RData")
 rm(list=grep("ligct$",ls(),value=T))
 rm(list=grep("^temp",ls(),value=T))
 

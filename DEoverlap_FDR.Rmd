@@ -305,16 +305,6 @@ DE_heatmap(FDR_lig,pDE_lig,"Ligands",aCut=0.1)
 rm(list=temp)
 ```
 
-
-## 16 ligands, all genes (including inferred)
-
-```{r echo=F,message=F,warning=F,fig.height=4,fig.width=9}
-temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/lig16_DE_allgenes_lig_FDR.RData")
-DE_heatmap(FDR_lig,pDE_lig,"Ligands",aCut=0.1)
-rm(list=temp)
-```
-
-
 ## 295 ligands, 'landmark' genes only
 
 ```{r echo=F,message=F,warning=F,fig.height=10,fig.width=9}
@@ -322,16 +312,6 @@ temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/lig295_DE_lig_FDR.RData")
 DE_heatmap(FDR_lig,pDE_lig,"Ligands",aCut=0.05)
 rm(list=temp)
 ```
-
-
-## 295 ligands, all genes (including inferred)
-
-```{r echo=F,message=F,warning=F,fig.height=8,fig.width=9}
-temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/lig295_DE_allgenes_lig_FDR.RData")
-DE_heatmap(FDR_lig,pDE_lig,"Ligands",aCut=0.1)
-rm(list=temp)
-```
-
 
 
 # Averaging per cell line
@@ -344,13 +324,6 @@ try(DE_heatmap(FDR_ct,pDE_ct,"Cell lines",aCut=0.1),silent=F)
 rm(list=temp)
 ```
 
-## 16 ligands, all genes (including inferred)
-
-```{r echo=F,message=F,warning=F,fig.height=4,fig.width=9}
-temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/lig16_DE_allgenes_ct_FDR.RData")
-try(DE_heatmap(FDR_ct,pDE_ct,"Cell lines",aCut=0.1),silent=F)
-rm(list=temp)
-```
 
 ## 295 ligands, 'landmark' genes only
 
@@ -359,15 +332,6 @@ temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/lig295_DE_ct_FDR.RData")
 try(DE_heatmap(FDR_ct,pDE_ct,"Cell lines",aCut=0.1),silent=F)
 rm(list=temp)
 ```
-
-## 295 ligands, all genes (including inferred)
-
-```{r echo=F,message=F,warning=F,fig.height=4,fig.width=9}
-temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/lig295_DE_allgenes_ct_FDR.RData")
-try(DE_heatmap(FDR_ct,pDE_ct,"Cell lines",aCut=0.1),silent=F)
-rm(list=temp)
-```
-
 
 
 # Averaging within each ligand per cell line
@@ -385,34 +349,10 @@ rm(list=temp)
 ```
 
 
-## 16 ligands, all genes (including inferred)
-
-```{r echo=F,message=F,warning=F,fig.height=6,fig.width=8}
-temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/lig16_DE_allgenes_ligct_FDR.RData")
-DE_heatmap(FDR_ligct,pDE_ligct,"Ligands per cell line",aCut=0.001)
-```
-
-```{r echo=F,message=F,warning=F,fig.height=5,fig.width=6}
-pDE_heatmap(pDE_ligct[,"01"])
-rm(list=temp)
-```
-
 ## 295 ligands, 'landmark' genes only
 
 ```{r echo=F,message=F,warning=F,fig.height=8,fig.width=9}
 temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/lig295_DE_ligct_FDR.RData")
-DE_heatmap(FDR_ligct,pDE_ligct,"Ligands per cell line",aCut=0.001)
-```
-
-```{r echo=F,message=F,warning=F,fig.height=12,fig.width=5}
-pDE_heatmap(pDE_ligct[,"01"])
-rm(list=temp)
-```
-
-## 295 ligands, all genes (including inferred)
-
-```{r echo=F,message=F,warning=F,fig.height=8,fig.width=9}
-temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/lig295_DE_allgenes_ligct_FDR.RData")
 DE_heatmap(FDR_ligct,pDE_ligct,"Ligands per cell line",aCut=0.001)
 ```
 
@@ -430,7 +370,5 @@ inD <- c("lig16_DE","lig295_DE")
 names(inD) <- c("16 ligands","295 ligands")
 
 BoxP(inD)
-
-# BoxP(c("16 ligands, all genes"="lig16_DE_allgenes"))
 ```
 
