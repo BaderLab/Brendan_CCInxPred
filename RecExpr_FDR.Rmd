@@ -130,7 +130,7 @@ mtext(colnames(lig16Rmat),at=temp,
 
 
 ```
-```{r rec_per_lig, echo=F,message=F,warning=F,fig.height=5,fig.width=6}
+```{r lig_DE, echo=F,message=F,warning=F,fig.height=6,fig.width=9}
 line2user <- function(line, side) {
   lh <- par('cin')[2] * par('cex') * par('lheight')
   x_off <- diff(grconvertX(c(0, lh), 'inches', 'npc'))
@@ -157,16 +157,21 @@ for (X in names(scoreMAT)) {
 scoreMAT <- t(do.call(rbind,scoreMAT))
 scoreMAT <- scoreMAT[rownames(maxRL),colnames(maxRL)]
 
+
+layout(matrix(c(1,1,2,3),nrow=2),widths=c(2,1))
+
 par(mar=c(3,2,7,6),mgp=2:0,las=2)
 image(scoreMAT,
       col=sequential_hcl(100,palette="PinkYl",rev=T),
       x=1:nrow(scoreMAT),y=1:ncol(scoreMAT),
       xaxt="n",yaxt="n",xlab=NA,ylab=NA)
 mtext(colnames(scoreMAT),side=4,line=0.1,
-      at=1:ncol(scoreMAT),adj=0,cex=switch((ncol(scoreMAT) > 20) + 1,0.9,0.5))
+      at=1:ncol(scoreMAT),adj=0,cex=switch((ncol(scoreMAT) > 20) + 1,0.9,0.5),
+      col=qualitative_hcl(ncol(scoreMAT),palette="dark3"))
 mtext("Ligands",side=4,line=4.5,las=0,font=2,cex=1.5,
       at=par("usr")[3] + (par("usr")[4] - par("usr")[3]) / 2,adj=0.5)
 text(x=1:nrow(scoreMAT),y=rep(line2user(0.3,3),nrow(scoreMAT)),
+     col=qualitative_hcl(nrow(scoreMAT),palette="dark3"),
      labels=rownames(scoreMAT),xpd=NA,adj=0,srt=45,cex=0.8)
 text(x=0,y=line2user(1,3),labels="Cell lines",
      xpd=NA,adj=0,srt=45,font=2,cex=1.5)
@@ -197,111 +202,64 @@ mtext("p <= 0.05",side=1,las=0,col="dodgerblue",cex=0.9,line=0,adj=1,at=temp_rig
 
 rm(list=temp)
 rm(list=c("X",grep("^temp",ls(),value=T)))
+
+
+
+par(mar=c(3,3,2,1),mgp=2:0,las=0)
+plot(as.vector(maxRL),as.vector(scoreMAT),pch=20,
+     col=rep(qualitative_hcl(nrow(maxRL),palette="dark3"),ncol(maxRL)), # per cell line
+     xlab="Max cognate receptor expression",
+     ylab="# DE probability score")
+mtext("Coloured by cell line",font=2,line=0.1)
+mtext(paste("PCC =",signif(cor(as.vector(maxRL),as.vector(scoreMAT)),2)),
+      line=-1,adj=0.05,cex=0.9)
+plot(as.vector(maxRL),as.vector(scoreMAT),pch=20,
+     col=as.vector(sapply(qualitative_hcl(ncol(maxRL),palette="dark3"),rep,times=nrow(maxRL))), # per ligand
+     xlab="Max cognate receptor expression",
+     ylab="# DE probability score")
+mtext("Coloured by ligand",font=2,line=0.1)
+mtext(paste("PCC =",signif(cor(as.vector(maxRL),as.vector(scoreMAT)),2)),
+      line=-1,adj=0.05,cex=0.9)
+
 ```
 
-## Receptor availability affecting ligand prediction accuracy
+## Receptor availability affecting transcriptional response to ligand treatment
 
-```{r load_data_lvl5, message=FALSE, warning=FALSE, include=FALSE}
-if (exists("lvl5_data")) {
-} else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_inputs.RData")) {
-  load("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_inputs.RData") 
-} else {
-  source("lvl5_inputs.R")
-}
-```
+Cognate receptor expression for each ligand was compared to probability scores for the number of differentially expressed genes associated with each ligand-treated cell line outlined [previously](https://baderlab.github.io/Brendan_CCInxPred/DEoverlap_FDR.html#averaging-within-each-ligand-per-cell-line).  Lines for each receptor are coloured by the spearman correlation coefficient between expression and DE score per cell type (purple is negative, green is positive), and the three most correlated receptor genes are labeled.
 
-```{r RF_leave1out,echo=FALSE,message=FALSE,warning=FALSE}
-if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200524_lvl5_mixall_balanced_leave1out_results.RData")) {
-  temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200524_lvl5_mixall_balanced_leave1out_results.RData")
-} else {
-  source("200524_lvl5_mixall_leave1out.R")
-}
-
-test_results <- data.frame(
-  IDs=as.vector(testIDs),
-  Labels=as.vector(t(sapply(rfresults,function(X) X$predictions))),
-  stringsAsFactors=F
-)
-test_hits <- vector("list",sum(lvl5_data@cdesc$pert_iname %in% lig16))
-names(test_hits) <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname %in% lig16]
-
-for (X in 1:nrow(test_results)) {
-  test_hits[[test_results[X,"IDs"]]] <- append(test_hits[[test_results[X,"IDs"]]],
-                                               test_results[X,"Labels"])
-}
-
-acc_leave1out <- sapply(names(test_hits),function(X) 
-  sum(test_hits[[X]] == lvl5_data@cdesc[X,"pert_iname"]) / 
-    length(test_hits[[X]]))
-acc_leave1out_totals <- sapply(lig16,function(X) {
-  Y <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname == X]
-  return(sum(unlist(test_hits[Y]) == X) / 
-           length(unlist(test_hits[Y])))
-})
-
-acc_leave1out_ct <- sapply(lig16,function(X) {
-  sapply(ct14,function(Y) {
-    Z <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname == X &
-                                     lvl5_data@cdesc$cell_id == Y]
-    return(sum(unlist(test_hits[Z]) == X) / 
-             length(unlist(test_hits[Z])))
-  })
-})
-
-test_counts <- sapply(lig16,function(X) {
-  sapply(ct14,function(Y) {
-    sum(lvl5_data@cdesc$pert_iname == X &
-          lvl5_data@cdesc$cell_id == Y)
-  })
-})
-
-test_predictions <- sapply(lig16,function(X) {
-  sapply(ct14,function(Y) {
-    temp <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname == X &
-                                        lvl5_data@cdesc$cell_id == Y]
-    return(table(factor(unlist(test_hits[temp]),levels=lig16)) / 
-             length(unlist(test_hits[temp])))
-  })
-},simplify=F)
-
-rm(X,temp)
-```
-
-Cognate receptor expression for each ligand was compared to the accuracy per cell line of the leave-one-out ligand classification model outlined [previously](https://baderlab.github.io/Brendan_CCInxPred/LigPred_lvl5.html#cell-type-biases-in-accuracy).  Lines for each receptor are coloured by the spearman correlation coefficient between expression and accuracy per cell type (purple is negative, green is positive), and the three most correlated receptor genes are labeled.
-
-```{r rec_expr_acc_corr,echo=FALSE,message=FALSE,warning=FALSE,fig.height=9,fig.width=9,fig.show='hold'}
+```{r rec_DE_corr_detail,echo=FALSE,message=FALSE,warning=FALSE,fig.height=9,fig.width=9,fig.show='hold'}
 par(mfrow=c(4,4),mar=c(4,6.5,1,3.5),mgp=2:0)
 for (LIG in lig16) {
-  plot(NA,NA,xlim=range(acc_leave1out_ct[,LIG]),ylim=c(0,15),bty="n",yaxt="n",
-       xlab="Prediction accuracy per cell type",ylab=NA)
+  plot(NA,NA,xlim=range(scoreMAT[,LIG]),ylim=c(0,15),bty="n",yaxt="n",
+       xlab="# DE probability score",ylab=NA)
   axis(2,line=3.5)
   mtext("Receptor expression per cell type",
         side=2,line=5.5,cex=0.7)
   title(LIG,line=0)
-  segments(x0=seq(0,1,length.out=1000),
-           x1=seq(0,1,length.out=1000),
+  segments(x0=seq(min(scoreMAT),max(scoreMAT),length.out=1000),
+           x1=seq(min(scoreMAT),max(scoreMAT),length.out=1000),
            y0=rep(par("usr")[3],1000),
            y1=rep(par("usr")[3] + (par("usr")[4] - par("usr")[3]) * 0.02,1000),
            lwd=2,col=sequential_hcl(1000,palette="inferno",rev=T))
   
-  temp_order <- rownames(acc_leave1out_ct)[order(acc_leave1out_ct[,LIG])]
+  temp_order <- rownames(scoreMAT)[order(scoreMAT[,LIG])]
   temp_corr <- apply(meanR[lig16R[[LIG]],temp_order],1,function(X)
-    cor(acc_leave1out_ct[temp_order,LIG],X,method="spearman"))
+    cor(scoreMAT[temp_order,LIG],X,method="spearman"))
   temp_col <- diverge_hcl(100,palette="Purple-Green")[cut(c(-1,1,temp_corr),100,labels=F)[c(-1,-2)]]
   names(temp_col) <- lig16R[[LIG]]
   for (GENE in lig16R[[LIG]][order(temp_corr)]) {
-    points(acc_leave1out_ct[temp_order,LIG],
+    points(scoreMAT[temp_order,LIG],
            meanR[GENE,temp_order],
            type="b",pch=20,col=temp_col[GENE],lwd=2)
   }
   temp_top <- names(temp_corr)[order(temp_corr,decreasing=T)][1:3]
-  text(acc_leave1out_ct[temp_order[length(temp_order)],LIG],
+  text(scoreMAT[temp_order[length(temp_order)],LIG],
        meanR[temp_top,temp_order[length(temp_order)]],
        labels=temp_top,col=temp_col[temp_top],
        pos=4,xpd=NA,offset=0.4,
        font=as.integer(sapply(temp_top,function(X) 
          lvl3_ctl@rdesc[lvl3_ctl@rdesc$pr_gene_symbol == X,"pr_is_lm"])) + 1)
-  text(acc_leave1out_ct[temp_order[1],LIG],
+  text(scoreMAT[temp_order[1],LIG],
        meanR[temp_top,temp_order[1]],
        labels=temp_top,col=temp_col[temp_top],
        pos=2,xpd=NA,offset=0.4,
@@ -311,3 +269,5 @@ for (LIG in lig16) {
 }
 rm(list=c("LIG","GENE",grep("^temp",ls(),value=T)))
 ```
+
+
