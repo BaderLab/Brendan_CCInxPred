@@ -1,11 +1,6 @@
-library(colorspace)
 library(pbapply)
-pboptions(type="timer")
-.PAR <- par(no.readonly=T)
 
-
-# Re-analysis of NicheNet dataset ----
-
+# load data ----
 # nn_model <- readRDS(url("https://zenodo.org/record/3260758/files/ligand_target_matrix.rds"))
 nn_db <- readRDS(url("https://zenodo.org/record/3260758/files/expression_settings.rds"))
 
@@ -17,13 +12,11 @@ nn_ligands <- nn_ligands[sapply(nn_lig_dsNames,length) > 1]
 nn_lig_dsNames <- nn_lig_dsNames[nn_ligands]
 
 
-
-## Mapping datasets to GEO accession ----
-
+# map accessions ----
 nn_DEinfo <- read.table("~/Dropbox/GDB/CMapCorr/NicheNet_DBinfo_nDE.txt",
                         header=T,sep="\t",as.is=T)
 rownames(nn_DEinfo) <- nn_DEinfo$setting_id
-nn_DEinfo <- nn_DEinfo[,-1]
+nn_DEinfo <- nn_DEinfo[,-which(colnames(nn_DEinfo) == "setting_id")]
 
 DSinfo <- list()
 for (LIG in nn_ligands) {
@@ -50,8 +43,7 @@ for (LIG in names(DSinfo)) {
 }
 
 
-# Organizing replicate data ----
-
+# collate replicate data ----
 nn_lig_rep <- pbsapply(nn_ligands,function(LIG) {
   temp_gene <- Reduce(intersect,sapply(nn_lig_dsNames[[LIG]],
                                        function(X) nn_db[[X]]$diffexp$gene,
@@ -82,9 +74,12 @@ nn_lig_rep <- pbsapply(nn_ligands,function(LIG) {
 },simplify=F)
 
 
+save(nn_ligands,DSinfo,nn_lig_rep,
+     file="~/Dropbox/GDB_archive/CMapCorr_files/NN_all_dat.RData")
 
-# Correlation ----
 
+
+# correlation calc ----
 corr_all <- corr_ct <- corr_ds <- list()
 for (LIG in nn_ligands) {
   temp_ts <- rownames(DSinfo[[LIG]])[DSinfo[[LIG]]$time_series]
@@ -163,40 +158,24 @@ for (LIG in nn_ligands) {
 }
 
 
-boxplot(unlist(sapply(nn_ligands,function(X) list(ALL=corr_all[[X]],
-                                                  CT=corr_ct[[X]],
-                                                  DS=corr_ds[[X]]),
-                      simplify=F),recursive=F),
-        las=3)
-
-par(mar=c(3,3,1,1),mgp=2:0)
-boxplot(list(ALL=unlist(corr_all),CT=unlist(corr_ct),DS=unlist(corr_ds)),
-        ylab="Spearman correlation of logFC")
-
-corr_all_nts <- corr_all_ts <- list()
-for (LIG in names(corr_all)) {
-  temp_ts <- sapply(strsplit(names(corr_all[[LIG]]),".",fixed=T),
-                    function(X) all(DSinfo[[LIG]][X,"time_series"]))
-  corr_all_ts[[LIG]] <- corr_all[[LIG]][temp_ts]
-  corr_all_nts[[LIG]] <- corr_all[[LIG]][!temp_ts]
-}
-boxplot(list(ALL_nTS=unlist(corr_all_nts),ALL_TS=unlist(corr_all_ts),
-             CT=unlist(corr_ct),DS=unlist(corr_ds)))
-# not much diff
+save(corr_all,corr_ct,corr_ds,
+     file="~/Dropbox/GDB_archive/CMapCorr_files/NN_all_corr.RData")
 
 
 
-
-# Diff Exp ----
-
+# DE overlap background ----
 nn_DE <- list()
+temp_commongenes <- Reduce(intersect,sapply(nn_lig_rep,function(X) rownames(X$lfc)))
 for (LIG in nn_ligands) {
   nn_DE[[LIG]] <- mapply(intersect,
                          apply(nn_lig_rep[[LIG]]$lfc,2,function(X) names(which(X >= 1))),
                          apply(nn_lig_rep[[LIG]]$qval,2,function(X) names(which(X <= 0.1))))
+  nn_DE[[LIG]] <- sapply(nn_DE[[LIG]],function(X) X[X %in% temp_commongenes])
 }
+
+par(mar=c(3,3,1,1),mgp=2:0)
 hist(sapply(unlist(nn_DE,recursive=F),length),
-     xlab="# DE per DS",main=NA)
+     xlab="# DE per dataset (logFC >= 1, FDR <= 0.1)",main=NA)
 
 temp_DE <- unlist(nn_DE,recursive=F)
 DEbkgd <- pbsapply(min(sapply(DSinfo,nrow)):max(sapply(DSinfo,nrow)),function(X)
@@ -206,134 +185,105 @@ DEbkgd <- pbsapply(min(sapply(DSinfo,nrow)):max(sapply(DSinfo,nrow)),function(X)
 colnames(DEbkgd) <- min(sapply(DSinfo,nrow)):max(sapply(DSinfo,nrow))
 rm(temp_DE)
 
+
+# DE overlap calc ----
 de_all <- de_ct <- de_ds <- list()
 P_all <- P_ct <- P_ds <- list()
 for (LIG in nn_ligands) {
-  temp_ts <- rownames(DSinfo[[LIG]])[DSinfo[[LIG]]$time_series]
-  temp_nts <- rownames(DSinfo[[LIG]])[!DSinfo[[LIG]]$time_series]
+  temp_acc <- sapply(unique(DSinfo[[LIG]]$CtAcc),function(X) 
+    rownames(DSinfo[[LIG]])[DSinfo[[LIG]]$CtAcc == X],
+    simplify=F)
+  temp_ct <- sapply(unique(DSinfo[[LIG]]$cell_type),function(X) 
+    rownames(DSinfo[[LIG]])[DSinfo[[LIG]]$cell_type == X],
+    simplify=F)
+  temp_ct <- temp_ct[!sapply(temp_ct,function(CT) 
+    any(sapply(temp_acc,function(ACC) all(CT == ACC))))]
   
-  if (length(temp_ts) > 1) {
-    temp_acc <- sapply(unique(DSinfo[[LIG]][temp_ts,"CtAcc"]),function(X) 
-      temp_ts[DSinfo[[LIG]][temp_ts,"CtAcc"] == X],
-      simplify=F)
-    temp_ct <- sapply(unique(DSinfo[[LIG]][temp_ts,"cell_type"]),function(X) 
-      temp_ts[DSinfo[[LIG]][temp_ts,"cell_type"] == X],
-      simplify=F)
-    temp_ct <- temp_ct[!sapply(temp_ct,function(CT) 
-      any(sapply(temp_acc,function(ACC) all(CT == ACC))))]
-    
-    for (X in names(temp_acc)[sapply(temp_acc,length) > 1]) {
-      Y <- paste(temp_acc[[X]],collapse=".")
-      de_ds[[LIG]][[Y]] <- Reduce(intersect,nn_DE[[LIG]][temp_acc[[X]]])
-      P_ds[[LIG]][[Y]] <- sum(DEbkgd[,as.character(length(temp_acc[[X]]))] >= 
-                                length(de_ds[[LIG]][[Y]])) / nrow(DEbkgd)
-    }
-    for (X in names(temp_ct)[sapply(temp_ct,length) > 1]) {
-      Y <- paste(temp_ct[[X]],collapse=".")
-      de_ct[[LIG]][[Y]] <- Reduce(intersect,nn_DE[[LIG]][temp_ct[[X]]])
-      P_ct[[LIG]][[Y]] <- sum(DEbkgd[,as.character(length(temp_ct[[X]]))] >= 
-                                length(de_ct[[LIG]][[Y]])) / nrow(DEbkgd)
-    }
-    de_all[[LIG]] <- Reduce(intersect,nn_DE[[LIG]])
-    P_all[[LIG]] <- sum(DEbkgd[,as.character(length(nn_DE[[LIG]]))] >= 
-                          length(de_all[[LIG]])) / nrow(DEbkgd)
-    
+  for (X in names(temp_acc)[sapply(temp_acc,length) > 1]) {
+    Y <- paste(temp_acc[[X]],collapse=".")
+    de_ds[[LIG]][[Y]] <- Reduce(intersect,nn_DE[[LIG]][temp_acc[[X]]])
+    P_ds[[LIG]][[Y]] <- sum(DEbkgd[,as.character(length(temp_acc[[X]]))] >= 
+                              length(de_ds[[LIG]][[Y]])) / nrow(DEbkgd)
   }
-  
-  if (length(temp_nts) > 1) {
-    temp_acc <- sapply(unique(DSinfo[[LIG]][temp_nts,"CtAcc"]),function(X) 
-      temp_nts[DSinfo[[LIG]][temp_nts,"CtAcc"] == X],
-      simplify=F)
-    temp_ct <- sapply(unique(DSinfo[[LIG]][temp_nts,"cell_type"]),function(X) 
-      temp_nts[DSinfo[[LIG]][temp_nts,"cell_type"] == X],
-      simplify=F)
-    temp_ct <- temp_ct[!sapply(temp_ct,function(CT) 
-      any(sapply(temp_acc,function(ACC) all(CT == ACC))))]
-    
-    for (X in names(temp_acc)[sapply(temp_acc,length) > 1]) {
-      Y <- paste(temp_acc[[X]],collapse=".")
-      de_ds[[LIG]][[Y]] <- Reduce(intersect,nn_DE[[LIG]][temp_acc[[X]]])
-      P_ds[[LIG]][[Y]] <- sum(DEbkgd[,as.character(length(temp_acc[[X]]))] >= 
-                                length(de_ds[[LIG]][[Y]])) / nrow(DEbkgd)
-    }
-    for (X in names(temp_ct)[sapply(temp_ct,length) > 1]) {
-      Y <- paste(temp_ct[[X]],collapse=".")
-      de_ct[[LIG]][[Y]] <- Reduce(intersect,nn_DE[[LIG]][temp_ct[[X]]])
-      P_ct[[LIG]][[Y]] <- sum(DEbkgd[,as.character(length(temp_ct[[X]]))] >= 
-                                length(de_ct[[LIG]][[Y]])) / nrow(DEbkgd)
-    }
-    de_all[[LIG]] <- Reduce(intersect,nn_DE[[LIG]])
-    P_all[[LIG]] <- sum(DEbkgd[,as.character(length(nn_DE[[LIG]]))] >= 
-                          length(de_all[[LIG]])) / nrow(DEbkgd)
+  for (X in names(temp_ct)[sapply(temp_ct,length) > 1]) {
+    Y <- paste(temp_ct[[X]],collapse=".")
+    de_ct[[LIG]][[Y]] <- Reduce(intersect,nn_DE[[LIG]][temp_ct[[X]]])
+    P_ct[[LIG]][[Y]] <- sum(DEbkgd[,as.character(length(temp_ct[[X]]))] >= 
+                              length(de_ct[[LIG]][[Y]])) / nrow(DEbkgd)
+  }
+  Y <- paste(rownames(DSinfo[[LIG]]),collapse=".")
+  if (!Y %in% c(names(de_ct[[LIG]]),names(de_ds[[LIG]]))) {
+    de_all[[LIG]][[Y]] <- Reduce(intersect,nn_DE[[LIG]])
+    P_all[[LIG]][[Y]] <- sum(DEbkgd[,as.character(length(nn_DE[[LIG]]))] >= 
+                               length(de_all[[LIG]][[Y]])) / nrow(DEbkgd)
   }
 }
 
-boxplot(list(ALL=-log10(unlist(P_all)),
-             CT=-log10(unlist(P_ct)),
-             DS=-log10(unlist(P_ds))),
-        ylab="-log10 P #DE by chance")
+rm(list=c("X","Y","LIG",grep("^temp",ls(),value=T)))
+save(nn_DE,de_all,de_ct,de_ds,P_all,P_ct,P_ds,
+     file="~/Dropbox/GDB_archive/CMapCorr_files/NN_all_DEovlp.RData")
 
 
 
+# DE by mean LFC background ----
+temp_nts <- unlist(sapply(DSinfo,function(X) rownames(X)[!X$time_series]))
+temp_nts_genes <- Reduce(intersect,sapply(nn_db[temp_nts],function(X) X$diffexp$gene))
+mean_lfc_nts_bkgd <- pbsapply(
+  2:max(sapply(DSinfo,function(X) sum(!X$time_series))),
+  function(X)
+    sapply(1:1e2,function(Y)
+      rowMeans(sapply(nn_db[sample(temp_nts,X)],
+                      function(X) {
+                        temp <- X$diffexp$lfc
+                        names(temp) <- X$diffexp$gene
+                        return(temp[temp_nts_genes])
+                      }))
+    ),cl=3)
+colnames(mean_lfc_nts_bkgd) <- 2:max(sapply(DSinfo,function(X) sum(!X$time_series)))
+
+temp_ts <- unlist(sapply(DSinfo,function(X) rownames(X)[X$time_series]))
+temp_ts_genes <- Reduce(intersect,sapply(nn_db[temp_ts],function(X) X$diffexp$gene))
+mean_lfc_ts_bkgd <- pbsapply(
+  2:max(sapply(DSinfo,function(X) sum(X$time_series))),
+  function(X)
+    sapply(1:1e2,function(Y)
+      rowMeans(sapply(nn_db[sample(temp_ts,X)],
+                      function(X) {
+                        temp <- X$diffexp$lfc
+                        names(temp) <- X$diffexp$gene
+                        return(temp[temp_ts_genes])
+                      }))
+    ),cl=3)
+colnames(mean_lfc_ts_bkgd) <- 2:max(sapply(DSinfo,function(X) sum(X$time_series)))
 
 
-
-# old stuff ----
-
-nn_lig_rep <- pbsapply(nn_ligands,function(LIG) {
-  temp_gene <- Reduce(intersect,sapply(nn_lig_dsNames[[LIG]],
-                                       function(X) nn_db[[X]]$diffexp$gene,
-                                       simplify=F))
+# DE by mean LFC ----
+mean_lfc <- list()
+for (LIG in nn_ligands) {
+  print(paste(which(nn_ligands == LIG),"/",length(nn_ligands)))
+  temp_ts <- DSinfo[[LIG]][colnames(nn_lig_rep[[LIG]]$lfc),"time_series"]
   
-  temp_diffexp <- sapply(nn_lig_dsNames[[LIG]],function(X) {
-    temp <- nn_db[[X]]$diffexp
-    temp <- temp[temp$gene %in% temp_gene,]
-    if (any(duplicated(temp$gene))) {
-      temp_dup <- unique(temp$gene[duplicated(temp$gene)])
-      temp_rm <- unlist(lapply(temp_dup,function(DUP) {
-        temp_id <- rownames(temp[temp$gene == DUP,])
-        return(temp_id[-which.min(temp[temp_id,"qval"])])
-      }))
-      temp <- temp[!rownames(temp) %in% temp_rm,]
+  if (sum(!temp_ts) > 1) {
+    mean_lfc[[LIG]] <- data.frame(nts_lfc=rowMeans(nn_lig_rep[[LIG]]$lfc[,!temp_ts]))
+    mean_lfc[[LIG]]$nts_pval <- pbsapply(mean_lfc[[LIG]]$nts_lfc,function(X) 
+      sum(mean_lfc_nts_bkgd[,as.character(sum(!temp_ts))] >= X) / nrow(mean_lfc_nts_bkgd),
+      cl=12)
+    mean_lfc[[LIG]]$nts_fdr <- p.adjust(mean_lfc[[LIG]]$nts_pval,"fdr")
+  }
+  if (sum(temp_ts) > 1) {
+    if (is.null(mean_lfc[[LIG]])) {
+      mean_lfc[[LIG]] <- data.frame(ts_lfc=rowMeans(nn_lig_rep[[LIG]]$lfc[,temp_ts]))
+    } else {
+      mean_lfc[[LIG]]$ts_lfc <- rowMeans(nn_lig_rep[[LIG]]$lfc[,temp_ts])
     }
-    rownames(temp) <- temp$gene
-    return(list(lfc=temp[temp_gene,"lfc"],
-                qval=temp[temp_gene,"qval"]))
-  },simplify=F)
-  
-  temp_lfc <- sapply(temp_diffexp,"[[","lfc")
-  temp_qval <- sapply(temp_diffexp,"[[","qval")
-  rownames(temp_lfc) <- rownames(temp_qval) <- temp_gene
-  
-  return(list(lfc=temp_lfc,
-              qval=temp_qval))
-},simplify=F)
-
-nn_cor <- pbsapply(nn_lig_rep,function(X)
-  cor(X$lfc,method="spearman")[upper.tri(matrix(nrow=ncol(X$lfc),ncol=ncol(X$lfc)))],
-  simplify=F)
-boxplot(nn_cor,las=3,ylab="Spearman's CC")
-
-# DE per NicheNet paper: lfc >= 1 & qval <= 0.1
+    mean_lfc[[LIG]]$ts_pval <- pbsapply(mean_lfc[[LIG]]$ts_lfc,function(X) 
+      sum(mean_lfc_ts_bkgd[,as.character(sum(temp_ts))] >= X) / nrow(mean_lfc_ts_bkgd),
+      cl=12)
+    mean_lfc[[LIG]]$ts_fdr <- p.adjust(mean_lfc[[LIG]]$ts_pval,"fdr")
+  }
+}
 
 
-
-
-
-# Prob DE overlap from Supplementary Table ----
-DEcounts <- read.table("~/Dropbox/GDB/CMapCorr/NicheNet_LigDEoverlap_count.txt",
-                       sep="\t",header=T,row.names=1,as.is=T)
-DEratio <- read.table("~/Dropbox/GDB/CMapCorr/NicheNet_LigDEoverlap_ratio.txt",
-                      sep="\t",header=T,row.names=1,as.is=T)
-numDE <- rowSums(DEcounts,na.rm=T)
-nGene <- c(length(Reduce(intersect,lapply(nn_db,function(X) X$diffexp$gene))),
-           range(sapply(nn_db,function(X) nrow(X$diffexp))))
-
-
-
-
-
-
-
-
+save(mean_lfc,
+     file="~/Dropbox/GDB_archive/CMapCorr_files/NN_all_DEmeanlfc.RData")
 
