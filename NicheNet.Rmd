@@ -74,7 +74,7 @@ temp_corr <- list(ALL=corr_all[temp_order[temp_order %in% names(corr_all)]],
 temp_lig <- sapply(strsplit(names(unlist(temp_corr,recursive=F)),".",fixed=T),"[[",2)
 
 
-layout(rbind(1:2),widths=c(5,1))
+layout(rbind(1:2),widths=c(4,1))
 
 par(mar=c(5,3,1,0.5),mgp=2:0)
 plot(NA,NA,xlim=c(1,length(unlist(temp_corr,recursive=F))),ylim=range(temp_corr),
@@ -152,6 +152,48 @@ mtext(paste("p =",c(signif(wilcox.test(unlist(P_all),unlist(P_ct))$p.value,2),
 
 rm(list=c("X","Z",grep("^temp",ls(),value=T)))
 ```
+
+```{r diffexp_boxplot_v2, echo=F,message=F,warning=F,fig.height=4,fig.width=9}
+temp_y <- lapply(c("P_all","P_ct","P_ds"),function(X) {
+  temp <- -log10(unlist(get(X)))
+  names(temp) <- sapply(strsplit(names(unlist(get(X))),".",fixed=T),"[[",1)
+  return(temp)
+})
+temp_x <- sapply(list(ALL=de_all,CT=de_ct,DS=de_ds),function(DE)
+  sapply(unlist(DE,recursive=F,use.names=F),length),simplify=F)
+
+par(mfrow=c(1,4),mar=c(5,4,1,0.5),mgp=2:0)
+boxplot(temp_y,ylim=range(temp_y),outline=T,xaxt="n",yaxt="n",ylab=NA)
+text(c(1.5,2.5),line2user(-0.2,3),srt=90,adj=1,cex=1.2,
+     labels=paste("p =",c(signif(wilcox.test(unlist(P_all),unlist(P_ct))$p.value,2),
+                          signif(wilcox.test(unlist(P_ct),unlist(P_ds))$p.value,2))))
+axis(2,cex.axis=1.2)
+mtext("-log10(P # DE overlapping by chance)",side=2,line=2.5)
+text(1:3,line2user(0.5,1),xpd=NA,srt=45,adj=1,cex=1.4,font=2,
+     labels=c("Across all","Cell type","Lab"))
+
+par(mar=c(5,0,1,0.5))
+temp <- mapply(function(X,Y,N) {
+  plot(NA,NA,xlim=range(X),ylim=range(temp_y),
+       xaxt="n",yaxt="n",ylab=NA,xlab=NA)
+  temp_X <- X; temp_Y <- Y
+  temp_X[temp_X == 0] <- -abs(jitter(temp_X[temp_X == 0],amount=abs(par("usr")[1]) / 2))
+  temp_Y[temp_Y == 0] <- -abs(jitter(temp_Y[temp_Y == 0],amount=abs(par("usr")[3]) / 2))
+  points(temp_X,temp_Y,pch=19,cex=1.5,
+         col=lig_col[names(temp_Y)])
+  Z <- Y >= -log10(0.05)
+  if (!any(Z)) { Z <- Y > 0 }
+  temp_labels <- scClustViz::spreadLabels2(temp_X[Z],temp_Y[Z],label=names(temp_Y)[Z],
+                                           str.cex=1.5,str.font=2)
+  text(temp_labels,labels=names(temp_Y)[Z],cex=1.2,font=2,
+       col=alpha(lig_col[names(temp_Y)[Z]],1))
+  axis(1,cex.axis=1.2)
+  mtext("# overlapping DE",side=1,line=2.5)
+  mtext(N,side=1,line=4,font=2)
+},X=temp_x,Y=temp_y,N=c("Pairwise across cell types / labs","Within same cell type","Same lab"))
+```
+
+
 
 
 ```{r DEheatmap_fx, echo=F,message=F,warning=F}
@@ -415,7 +457,7 @@ temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs_allgenes.RData")
 lvl4_data <- lvl4_data_all
 rm(list=temp)
 
-load("~/Dropbox/GDB_archive/CMapCorr_files/lig295_DE_lig_FDR.RData")
+load("~/Dropbox/GDB_archive/CMapCorr_files/lig295_DE_allgenes_lig_FDR.RData")
 FDR_lig <- FDR_lig[,colnames(FDR_lig) %in% names(mean_lfc)]
 pDE_lig <- pDE_lig[rownames(pDE_lig) %in% names(mean_lfc),]
 
@@ -470,7 +512,11 @@ DE_dotplot(LIG,GENES)
 rm(list=c("LIG","GENES",grep("^temp",ls(),value=T)))
 ```
 
-```{r DE_dot_TNF, echo=F,message=F,warning=F,fig.height=8,fig.width=4.3}
+**BMP2** (left) had CDC20 significantly DE across cell lines in the CMap data.  
+**IFNG** (right) had ICAM1, STAT1, and PSMB8 significantly DE across cell lines in the CMap data.
+
+
+```{r DE_dot_TNF, echo=F,message=F,warning=F,fig.height=8,fig.width=4.2}
 LIG <- "TNF"
 temp_cmapgenes <- lvl4_data@rdesc[rownames(FDR_lig)[FDR_lig[,LIG] <= 0.1],"pr_gene_symbol"]
 temp_genes <- Reduce(union,nn_DE[[LIG]])
@@ -517,6 +563,9 @@ DE_dotplot(LIG,GENES)
 
 rm(list=c("LIG","GENES",grep("^temp",ls(),value=T)))
 ```
+**TNF** (left) had ICAM1, NFKBIA, RELB, TNFAIP3, IKBKE, SLC2A6, TNIP1, TICAM1, NFKBIE, and NFKB2 significantly DE across cell lines in the CMap data.  
+**TGFB1** (right) had no significantly DE genes across all cell lines in CMap, but the average logFC of TGFBR3 was higher than expected by chance across all cell types in these datasets.
+
 
 ```{r DE_dot_VEGFA, echo=F,message=F,warning=F,fig.height=9,fig.width=2.5,eval=F}
 LIG <- "VEGFA"
@@ -590,6 +639,10 @@ DE_dotplot(LIG,GENES)
 
 rm(list=c("LIG","GENES",grep("^temp",ls(),value=T)))
 ```
+**INFA1** (left) had no significantly DE genes across all cell lines in CMap, but the average logFC of a number of genes was higher than expected by chance across all cell types in these datasets.  
+**IL1B** (right) had no significantly DE genes across all cell lines in CMap, but the average logFC of a number of genes was higher than expected by chance across all cell types in these datasets.
+
+
 
 ```{r DE_dot_BDNF, echo=F,message=F,warning=F,fig.height=4,fig.width=2.5,eval=F}
 LIG <- "BDNF"
@@ -616,6 +669,45 @@ DE_dotplot(LIG,GENES)
 rm(list=c("LIG","GENES",grep("^temp",ls(),value=T)))
 ```
 
+```{r DE_dot_PDGFB, echo=F,message=F,warning=F,fig.height=8,fig.width=2.5,eval=F}
+LIG <- "PDGFB"
+temp_genes <- Reduce(union,nn_DE[[LIG]])
+temp_DEoverlap <- rowSums(sapply(nn_DE[[LIG]],function(X) temp_genes %in% X))
+# table(temp_DEoverlap)
+GENES <- temp_genes[temp_DEoverlap == max(temp_DEoverlap)]
+
+DE_dotplot(LIG,GENES)
+
+rm(list=c("LIG","GENES",grep("^temp",ls(),value=T)))
+```
+
+```{r DE_dot_IL13, echo=F,message=F,warning=F,fig.height=4,fig.width=2.5,eval=F}
+LIG <- "IL13"
+temp_cmapgenes <- lvl4_data@rdesc[rownames(FDR_lig)[FDR_lig[,LIG] <= 0.1],"pr_gene_symbol"]
+temp_genes <- Reduce(union,nn_DE[[LIG]])
+temp_cmapgenes <- temp_cmapgenes[temp_cmapgenes %in% temp_genes]
+
+temp_DEoverlap <- rowSums(sapply(nn_DE[[LIG]],function(X) temp_genes %in% X))
+# table(temp_DEoverlap)
+GENES <- temp_genes[temp_DEoverlap == max(temp_DEoverlap)]
+temp_meanhits <- rownames(mean_lfc[[LIG]])[
+  apply(mean_lfc[[LIG]][,colnames(mean_lfc[[LIG]]) %in% c("nts_fdr","ts_fdr"),drop=F],1,
+        function(X) any(X <= 0.1))
+]
+if (length(temp_meanhits) < 1) {
+  temp_meanhits <- rownames(mean_lfc[[LIG]])[c(which.min(mean_lfc[[LIG]]$nts_fdr),
+                                               which.min(mean_lfc[[LIG]]$ts_fdr))]
+}
+# GENES <- unique(c(GENES,temp_meanhits,temp_cmapgenes))
+GENES <- unique(c(temp_meanhits,temp_cmapgenes))
+
+DE_dotplot(LIG,GENES)
+
+rm(list=c("LIG","GENES",grep("^temp",ls(),value=T)))
+```
+
+
+****
 
 # After removing time-series data
 
@@ -721,11 +813,44 @@ mtext(paste("p =",c(signif(wilcox.test(unlist(P_all),unlist(P_ct))$p.value,2),
 rm(list=c("X","Z",grep("^temp",ls(),value=T)))
 ```
 
-```{r noTS_diffexp_meanLFC, echo=F,message=F,warning=F,fig.height=5,fig.width=9, eval=F}
+```{r noTS_diffexp_boxplot_v2, echo=F,message=F,warning=F,fig.height=4,fig.width=9}
+temp_y <- lapply(c("P_all","P_ct","P_ds"),function(X) {
+  temp <- -log10(unlist(get(X)))
+  names(temp) <- sapply(strsplit(names(unlist(get(X))),".",fixed=T),"[[",1)
+  return(temp)
+})
+temp_x <- sapply(list(ALL=de_all,CT=de_ct,DS=de_ds),function(DE)
+  sapply(unlist(DE,recursive=F,use.names=F),length),simplify=F)
 
-plot(unlist(sapply(mean_lfc,"[","nts_lfc")),
-     -log10(unlist(sapply(mean_lfc,"[","nts_fdr"))),
-     pch=".")
+par(mfrow=c(1,4),mar=c(5,4,1,0.5),mgp=2:0)
+boxplot(temp_y,ylim=range(temp_y),outline=T,xaxt="n",yaxt="n",ylab=NA)
+text(c(1.5,2.5),line2user(-0.2,3),srt=90,adj=1,cex=1.2,
+     labels=paste("p =",c(signif(wilcox.test(unlist(P_all),unlist(P_ct))$p.value,2),
+                          signif(wilcox.test(unlist(P_ct),unlist(P_ds))$p.value,2))))
+axis(2,cex.axis=1.2)
+mtext("-log10(P # DE overlapping by chance)",side=2,line=2.5)
+text(1:3,line2user(0.5,1),xpd=NA,srt=45,adj=1,cex=1.4,font=2,
+     labels=c("Across all","Cell type","Lab"))
+
+par(mar=c(5,0,1,0.5))
+temp <- mapply(function(X,Y,N) {
+  plot(NA,NA,xlim=range(X),ylim=range(temp_y),
+       xaxt="n",yaxt="n",ylab=NA,xlab=NA)
+  temp_X <- X; temp_Y <- Y
+  temp_X[temp_X == 0] <- -abs(jitter(temp_X[temp_X == 0],amount=abs(par("usr")[1]) / 2))
+  temp_Y[temp_Y == 0] <- -abs(jitter(temp_Y[temp_Y == 0],amount=abs(par("usr")[3]) / 2))
+  points(temp_X,temp_Y,pch=19,cex=1.5,
+         col=lig_col[names(temp_Y)])
+  Z <- Y >= -log10(0.05)
+  if (!any(Z)) { Z <- Y > 0 }
+  temp_labels <- scClustViz::spreadLabels2(temp_X[Z],temp_Y[Z],label=names(temp_Y)[Z],
+                                           str.cex=1.5,str.font=2)
+  text(temp_labels,labels=names(temp_Y)[Z],cex=1.2,font=2,
+       col=alpha(lig_col[names(temp_Y)[Z]],1))
+  axis(1,cex.axis=1.2)
+  mtext("# overlapping DE",side=1,line=2.5)
+  mtext(N,side=1,line=4,font=2)
+},X=temp_x,Y=temp_y,N=c("Pairwise across cell types / labs","Within same cell type","Same lab"))
 
 
 ```

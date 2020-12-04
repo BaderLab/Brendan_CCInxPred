@@ -402,14 +402,28 @@ $(document).ready(function () {
 <h2>Differential gene expression</h2>
 <p>Differentially expressed genes were determined by logFC &gt;= 1 and FDR &lt;= 0.1 (as in Browaeys <em>et al.</em>, 2020). This figure shows number of DE genes overlapping across all datasets testing the same ligand vs. datasets testing the same ligand in the same cell type vs. datasets from the same accession number (and same ligand / cell type). P-values for overlap (y-axis) were determined after determining probability of overlapping DE genes by chance through bootstrapping.</p>
 <p><img src="NicheNet_files/figure-html/diffexp_boxplot-1.png" width="864" /></p>
+<p><img src="NicheNet_files/figure-html/diffexp_boxplot_v2-1.png" width="864" /></p>
 <p>Connectivity Map data from the same set of ligands assayed in multiple experiments from the NicheNet datasets.</p>
 <p><img src="NicheNet_files/figure-html/CMap_DE-1.png" width="576" /></p>
-<p><img src="NicheNet_files/figure-html/DE_dot_BMP2-1.png" width="307.2" /></p>
-<p><img src="NicheNet_files/figure-html/DE_dot_IFNG-1.png" width="384" /></p>
-<p><img src="NicheNet_files/figure-html/DE_dot_TNF-1.png" width="412.8" /></p>
-<p><img src="NicheNet_files/figure-html/DE_dot_TGFB1-1.png" width="384" /></p>
-<p><img src="NicheNet_files/figure-html/DE_dot_IFNA1-1.png" width="268.8" /></p>
-<p><img src="NicheNet_files/figure-html/DE_dot_IL1B-1.png" width="307.2" /></p>
+<p>
+  <img src="NicheNet_files/figure-html/DE_dot_BMP2-1.png" width="307.2" />
+  <img src="NicheNet_files/figure-html/DE_dot_IFNG-1.png" width="384" />
+</p>
+<p><strong>BMP2</strong> (left) had CDC20 significantly DE across cell lines in the CMap data.<br />
+<strong>IFNG</strong> (right) had ICAM1, STAT1, and PSMB8 significantly DE across cell lines in the CMap data.</p>
+<p>
+  <img src="NicheNet_files/figure-html/DE_dot_TNF-1.png" width="403.2" />
+  <img src="NicheNet_files/figure-html/DE_dot_TGFB1-1.png" width="384" /> 
+</p>
+<p><strong>TNF</strong> (left) had ICAM1, NFKBIA, RELB, TNFAIP3, IKBKE, SLC2A6, TNIP1, TICAM1, NFKBIE, and NFKB2 significantly DE across cell lines in the CMap data.<br />
+<strong>TGFB1</strong> (right) had no significantly DE genes across all cell lines in CMap, but the average logFC of TGFBR3 was higher than expected by chance across all cell types in these datasets.</p>
+<p>
+  <img src="NicheNet_files/figure-html/DE_dot_IFNA1-1.png" width="268.8" />
+  <img src="NicheNet_files/figure-html/DE_dot_IL1B-1.png" width="307.2" /> 
+</p>
+<p><strong>INFA1</strong> (left) had no significantly DE genes across all cell lines in CMap, but the average logFC of a number of genes was higher than expected by chance across all cell types in these datasets.<br />
+<strong>IL1B</strong> (right) had no significantly DE genes across all cell lines in CMap, but the average logFC of a number of genes was higher than expected by chance across all cell types in these datasets.</p>
+<hr />
 </div>
 </div>
 <div id="after-removing-time-series-data" class="section level1">
@@ -421,6 +435,7 @@ $(document).ready(function () {
 <div id="differential-gene-expression-1" class="section level2">
 <h2>Differential gene expression</h2>
 <p><img src="NicheNet_files/figure-html/noTS_diffexp_boxplot-1.png" width="864" /></p>
+<p><img src="NicheNet_files/figure-html/noTS_diffexp_boxplot_v2-1.png" width="864" /></p>
 </div>
 </div>
 
