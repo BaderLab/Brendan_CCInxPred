@@ -7,7 +7,6 @@ library(cmapR)
 library(colorspace)
 library(scales)
 source("~/Dropbox/GDB/line2user.R")
-.PAR <- par(no.readonly=T)
 ```
 
 ```{r FX, echo=F,message=F,warning=F}
@@ -139,8 +138,6 @@ DE_heatmap <- function(FDR_all,pDE_all,data_name=c("Ligands","Cell lines"),aCut=
        labels=c(0,max(scoreDE)))
   mtext("-log10(P)",side=1,line=2.7,at=2.75)
   mtext("# DE at FDR thresholds",side=4)
-  
-  par(.PAR)
 }
 
 
@@ -207,8 +204,6 @@ pDE_heatmap <- function(pDEvector) {
        xright=temp_right,ybottom=line2user(1,1),ytop=line2user(1.6,1),
        xpd=NA,col=NA,border="dodgerblue")
   mtext("p <= 0.05",side=1,las=0,col="dodgerblue",cex=0.9,line=0,adj=1,at=temp_right)
-  
-  par(.PAR)
 }
 
 
@@ -267,7 +262,6 @@ BoxP <- function(DSname) {
     mtext(paste0("FDR = ",c(10,5,1,0.1),"%"),
           side=1,line=3.5,at=seq(2.5,by=5,length.out=4))
   }
-  par(.PAR)
 }
 ```
 
@@ -276,7 +270,6 @@ BoxP <- function(DSname) {
 temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs_allgenes.RData")
 lvl4_data <- lvl4_data_all
 rm(list=temp)
-
 ```
 
 Calculating significantly differentially expressed genes by Z-score threshold (90th, 95th, and 99th percentile).  No weighting during averaging (unlike Connectivity Map level 5 data, which weights correlated replicates higher).

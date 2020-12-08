@@ -231,7 +231,7 @@ temp_nts_genes <- Reduce(intersect,sapply(nn_db[temp_nts],function(X) X$diffexp$
 mean_lfc_nts_bkgd <- pbsapply(
   2:max(sapply(DSinfo,function(X) sum(!X$time_series))),
   function(X)
-    sapply(1:1e2,function(Y)
+    sapply(1:1e3,function(Y)
       rowMeans(sapply(nn_db[sample(temp_nts,X)],
                       function(X) {
                         temp <- X$diffexp$lfc
@@ -246,7 +246,7 @@ temp_ts_genes <- Reduce(intersect,sapply(nn_db[temp_ts],function(X) X$diffexp$ge
 mean_lfc_ts_bkgd <- pbsapply(
   2:max(sapply(DSinfo,function(X) sum(X$time_series))),
   function(X)
-    sapply(1:1e2,function(Y)
+    sapply(1:1e3,function(Y)
       rowMeans(sapply(nn_db[sample(temp_ts,X)],
                       function(X) {
                         temp <- X$diffexp$lfc
@@ -258,7 +258,7 @@ colnames(mean_lfc_ts_bkgd) <- 2:max(sapply(DSinfo,function(X) sum(X$time_series)
 
 
 # DE by mean LFC ----
-mean_lfc <- list()
+mean_lfc <- mean_lfc_CT <- mean_lfc_DS <- list()
 for (LIG in nn_ligands) {
   print(paste(which(nn_ligands == LIG),"/",length(nn_ligands)))
   temp_ts <- DSinfo[[LIG]][colnames(nn_lig_rep[[LIG]]$lfc),"time_series"]
@@ -266,9 +266,45 @@ for (LIG in nn_ligands) {
   if (sum(!temp_ts) > 1) {
     mean_lfc[[LIG]] <- data.frame(nts_lfc=rowMeans(nn_lig_rep[[LIG]]$lfc[,!temp_ts]))
     mean_lfc[[LIG]]$nts_pval <- pbsapply(mean_lfc[[LIG]]$nts_lfc,function(X) 
-      sum(mean_lfc_nts_bkgd[,as.character(sum(!temp_ts))] >= X) / nrow(mean_lfc_nts_bkgd),
-      cl=12)
+      2 * min(
+        c(sum(mean_lfc_nts_bkgd[,as.character(sum(!temp_ts))] >= X) / nrow(mean_lfc_nts_bkgd),
+          sum(mean_lfc_nts_bkgd[,as.character(sum(!temp_ts))] <= X) / nrow(mean_lfc_nts_bkgd))
+      ),cl=8)
+    mean_lfc[[LIG]]$nts_pval[mean_lfc[[LIG]]$nts_pval == 0] <- 2 / nrow(mean_lfc_nts_bkgd)
     mean_lfc[[LIG]]$nts_fdr <- p.adjust(mean_lfc[[LIG]]$nts_pval,"fdr")
+    
+    temp_CT2 <- unique(DSinfo[[LIG]][!temp_ts,"cell_type"])
+    temp_CT <- sapply(temp_CT2,function(X) 
+      rownames(DSinfo[[LIG]])[DSinfo[[LIG]]$cell_type == X & !temp_ts],
+      simplify=F)
+    temp_CT <- temp_CT[sapply(temp_CT,length) > 1]
+    for (CT in names(temp_CT)) {
+      mean_lfc_CT[[LIG]][[CT]] <- data.frame(lfc=rowMeans(nn_lig_rep[[LIG]]$lfc[,temp_CT[[CT]]]))
+      mean_lfc_CT[[LIG]][[CT]]$pval <- pbsapply(mean_lfc_CT[[LIG]][[CT]]$lfc,function(X) 
+        2 * min(
+          c(sum(mean_lfc_nts_bkgd[,as.character(length(temp_CT[[CT]]))] >= X) / nrow(mean_lfc_nts_bkgd),
+            sum(mean_lfc_nts_bkgd[,as.character(length(temp_CT[[CT]]))] <= X) / nrow(mean_lfc_nts_bkgd))
+        ),cl=8)
+      mean_lfc_CT[[LIG]][[CT]]$pval[mean_lfc_CT[[LIG]][[CT]]$pval == 0] <- 2 / nrow(mean_lfc_nts_bkgd)
+      mean_lfc_CT[[LIG]][[CT]]$fdr <- p.adjust(mean_lfc_CT[[LIG]][[CT]]$pval,"fdr")
+    }
+ 
+    temp_DS2 <- unique(DSinfo[[LIG]][!temp_ts,"CtAcc"])
+    temp_DS <- sapply(temp_DS2,function(X) 
+      rownames(DSinfo[[LIG]])[DSinfo[[LIG]]$CtAcc == X & !temp_ts],
+      simplify=F)
+    temp_DS <- temp_DS[sapply(temp_DS,length) > 1]
+    for (DS in names(temp_DS)) {
+      mean_lfc_DS[[LIG]][[DS]] <- data.frame(lfc=rowMeans(nn_lig_rep[[LIG]]$lfc[,temp_DS[[DS]]]))
+      mean_lfc_DS[[LIG]][[DS]]$pval <- pbsapply(mean_lfc_DS[[LIG]][[DS]]$lfc,function(X) 
+        2 * min(
+          c(sum(mean_lfc_nts_bkgd[,as.character(length(temp_DS[[DS]]))] >= X) / nrow(mean_lfc_nts_bkgd),
+            sum(mean_lfc_nts_bkgd[,as.character(length(temp_DS[[DS]]))] <= X) / nrow(mean_lfc_nts_bkgd))
+        ),cl=8)
+      mean_lfc_DS[[LIG]][[DS]]$pval[mean_lfc_DS[[LIG]][[DS]]$pval == 0] <- 2 / nrow(mean_lfc_nts_bkgd)
+      mean_lfc_DS[[LIG]][[DS]]$fdr <- p.adjust(mean_lfc_DS[[LIG]][[DS]]$pval,"fdr")
+    }
+    
   }
   if (sum(temp_ts) > 1) {
     if (is.null(mean_lfc[[LIG]])) {
@@ -278,12 +314,13 @@ for (LIG in nn_ligands) {
     }
     mean_lfc[[LIG]]$ts_pval <- pbsapply(mean_lfc[[LIG]]$ts_lfc,function(X) 
       sum(mean_lfc_ts_bkgd[,as.character(sum(temp_ts))] >= X) / nrow(mean_lfc_ts_bkgd),
-      cl=12)
+      cl=8)
+    mean_lfc[[LIG]]$ts_pval[mean_lfc[[LIG]]$ts_pval == 0] <- 1 / nrow(mean_lfc_ts_bkgd)
     mean_lfc[[LIG]]$ts_fdr <- p.adjust(mean_lfc[[LIG]]$ts_pval,"fdr")
   }
 }
 
 
-save(mean_lfc,
+save(mean_lfc,mean_lfc_CT,mean_lfc_DS,
      file="~/Dropbox/GDB_archive/CMapCorr_files/NN_all_DEmeanlfc.RData")
 

@@ -454,7 +454,7 @@ The exemplar of consistent misclassification is IL17A in VCAP prostate tumour li
 ## Ligand response genes per cell type
 
 ```{r lig_genes_per_ct,echo=FALSE,message=FALSE,warning=FALSE}
-if (!file.exists("output_figs/TNF.png")) {
+if (!file.exists("docs/output_figs/TNF.png")) {
   for (LIG in lig16) {
     temp_lig <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname == LIG &
                                             lvl5_data@cdesc$cell_id %in% ct14]
@@ -484,7 +484,7 @@ if (!file.exists("output_figs/TNF.png")) {
     rownames(temp_heat) <- lvl5_data@rdesc[rownames(tempZTtop),"pr_gene_symbol"]
     temp_heat <- t(temp_heat)
     
-    png(paste0("output_figs/",LIG,".png"),width=10,height=5,units="in",res=300)
+    png(paste0("docs/output_figs/",LIG,".png"),width=10,height=5,units="in",res=300)
     par(mar=c(0.5,13.5,4.5,0.5),mgp=2:0,las=2)
     image(z=t(temp_heat)[,seq(nrow(temp_heat),1)],
           x=1:ncol(temp_heat),y=1:nrow(temp_heat),
@@ -523,7 +523,7 @@ if (!file.exists("output_figs/TNF.png")) {
          pos=1,xpd=NA,cex=0.8)
     dev.off()
     
-    png(paste0("output_figs/",LIG,"_sm.png"),width=220,height=110,units="px")
+    png(paste0("docs/output_figs/",LIG,"_sm.png"),width=220,height=110,units="px")
     par(mar=c(.2,.5,.2,.2),mgp=2:0,las=2)
     image(z=t(temp_heat)[,seq(nrow(temp_heat),1)],
           x=1:ncol(temp_heat),y=1:nrow(temp_heat),

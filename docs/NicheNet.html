@@ -403,26 +403,74 @@ $(document).ready(function () {
 <p>Differentially expressed genes were determined by logFC &gt;= 1 and FDR &lt;= 0.1 (as in Browaeys <em>et al.</em>, 2020). This figure shows number of DE genes overlapping across all datasets testing the same ligand vs. datasets testing the same ligand in the same cell type vs. datasets from the same accession number (and same ligand / cell type). P-values for overlap (y-axis) were determined after determining probability of overlapping DE genes by chance through bootstrapping.</p>
 <p><img src="NicheNet_files/figure-html/diffexp_boxplot-1.png" width="864" /></p>
 <p><img src="NicheNet_files/figure-html/diffexp_boxplot_v2-1.png" width="864" /></p>
+<p>Similar to CMap analyses, took mean LogFC across all samples treated with the same ligand, or same ligand in the same cell line, or from the same accession number (and same ligand / cell line).</p>
+<p><img src="NicheNet_files/figure-html/mean_LFC_hist-1.png" width="480" /></p>
 <p>Connectivity Map data from the same set of ligands assayed in multiple experiments from the NicheNet datasets.</p>
-<p><img src="NicheNet_files/figure-html/CMap_DE-1.png" width="576" /></p>
+<p><img src="NicheNet_files/figure-html/CMap_DE_load-1.png" width="864" /></p>
+<p>Modified heatmaps showing logFC and FDR for selected genes from each sample from the NicheNet gold standard, as well as averages across all samples, all cell types, and all datasets where available. The figure below is an example for TNF.</p>
 <p>
-  <img src="NicheNet_files/figure-html/DE_dot_BMP2-1.png" width="307.2" />
-  <img src="NicheNet_files/figure-html/DE_dot_IFNG-1.png" width="384" />
+<a href="output_figs/NN_BDNF.png">BDNF</a>
 </p>
-<p><strong>BMP2</strong> (left) had CDC20 significantly DE across cell lines in the CMap data.<br />
-<strong>IFNG</strong> (right) had ICAM1, STAT1, and PSMB8 significantly DE across cell lines in the CMap data.</p>
 <p>
-  <img src="NicheNet_files/figure-html/DE_dot_TNF-1.png" width="403.2" />
-  <img src="NicheNet_files/figure-html/DE_dot_TGFB1-1.png" width="384" /> 
+<a href="output_figs/NN_BMP2.png">BMP2</a>
 </p>
-<p><strong>TNF</strong> (left) had ICAM1, NFKBIA, RELB, TNFAIP3, IKBKE, SLC2A6, TNIP1, TICAM1, NFKBIE, and NFKB2 significantly DE across cell lines in the CMap data.<br />
-<strong>TGFB1</strong> (right) had no significantly DE genes across all cell lines in CMap, but the average logFC of TGFBR3 was higher than expected by chance across all cell types in these datasets.</p>
 <p>
-  <img src="NicheNet_files/figure-html/DE_dot_IFNA1-1.png" width="268.8" />
-  <img src="NicheNet_files/figure-html/DE_dot_IL1B-1.png" width="307.2" /> 
+<a href="output_figs/NN_CXCL12.png">CXCL12</a>
 </p>
-<p><strong>INFA1</strong> (left) had no significantly DE genes across all cell lines in CMap, but the average logFC of a number of genes was higher than expected by chance across all cell types in these datasets.<br />
-<strong>IL1B</strong> (right) had no significantly DE genes across all cell lines in CMap, but the average logFC of a number of genes was higher than expected by chance across all cell types in these datasets.</p>
+<p>
+<a href="output_figs/NN_EGF.png">EGF</a> - <a href="output_figs/NN_EGF_noTS.png">EGF (no time-series)</a>
+</p>
+<p>
+<a href="output_figs/NN_HGF.png">HGF</a>
+</p>
+<p>
+<a href="output_figs/NN_IFNA1.png">IFNA1</a>
+</p>
+<p>
+<a href="output_figs/NN_IFNG.png">IFNG</a> - <a href="output_figs/NN_IFNG_noTS.png">IFNG (no time-series)</a>
+</p>
+<p>
+<a href="output_figs/NN_IGF1.png">IGF1</a>
+</p>
+<p>
+<a href="output_figs/NN_IL10.png">IL10</a>
+</p>
+<p>
+<a href="output_figs/NN_IL13.png">IL13</a> - <a href="output_figs/NN_IL13_noTS.png">IL13 (no time-series)</a>
+</p>
+<p>
+<a href="output_figs/NN_IL15.png">IL15</a>
+</p>
+<p>
+<a href="output_figs/NN_IL1B.png">IL1B</a> - <a href="output_figs/NN_IL1B_noTS.png">IL1B (no time-series)</a>
+</p>
+<p>
+<a href="output_figs/NN_IL4.png">IL4</a> - <a href="output_figs/NN_IL4_noTS.png">IL4 (no time-series)</a>
+</p>
+<p>
+<a href="output_figs/NN_PDGFB.png">PDGFB</a>
+</p>
+<p>
+<a href="output_figs/NN_SHH.png">SHH</a> - <a href="output_figs/NN_SHH_noTS.png">SHH (no time-series)</a>
+</p>
+<p>
+<a href="output_figs/NN_TGFB1.png">TGFB1</a> - <a href="output_figs/NN_TGFB1_noTS.png">TGFB1 (no time-series)</a>
+</p>
+<p>
+<a href="output_figs/NN_TGFB3.png">TGFB3</a>
+</p>
+<p>
+<a href="output_figs/NN_TNF.png">TNF</a> - <a href="output_figs/NN_TNF_noTS.png">TNF (no time-series)</a>
+</p>
+<p>
+<a href="output_figs/NN_VEGFA.png">VEGFA</a> - <a href="output_figs/NN_VEGFA_noTS.png">VEGFA (no time-series)</a>
+</p>
+<p>
+<a href="output_figs/NN_WNT1.png">WNT1</a> - <a href="output_figs/NN_WNT1_noTS.png">WNT1 (no time-series)</a>
+</p>
+<p>
+<img src="output_figs/NN_TNF_noTS.png"/>
+</p>
 <hr />
 </div>
 </div>
