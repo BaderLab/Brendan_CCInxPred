@@ -304,7 +304,7 @@ DE_dotplot <- function(LIG,GENES,exclude=c()) {
   # abline(v=1:nrow(LFC),col="grey90")
   # abline(h=1:ncol(LFC),col="grey90")
   
-  temp_FG <- temp_BG <- diverging_hcl(1000,palette="Blue-Red")[as.vector(LFC)]
+  temp_FG <- temp_BG <- diverging_hcl(1000,palette="Blue-Red3")[as.vector(LFC)]
   temp_FG[as.vector(DE)] <- "mediumseagreen"
   symbols(x=rep(1:nrow(FDR),ncol(FDR)),
           y=as.vector(sapply(1:ncol(FDR),function(X) rep(X,nrow(FDR)))),
@@ -327,7 +327,7 @@ DE_dotplot <- function(LIG,GENES,exclude=c()) {
            y1=seq(0.6 * temp_yh + par("usr")[3],
                   0.9 * temp_yh + par("usr")[3],
                   length.out=1000),
-           xpd=NA,col=diverging_hcl(1000,palette="Blue-Red"))
+           xpd=NA,col=diverging_hcl(1000,palette="Blue-Red3"))
   rect(xleft=line2user(5,2),xright=line2user(4,2),
        ytop=0.9 * temp_yh + par("usr")[3],
        ybottom=(((0.9 - 0.75) * (1 / max(ogLFC))) + 0.75) * temp_yh + par("usr")[3],
@@ -379,8 +379,8 @@ DE_dotplot_forCMap <- function(ogFDR,MAIN) {
   symbols(x=rep(1:nrow(FDR),ncol(FDR)),
           y=as.vector(sapply(1:ncol(FDR),function(X) rep(X,nrow(FDR)))),
           circles=as.vector(FDR)/2,inches=F,add=T,xpd=NA,
-          fg=diverging_hcl(1000,palette="Blue-Red")[as.vector(ZS)],
-          bg=diverging_hcl(1000,palette="Blue-Red")[as.vector(ZS)])
+          fg=diverging_hcl(1000,palette="Blue-Red3")[as.vector(ZS)],
+          bg=diverging_hcl(1000,palette="Blue-Red3")[as.vector(ZS)])
   mtext(colnames(FDR),side=2,at=seq_along(colnames(FDR)),las=2,line=0.1,cex=0.8)
   mtext("Ligands",side=2,line=2.5)
   mtext(lvl4_data@rdesc[rownames(FDR),"pr_gene_symbol"],
@@ -395,7 +395,7 @@ DE_dotplot_forCMap <- function(ogFDR,MAIN) {
            y1=seq(0.6 * temp_yh + par("usr")[3],
                   0.9 * temp_yh + par("usr")[3],
                   length.out=1000),
-           xpd=NA,col=diverging_hcl(1000,palette="Blue-Red"))
+           xpd=NA,col=diverging_hcl(1000,palette="Blue-Red3"))
   mtext(c(signif(max(abs(ogZS)),2),"Z-score",-1 * signif(max(abs(ogZS)),2)),
         side=2,line=c(4,5.1,4),adj=c(-0.1,0.5,1.1),
         at=c(0.9,0.75,0.6) * temp_yh + par("usr")[3])
@@ -632,6 +632,22 @@ for (LIG in sort(nn_ligands)) {
 
 cat('<p><img src="output_figs/NN_TNF_noTS.png"/></p>')
 ```
+
+****
+
+```{r load_lvl5, echo=F,message=F,warning=F}
+load("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_inputs_allgenes.RData")
+rm(lig16)
+
+Y <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname == "TNF"]
+X <- rownames(lvl5_data@mat)[unique(apply(lvl5_data@mat[,Y],2,which.max))]
+
+
+
+image(lvl5_data@mat[X,Y])
+
+```
+
 
 
 ****
