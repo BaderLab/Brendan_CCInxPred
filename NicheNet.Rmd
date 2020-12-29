@@ -2,16 +2,228 @@
 title: "Re-analysis of NicheNet dataset"
 ---
   
-```{r setup, echo=F,message=F,warning=F}
+```{r setup, include=F}
 library(colorspace)
 library(scales)
+source("~/Dropbox/GDB/line2user.R")
+knitr::opts_chunk$set(
+  echo=F,
+  message=F,
+  warning=F
+)
+```
+
+
+# NicheNet calculation sanity check
+
+```{r load_raw}
+setwd("~/Dropbox/GDB_archive/CMapCorr_files/GSE47542_RAW/")
+
+temp_TNF_p <- c("GSM1151945_Agilent_251485053931_S01_GE2_107_Sep09_1_4.txt.gz",
+                "GSM1151946_Agilent_251485053932_S01_GE2_107_Sep09_1_4.txt.gz",
+                "GSM1151950_Agilent_251485054074_S01_GE2_107_Sep09_1_4.txt.gz")
+temp_TNF_m <- c("GSM1151933_Agilent_251485053931_S01_GE2_107_Sep09_1_2.txt.gz",
+                "GSM1151934_Agilent_251485053932_S01_GE2_107_Sep09_1_2.txt.gz",
+                "GSM1151938_Agilent_251485054074_S01_GE2_107_Sep09_1_2.txt.gz")
+temp_CTRL_p <- c("GSM1151939_Agilent_251485053931_S01_GE2_107_Sep09_1_3.txt.gz",
+                 "GSM1151940_Agilent_251485053932_S01_GE2_107_Sep09_1_3.txt.gz",
+                 "GSM1151947_Agilent_251485054010_S01_GE2_107_Sep09_1_4.txt.gz")
+temp_CTRL_m <- c("GSM1151928_Agilent_251485053932_S01_GE2_107_Sep09_1_1.txt.gz",
+                 "GSM1151935_Agilent_251485054010_S01_GE2_107_Sep09_1_2.txt.gz",
+                 "GSM1151951_Agilent_251485053931_S01_GE2_107_Sep09_1_1.txt.gz")
+
+TNFp <- sapply(temp_TNF_p,function(X) {
+  DS <- read.table(X,sep="\t",header=T,
+                   skip=which(grepl("^FEAT",scan(X,"character",sep="\n"))) - 1)
+  return(DS[DS$SystematicName == "NM_000201","LogRatio"])
+},USE.NAMES=F)
+
+TNFm <- sapply(temp_TNF_m,function(X) {
+  DS <- read.table(X,sep="\t",header=T,
+                   skip=which(grepl("^FEAT",scan(X,"character",sep="\n"))) - 1)
+  return(DS[DS$SystematicName == "NM_000201","LogRatio"])
+},USE.NAMES=F)
+
+CTRLp <- sapply(temp_CTRL_p,function(X) {
+  DS <- read.table(X,sep="\t",header=T,
+                   skip=which(grepl("^FEAT",scan(X,"character",sep="\n"))) - 1)
+  return(DS[DS$SystematicName == "NM_000201","LogRatio"])
+},USE.NAMES=F)
+
+CTRLm <- sapply(temp_CTRL_m,function(X) {
+  DS <- read.table(X,sep="\t",header=T,
+                   skip=which(grepl("^FEAT",scan(X,"character",sep="\n"))) - 1)
+  return(DS[DS$SystematicName == "NM_000201","LogRatio"])
+},USE.NAMES=F)
+
+rm(list=grep("^temp",ls(),value=T))
+```
+
+```{r importNN}
+nn_db <- readRDS(url("https://zenodo.org/record/3260758/files/expression_settings.rds"))
+nn_db <- nn_db[sapply(sapply(nn_db,"[[","from"),length) == 1]
+
+diff_M <- nn_db$cifola_Tnf$diffexp[nn_db$cifola_Tnf$diffexp$gene == "ICAM1",c("lfc","qval")]
+diff_P <- nn_db$cifola_Tnf_plastic$diffexp[nn_db$cifola_Tnf_plastic$diffexp$gene == "ICAM1",c("lfc","qval")]
+```
+
+```{r plot_raw,fig.height=4,fig.width=6}
+par(mar=c(3,3,3,1),mgp=2:0)
+boxplot(list(TNFp=as.vector(TNFp),
+             CTRLp=as.vector(CTRLp),
+             TNFm=as.vector(TNFm),
+             CTRLm=as.vector(CTRLm)),
+        main="ICAM1 expression",
+        ylab="Log-ratio vs reference RNA")
+
+text(1.5,par("usr")[3] + (par("usr")[4] - par("usr")[3]) / 2,
+     paste("NicheNet",
+           paste0("logFC = ",signif(diff_P$lfc,2)),
+           paste0("FDR = ",signif(diff_P$qval,2)),
+           sep="\n"))
+
+text(3.5,par("usr")[3] + (par("usr")[4] - par("usr")[3]) / 2,
+     paste("NicheNet",
+           paste0("logFC = ",signif(diff_M$lfc,2)),
+           paste0("FDR = ",signif(diff_M$qval,2)),
+           sep="\n"))
+
+```
+
+Looks like the sign of the logFC is flipped in the NicheNet calculations.  Multiplying logFC values from the NicheNet dataset by -1 for the remainder of this analysis.
+
+```{r cleanup_sanity_check}
+rm(list=ls())
 source("~/Dropbox/GDB/line2user.R")
 ```
 
 
-# Using all data
+# Comparing across vs within cell type per ligand treatment 
 
-```{r all_load_data, echo=F,message=F,warning=F}
+Previous analysis (see below) included a "within lab" category that was unclear, so it has been removed.  
+All data (including time-series) is included in this analysis.  NicheNet calculation of time-series data seems to result in all positive logFC values, so that makes some things a little screwy.  In those cases, time-series data was only compared to other time-series data.  
+
+```{r AvC_load_data}
+load("~/Dropbox/GDB_archive/CMapCorr_files/NN_ALLvCT_dat.RData")
+load("~/Dropbox/GDB_archive/CMapCorr_files/NN_ALLvCT_corr.RData")
+# load("~/Dropbox/GDB_archive/CMapCorr_files/NN_ALLvCT_DEovlp.RData")
+```
+
+## Correlation
+
+```{r AvC_corr_plot,fig.height=4,fig.width=9}
+temp_order <- names(sort(sapply(unique(c(names(corr_all),names(corr_ct))),
+                                function(X) mean(c(corr_all[[X]],corr_ct[[X]])))))
+lig_col <- qualitative_hcl(length(nn_ligands),palette="dark3",alpha=0.5)
+temp_colnames <- c(temp_order,nn_ligands[!nn_ligands %in% temp_order])
+names(lig_col) <- temp_colnames[unlist(sapply(seq(1,ceiling(length(nn_ligands)/2)),
+                                              function(X) c(X,X + ceiling(length(nn_ligands)/2)),
+                                              simplify=F))]
+temp_corr <- list(ALL=corr_all[temp_order[temp_order %in% names(corr_all)]],
+               CT=corr_ct[temp_order[temp_order %in% names(corr_ct)]])
+temp_lig <- sapply(strsplit(names(unlist(temp_corr,recursive=F)),".",fixed=T),"[[",2)
+
+
+layout(rbind(1:2),widths=c(4,1))
+
+par(mar=c(5,3,1,0.5),mgp=2:0)
+plot(NA,NA,xlim=c(1,length(unlist(temp_corr,recursive=F))),ylim=range(temp_corr),
+     xaxt="n",xlab=NA,ylab="Spearman correlation of log(fold-change)")
+abline(v=sapply(temp_corr,length)[1] + 0.5,col="grey70")
+abline(h=0,lty=2,col="grey50")
+temp_x <- unlist(mapply(rep,x=seq_along(unlist(temp_corr,recursive=F)),
+                        times=sapply(unlist(temp_corr,recursive=F),length)))
+points(x=jitter(temp_x,amount=0.2),y=unlist(temp_corr),
+       pch=19,col=lig_col[temp_lig][temp_x])
+mtext(temp_lig,side=1,line=0.1,at=seq_along(temp_lig),las=3,col=alpha(lig_col[temp_lig],1))
+
+segments(x0=c(0,sapply(temp_corr,length)[1]) + 0.75,
+         x1=cumsum(sapply(temp_corr,length)) + 0.25,
+         y0=line2user(4,1),y1=line2user(4,1),xpd=NA,lwd=2)
+segments(x0=c(c(0,sapply(temp_corr,length)[1]) + 0.75,
+              cumsum(sapply(temp_corr,length)) + 0.25),
+         x1=c(c(0,sapply(temp_corr,length)[1]) + 0.75,
+              cumsum(sapply(temp_corr,length)) + 0.25),
+         y0=line2user(4,1),y1=line2user(3.8,1),xpd=NA,lwd=2)
+mtext(c("Pairwise across all cell types","Pairwise within same cell type"),
+      at=0.5 + cumsum(sapply(temp_corr,length)) - sapply(temp_corr,length) / 2,
+      side=1,line=4)
+
+
+par(mar=c(5,0,1,3))
+boxplot(list(ALL=unlist(corr_all),CT=unlist(corr_ct)),
+        xaxt="n",xlab=NA,yaxt="n",ylab=NA)
+axis(4)
+mtext("Spearman correlation of log(fold-change)",side=4,line=2)
+mtext(c("Across all","Cell type"),side=1,line=0.1,at=1:2,las=3)
+
+mtext(paste0("p=",signif(wilcox.test(unlist(corr_all),unlist(corr_ct))$p.value,2)),
+      side=1,line=-0.1,at=1.5,las=3,adj=0,cex=0.7)
+
+rm(list=grep("^temp",ls(),value=T))
+```
+
+## Differential gene expression
+
+Differentially expressed genes were determined by |logFC| >= 1 and FDR <= 0.1 (similar to Browaeys *et al.*, 2020).  This figure shows number of DE genes overlapping across all datasets testing the same ligand vs. datasets testing the same ligand in the same cell type vs. datasets from the same accession number (and same ligand / cell type).  P-values for overlap (y-axis) were determined after determining probability of overlapping DE genes by chance through bootstrapping.
+
+```{r AvC_diffexp_boxplot_v2,fig.height=8,fig.width=9}
+par(mfrow=c(2,6),mgp=2:0)
+for (charLFC in c("2","4")) {
+  for (charFDR in c("1","01")) {
+    load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/NN_ALLvCT_DEovlp_",
+                "LFC",charLFC,"FDR",charFDR,".RData"))
+    LFC <- log2(as.integer(charLFC))
+    FDR <- as.numeric(paste0("0.",charFDR))
+    temp_y <- lapply(c("P_all","P_ct"),function(X) {
+      temp <- -log10(unlist(get(X)))
+      names(temp) <- sapply(strsplit(names(unlist(get(X))),".",fixed=T),"[[",1)
+      return(temp)
+    })
+    temp_x <- sapply(list(ALL=de_all,CT=de_ct),function(DE)
+      sapply(unlist(DE,recursive=F,use.names=F),length),simplify=F)
+    
+    par(mar=c(5,4,2,0.5))
+    boxplot(temp_y,ylim=range(temp_y),outline=T,xaxt="n",yaxt="n",ylab=NA)
+    text(1.5,line2user(-0.2,3),srt=90,adj=1,cex=1.2,
+         labels=paste("p =",signif(wilcox.test(unlist(P_all),unlist(P_ct))$p.value,2)))
+    axis(2,cex.axis=1.2)
+    mtext("-log10(P # DE overlapping by chance)",side=2,line=2.5)
+    text(1:2,line2user(0.5,1),xpd=NA,srt=45,adj=1,cex=1.4,font=2,
+         labels=c("Across all","Cell type"))
+    mtext(paste("DE: |Log2FC| >=",LFC,"& FDR <=",FDR),
+          side=3,line=0.2,at=2.5,adj=0,font=2)
+    
+    par(mar=c(5,0,2,0.5))
+    temp <- mapply(function(X,Y,N) {
+      plot(NA,NA,xlim=range(X),ylim=range(temp_y),
+           xaxt="n",yaxt="n",ylab=NA,xlab=NA)
+      temp_X <- X; temp_Y <- Y
+      temp_X[temp_X == 0] <- -abs(jitter(temp_X[temp_X == 0],amount=abs(par("usr")[1]) / 2))
+      temp_Y[temp_Y == 0] <- -abs(jitter(temp_Y[temp_Y == 0],amount=abs(par("usr")[3]) / 2))
+      points(temp_X,temp_Y,pch=19,cex=1.5,
+             col=lig_col[names(temp_Y)])
+      Z <- Y >= -log10(0.05)
+      if (!any(Z)) { Z <- Y > 0 }
+      temp_labels <- scClustViz::spreadLabels2(temp_X[Z],temp_Y[Z],label=names(temp_Y)[Z],
+                                               str.cex=1.5,str.font=2)
+      text(temp_labels,labels=names(temp_Y)[Z],cex=1.2,font=2,
+           col=alpha(lig_col[names(temp_Y)[Z]],1))
+      axis(1,cex.axis=1.2)
+      mtext("# overlapping DE",side=1,line=2.5)
+      mtext(N,side=1,line=4,font=2)
+    },X=temp_x,Y=temp_y,N=c("Across cell types","Within cell type"))
+  }
+}
+```
+
+
+
+# Using all data (including time-series)
+
+NicheNet calculation of time-series data seems to result in all positive logFC values, so that makes some things a little screwy.  In those cases, time-series data was only compared to other time-series data.  
+
+```{r load_data}
 load("~/Dropbox/GDB_archive/CMapCorr_files/NN_all_dat.RData")
 load("~/Dropbox/GDB_archive/CMapCorr_files/NN_all_corr.RData")
 load("~/Dropbox/GDB_archive/CMapCorr_files/NN_all_DEovlp.RData")
@@ -20,7 +232,7 @@ load("~/Dropbox/GDB_archive/CMapCorr_files/NN_all_DEmeanlfc.RData")
 
 ## Correlation
 
-```{r all_corr_boxplot, echo=F,message=F,warning=F,fig.height=4,fig.width=9}
+```{r corr_boxplot,fig.height=4,fig.width=9}
 par(mar=c(5,3,1,1),mgp=2:0)
 temp <- unlist(sapply(nn_ligands,
                       function(X) 
@@ -37,7 +249,7 @@ abline(v=seq(3.5,by=3,length.out=length(nn_ligands)-1),col="grey50")
 rm(list=grep("^temp",ls(),value=T))
 ```
 
-```{r corr_boxplot_compTS, echo=F,message=F,warning=F,fig.height=4,fig.width=9}
+```{r corr_boxplot_compTS,fig.height=4,fig.width=9}
 par(mfrow=c(1,2),mar=c(3,3,1,1),mgp=2:0)
 boxplot(list(ALL=unlist(corr_all),CT=unlist(corr_ct),DS=unlist(corr_ds)),
         ylab="Spearman correlation of logFC")
@@ -60,7 +272,7 @@ Note that calculating correlation between time-series and non-TS logFC values is
 
 ### Final correlation figure
 
-```{r corr_plot, echo=F,message=F,warning=F,fig.height=4,fig.width=9}
+```{r corr_plot,fig.height=4,fig.width=9}
 temp_order <- names(sort(sapply(unique(c(names(corr_all),names(corr_ct),names(corr_ds))),
                                 function(X) mean(c(corr_all[[X]],corr_ct[[X]],corr_ds[[X]])))))
 lig_col <- qualitative_hcl(length(nn_ligands),palette="dark3",alpha=0.5)
@@ -118,9 +330,11 @@ rm(list=grep("^temp",ls(),value=T))
 
 ## Differential gene expression
 
+### Overlap of DE genes  
+
 Differentially expressed genes were determined by logFC >= 1 and FDR <= 0.1 (as in Browaeys *et al.*, 2020).  This figure shows number of DE genes overlapping across all datasets testing the same ligand vs. datasets testing the same ligand in the same cell type vs. datasets from the same accession number (and same ligand / cell type).  P-values for overlap (y-axis) were determined after determining probability of overlapping DE genes by chance through bootstrapping.
 
-```{r diffexp_boxplot, echo=F,message=F,warning=F,fig.height=4,fig.width=9}
+```{r diffexp_boxplot,fig.height=4,fig.width=9}
 par(mar=c(1.5,3,1,1),mgp=2:0)
 temp_bxp <- list(ALL=-log10(unlist(P_all)),
                  CT=-log10(unlist(P_ct)),
@@ -153,7 +367,7 @@ mtext(paste("p =",c(signif(wilcox.test(unlist(P_all),unlist(P_ct))$p.value,2),
 rm(list=c("X","Z",grep("^temp",ls(),value=T)))
 ```
 
-```{r diffexp_boxplot_v2, echo=F,message=F,warning=F,fig.height=4,fig.width=9}
+```{r diffexp_boxplot_v2,fig.height=4,fig.width=9}
 temp_y <- lapply(c("P_all","P_ct","P_ds"),function(X) {
   temp <- -log10(unlist(get(X)))
   names(temp) <- sapply(strsplit(names(unlist(get(X))),".",fixed=T),"[[",1)
@@ -190,13 +404,55 @@ temp <- mapply(function(X,Y,N) {
   axis(1,cex.axis=1.2)
   mtext("# overlapping DE",side=1,line=2.5)
   mtext(N,side=1,line=4,font=2)
-},X=temp_x,Y=temp_y,N=c("Pairwise across cell types / labs","Within same cell type","Same lab"))
+},X=temp_x,Y=temp_y,N=c("Across cell types / labs","Within same cell type","Same lab"))
 ```
 
 
+### Averaged logFC per ligand  
+
+Similar to CMap analyses, took mean LogFC across all samples treated with the same ligand, or same ligand in the same cell line, or from the same accession number (and same ligand / cell line).  
+
+```{r mean_LFC_hist,fig.height=6,fig.width=5}
+temp_LFC <- list(ALL=unlist(sapply(mean_lfc,"[[","nts_lfc")),
+                 CT=unlist(sapply(unlist(mean_lfc_CT,recursive=F),"[[","lfc")),
+                 DS=unlist(sapply(unlist(mean_lfc_DS,recursive=F),"[[","lfc")))
+temp_range <- range(unlist(temp_LFC))
+
+temp_FDR <- list(ALL=unlist(sapply(mean_lfc,"[[","nts_fdr")),
+                 CT=unlist(sapply(unlist(mean_lfc_CT,recursive=F),"[[","fdr")),
+                 DS=unlist(sapply(unlist(mean_lfc_DS,recursive=F),"[[","fdr")))
 
 
-```{r DEdotplot_fx, echo=F,message=F,warning=F}
+par(mfrow=c(3,1),mar=c(4,3,1,1),mgp=2:0)
+for (X in names(temp_FDR)) {
+  temp_main <- switch(X,
+                      ALL="Mean LogFC per ligand",
+                      CT="By cell type",
+                      DS="By dataset")
+  
+  # hist(temp_LFC[[X]],freq=F,xlim=temp_range,xlab="LogFC",main=temp_main)
+
+  hist(temp_FDR[[X]],freq=F,xlab="FDR",main=temp_main)
+  abline(v=mean(temp_FDR[[X]]),lwd=2,col="red")
+  if (X == "ALL") {
+      legend("topleft",bty="n",lwd=2,col="red",legend="Mean")
+  } else {
+    legend("topleft",bty="n",lwd=c(2,NA,NA),col=c("red",NA,NA),
+           legend=c("Mean","Wilcoxon rank-sum",
+                    paste("p =",signif(wilcox.test(temp_FDR[[X]],temp_FDR[[Y]])$p.value,2))))
+  }
+  # hist(-log10(temp_FDR[[X]]),freq=F,xlim=c(0,temp_max),xlab="-log10(FDR)",main=temp_main)
+  # abline(v=mean(-log10(temp_FDR[[X]])),lwd=2,col="red")
+  # legend("topright",bty="n",legend="Mean",lwd=2,col="red")
+  Y <- X
+}
+
+```
+
+
+### Averaged logFC per ligand compared to CMap  
+
+```{r DEdotplot_fx}
 DE_dotplot <- function(LIG,GENES,exclude=c()) {
   temp_DS <- rownames(DSinfo[[LIG]])
   temp_DS <- temp_DS[!temp_DS %in% exclude]
@@ -382,10 +638,10 @@ DE_dotplot_forCMap <- function(ogFDR,MAIN) {
           fg=diverging_hcl(1000,palette="Blue-Red3")[as.vector(ZS)],
           bg=diverging_hcl(1000,palette="Blue-Red3")[as.vector(ZS)])
   mtext(colnames(FDR),side=2,at=seq_along(colnames(FDR)),las=2,line=0.1,cex=0.8)
-  mtext("Ligands",side=2,line=2.5)
+  mtext("Ligands",side=2,line=2.5,font=2)
   mtext(lvl4_data@rdesc[rownames(FDR),"pr_gene_symbol"],
         side=1,las=2,at=1:nrow(FDR),line=0.1,cex=0.8)
-  mtext("Genes differentially expressed",side=1,line=3.5)
+  mtext("Genes differentially expressed",side=1,line=3.5,font=2)
   
   temp_yh <- par("usr")[4] - par("usr")[3]
   segments(x0=rep(line2user(5,2),1000),x1=rep(line2user(4,2),1000),
@@ -418,49 +674,10 @@ DE_dotplot_forCMap <- function(ogFDR,MAIN) {
 }
 ```
 
-Similar to CMap analyses, took mean LogFC across all samples treated with the same ligand, or same ligand in the same cell line, or from the same accession number (and same ligand / cell line).  
-
-```{r mean_LFC_hist, echo=F,message=F,warning=F,fig.height=6,fig.width=5}
-temp_LFC <- list(ALL=unlist(sapply(mean_lfc,"[[","nts_lfc")),
-                 CT=unlist(sapply(unlist(mean_lfc_CT,recursive=F),"[[","lfc")),
-                 DS=unlist(sapply(unlist(mean_lfc_DS,recursive=F),"[[","lfc")))
-temp_range <- range(unlist(temp_LFC))
-
-temp_FDR <- list(ALL=unlist(sapply(mean_lfc,"[[","nts_fdr")),
-                 CT=unlist(sapply(unlist(mean_lfc_CT,recursive=F),"[[","fdr")),
-                 DS=unlist(sapply(unlist(mean_lfc_DS,recursive=F),"[[","fdr")))
-
-
-par(mfrow=c(3,1),mar=c(4,3,1,1),mgp=2:0)
-for (X in names(temp_FDR)) {
-  temp_main <- switch(X,
-                      ALL="Mean LogFC per ligand",
-                      CT="By cell type",
-                      DS="By dataset")
-  
-  # hist(temp_LFC[[X]],freq=F,xlim=temp_range,xlab="LogFC",main=temp_main)
-
-  hist(temp_FDR[[X]],freq=F,xlab="FDR",main=temp_main)
-  abline(v=mean(temp_FDR[[X]]),lwd=2,col="red")
-  if (X == "ALL") {
-      legend("topleft",bty="n",lwd=2,col="red",legend="Mean")
-  } else {
-    legend("topleft",bty="n",lwd=c(2,NA,NA),col=c("red",NA,NA),
-           legend=c("Mean","Wilcoxon rank-sum",
-                    paste("p =",signif(wilcox.test(temp_FDR[[X]],temp_FDR[[Y]])$p.value,2))))
-  }
-  # hist(-log10(temp_FDR[[X]]),freq=F,xlim=c(0,temp_max),xlab="-log10(FDR)",main=temp_main)
-  # abline(v=mean(-log10(temp_FDR[[X]])),lwd=2,col="red")
-  # legend("topright",bty="n",legend="Mean",lwd=2,col="red")
-  Y <- X
-}
-
-```
-
 
 Connectivity Map data from the same set of ligands assayed in multiple experiments from the NicheNet datasets.
 
-```{r CMap_DE_load, echo=F,message=F,warning=F,fig.height=5,fig.width=9}
+```{r CMap_DE_load,fig.height=5,fig.width=9}
 require(cmapR)
 temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs_allgenes.RData")
 lvl4_data <- lvl4_data_all
@@ -479,7 +696,7 @@ DE_dotplot_forCMap(FDRinf,"CMap (including inferred)")
 ```
 
 
-```{r DE_dot, echo=F,message=F,warning=F}
+```{r DE_dot}
 for (LIG in nn_ligands) {
   # print(paste(LIG,which(nn_ligands == LIG),"/",length(nn_ligands)))
   
@@ -547,7 +764,7 @@ for (LIG in nn_ligands) {
 ```
 
 
-```{r DE_dot_noTS, echo=F,message=F,warning=F}
+```{r DE_dot_noTS}
 for (LIG in nn_ligands) {
   if (sum(!DSinfo[[LIG]]$time_series) < 2) { next }
   # print(paste(LIG,which(nn_ligands == LIG),"/",length(nn_ligands)))
@@ -612,19 +829,25 @@ for (LIG in nn_ligands) {
 }
 ```
 
+
 Modified heatmaps showing logFC and FDR for selected genes from each sample from the NicheNet gold standard, as well as averages across all samples, all cell types, and all datasets where available.  The figure below is an example for TNF.  
 
 ```{r dotplot_links,echo=F,results="asis"}
 temp_files <- list.files("docs/output_figs/",pattern="^NN")
-for (LIG in sort(nn_ligands)) {
-  if (!any(grepl(LIG,temp_files))) { next }
+temp_lig <- matrix(sort(nn_ligands),ncol=4,byrow=T)
+for (L in 1:nrow(temp_lig)) {
   cat("<p>")
-  temp_ligfiles <- grep(paste0("_",LIG,"[._]"),temp_files,value=T)
-  cat(paste0('<a href="output_figs/',temp_ligfiles[!grepl("noTS",temp_ligfiles)],'">',LIG,'</a>'))
-  if (any(grepl("noTS",temp_ligfiles))) {
-    cat(paste0('  -  <a href="output_figs/',
-               temp_ligfiles[grepl("noTS",temp_ligfiles)],
-               '">',LIG,' (no time-series)</a>'))
+  for (LIG in temp_lig[L,]) {
+    if (!any(grepl(LIG,temp_files))) { next }
+    cat(" | ")
+    temp_ligfiles <- grep(paste0("_",LIG,"[._]"),temp_files,value=T)
+    cat(paste0('<a href="output_figs/',temp_ligfiles[!grepl("noTS",temp_ligfiles)],'">',LIG,'</a>'))
+    if (any(grepl("noTS",temp_ligfiles))) {
+      cat(paste0('<a href="output_figs/',
+                 temp_ligfiles[grepl("noTS",temp_ligfiles)],
+                 '">(no time-series)</a>'))
+    }
+    cat(" | ")
   }
   cat("</p>")
   cat("\n")
@@ -633,9 +856,211 @@ for (LIG in sort(nn_ligands)) {
 cat('<p><img src="output_figs/NN_TNF_noTS.png"/></p>')
 ```
 
-****
 
-```{r load_lvl5, echo=F,message=F,warning=F}
+### Comparing NicheNet & CMap expression changes per ligand
+
+```{r CMap_NN_compare}
+for (LIG in sort(nn_ligands)) {
+  if (all(DSinfo[[LIG]]$time_series)) { next }
+  if (!LIG %in% lvl4_data@cdesc$pert_iname) { next }
+  
+  # CMap genes ----
+  CM_ogZS <- sapply(unique(lvl4_data@cdesc$cell_id[lvl4_data@cdesc$pert_iname == LIG]),function(CT) 
+    rowMeans(lvl4_data@mat[,lvl4_data@cdesc$pert_iname == LIG & lvl4_data@cdesc$cell_id == CT]))
+  CM_ogFDR <- apply(CM_ogZS,2,function(Z) p.adjust(pnorm(-abs(Z))))
+  
+  CM_GENES <- unique(c(
+    rownames(CM_ogFDR)[apply(CM_ogFDR,1,function(X) sum(X <= 0.1) >= 2)]
+  ))
+  
+  
+  # NN genes ----
+  NN_ogZS <- nn_lig_rep[[LIG]]$lfc
+  NN_ogZS <- NN_ogZS[,!DSinfo[[LIG]][colnames(NN_ogZS),"time_series"],drop=F]
+  NN_ogFDR <- nn_lig_rep[[LIG]]$qval[,colnames(NN_ogZS),drop=F]
+  colnames(NN_ogFDR) <- colnames(NN_ogZS) <- paste(DSinfo[[LIG]][colnames(NN_ogZS),"CtAcc"],"*")
+  if (LIG == "VEGFA") {
+    NN_GENES <- character()
+  } else {  
+    temp_samples <- ncol(NN_ogFDR) + 1
+    NN_GENES <- character()
+    while (length(NN_GENES) < 1) {
+      temp_samples <- temp_samples - 1
+      if (temp_samples <= 1) { break }
+      NN_GENES <- rownames(NN_ogZS)[apply(sapply(colnames(NN_ogZS),function(X)
+        abs(NN_ogZS[,X]) >= 1 & NN_ogFDR[,X] <= 0.1),
+        1,function(Y) sum(Y) >= temp_samples)]  
+    }
+  }
+  if (any(any(!NN_GENES %in% lvl4_data@rdesc$pr_gene_symbol))) {
+    # print(NN_GENES[!NN_GENES %in% lvl4_data@rdesc$pr_gene_symbol])
+  }
+  
+  
+  # Merge genes & fix gene names ----
+  temp_CMgenes <- GENES <- unique(c(NN_GENES,lvl4_data@rdesc[CM_GENES,"pr_gene_symbol"]))
+  # Fixing SELENOP (formerly SEPP1)
+  temp_CMgenes[temp_CMgenes == "SELENOP"] <- "SEPP1"
+  # Fixing missing genes
+  temp_CMgenes <- temp_CMgenes[temp_CMgenes %in% lvl4_data@rdesc$pr_gene_symbol]
+  GENES <- GENES[GENES %in% lvl4_data@rdesc$pr_gene_symbol]
+  temp_CMgenes <- temp_CMgenes[temp_CMgenes %in% rownames(NN_ogZS)]
+  GENES <- GENES[GENES %in% rownames(NN_ogZS)]
+
+  temp_CMgenes <- sapply(temp_CMgenes,function(X) 
+    rownames(lvl4_data@rdesc)[lvl4_data@rdesc$pr_gene_symbol == X])
+  names(temp_CMgenes)[names(temp_CMgenes) == "SEPP1"] <- "SELENOP"
+  
+  
+  # Filter CMap ----
+  CM_ogZS <- CM_ogZS[temp_CMgenes,,drop=F]
+  CM_ogFDR <- CM_ogFDR[temp_CMgenes,,drop=F]
+  rownames(CM_ogZS) <- rownames(CM_ogFDR) <- GENES
+  
+  
+  # Filter NN ----
+  NN_ogZS <- NN_ogZS[GENES,,drop=F]
+  NN_ogFDR <- NN_ogFDR[GENES,,drop=F]
+  
+  
+  # Merge data ----
+  ogZS <- cbind(CM_ogZS,NN_ogZS)
+  ogFDR <- cbind(CM_ogFDR,NN_ogFDR)
+  
+  
+  # HClust ----
+  if (nrow(ogZS) > 1) {
+    hS <- hclust(as.dist(1 - cor(ogZS,method="spearman")))
+    hG <- hclust(as.dist(1 - cor(t(ogZS),method="spearman")))
+    ogZS <- ogZS[hG$order,hS$order]
+    ogFDR <- ogFDR[hG$order,hS$order]
+  }
+  
+  # Scale CMap ----
+  CM_cut <- 5
+  # boxplot(CM_ogZS,ylim=c(-CM_cut,CM_cut))
+  CM_ZS <- CM_ogZS
+  CM_ZS[CM_ZS > 5] <- CM_cut; CM_ZS[CM_ZS < -5] <- -CM_cut
+  CM_ZS <- matrix(cut(c(-1,1,as.vector(CM_ogZS / max(abs(CM_ogZS)))),
+                      breaks=1000,labels=F)[-(1:2)],nrow=nrow(CM_ogZS))
+  rownames(CM_ZS) <- rownames(CM_ogZS); colnames(CM_ZS) <- colnames(CM_ogZS)
+  
+  CM_FDR <- -log10(CM_ogFDR)
+  CM_FDR[CM_FDR > 3] <- 3
+  CM_FDR <- CM_FDR / max(CM_FDR)
+  CM_FDR[CM_FDR <= 0] <- NA
+  
+  
+  # Scale NN ----
+  NN_cut <- 5
+  # boxplot(NN_ogZS,ylim=c(-NN_cut,NN_cut))
+  NN_ZS <- NN_ogZS
+  NN_ZS[NN_ZS > 3] <- NN_cut; NN_ZS[NN_ZS < -3] <- -NN_cut
+  NN_ZS <- matrix(cut(c(-1,1,as.vector(NN_ogZS / max(abs(NN_ogZS)))),
+                      breaks=1000,labels=F)[-(1:2)],nrow=nrow(NN_ogZS))
+  rownames(NN_ZS) <- rownames(NN_ogZS); colnames(NN_ZS) <- colnames(NN_ogZS)
+  
+  NN_FDR <- -log10(NN_ogFDR)
+  NN_FDR[NN_FDR > 3] <- 3
+  NN_FDR <- NN_FDR / max(NN_FDR)
+  NN_FDR[NN_FDR <= 0] <- NA
+  
+  
+  # Merge plotting data ----
+  ZS <- t(cbind(CM_ZS,NN_ZS)[rownames(ogZS),colnames(ogZS)])
+  FDR <- t(cbind(CM_FDR,NN_FDR)[rownames(ogFDR),colnames(ogFDR)])
+  
+  
+  # PLOT ----
+  png(paste0("docs/output_figs/CMapNN_",LIG,".png"),
+      width=nrow(FDR) * 0.2 + 1.8,height=ncol(FDR) * 0.2 + 1.6,
+      units="in",res=120)
+  
+  par(mar=c(7,8,1,1),mgp=2:0)
+  plot(x=NULL,y=NULL,xlim=c(0.5,nrow(FDR) + .5),ylim=c(0.5,ncol(FDR) + .5),
+       xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab=NA,ylab=NA,bty="n",asp=1)
+  # abline(h=1:ncol(FDR),col="grey90")
+  abline(v=1:nrow(FDR),col="grey90")
+  symbols(x=rep(1:nrow(FDR),ncol(FDR)),
+          y=as.vector(sapply(1:ncol(FDR),function(X) rep(X,nrow(FDR)))),
+          circles=as.vector(FDR)/2,inches=F,add=T,xpd=NA,
+          fg=diverging_hcl(1000,palette="Blue-Red3")[as.vector(ZS)],
+          bg=diverging_hcl(1000,palette="Blue-Red3")[as.vector(ZS)])
+  mtext(ifelse(as.logical(as.integer(lvl4_data@rdesc[temp_CMgenes[colnames(FDR)],"pr_is_lm"])),
+               yes=colnames(FDR),paste0(colnames(FDR),"^")),
+        side=2,at=1:ncol(FDR),las=2,line=0.1,cex=0.8)
+  text(x=1:nrow(FDR),y=rep(line2user(0.3,1),nrow(FDR)),
+       labels=rownames(FDR),xpd=NA,adj=1,srt=45,cex=0.8)
+  
+  temp_yh <- par("usr")[4] - par("usr")[3]
+  segments(x0=rep(line2user(6,2),1000),x1=rep(line2user(5,2),1000),
+           y0=seq(0.6 * temp_yh + par("usr")[3],
+                  0.9 * temp_yh + par("usr")[3],
+                  length.out=1000),
+           y1=seq(0.6 * temp_yh + par("usr")[3],
+                  0.9 * temp_yh + par("usr")[3],
+                  length.out=1000),
+           xpd=NA,col=diverging_hcl(1000,palette="Blue-Red3"))
+  mtext(c(paste0("\u2265",CM_cut),"Z-score",paste0("\u2264",-CM_cut)),
+        side=2,line=6.1,adj=c(-0.1,0.5,1.1),
+        at=c(0.9,0.75,0.6) * temp_yh + par("usr")[3])
+  mtext(c(paste0("\u2265",NN_cut),"*LogFC",paste0("\u2264",-NN_cut)),
+        side=2,line=3.9,adj=c(-0.1,0.5,1.1),
+        at=c(0.9,0.75,0.6) * temp_yh + par("usr")[3])
+  
+  
+  temp_q <- rev(c(0.2,0.1,0.05,0.01,0.001))
+  symbols(x=rep(line2user(5.5,2),length(temp_q)),
+          y=seq(0.4 * temp_yh + par("usr")[3],
+                by=-2,length.out=length(temp_q)),
+          circles=-log10(temp_q)/4,inches=F,add=T,xpd=NA,
+          fg="black")
+  mtext(c(paste0("\u2264",temp_q[1] * 100,"%"),
+          paste0(temp_q[2:5] * 100,"%")),
+        side=2,line=6.2,cex=0.8,
+        at=seq(0.4 * temp_yh + par("usr")[3],
+               by=-2,length.out=length(temp_q)))
+  mtext("FDR",side=2,line=7,
+        at=0.4 * temp_yh + par("usr")[3] - 2 * 2)
+  
+  mtext(LIG,side=3,line=-1,at=line2user(5.5,2),font=2,cex=1.2)
+  text(line2user(7,2),line2user(6.5,1),xpd=NA,adj=c(0,0.5),srt=90,cex=0.8,
+       labels=paste("* microarray data","^ inferred in CMap",sep="\n"))
+  # text(line2user(1,4),line2user(6,1),xpd=NA,adj=c(1,0.5),srt=0,cex=0.8,
+  #      labels=paste("* microarray data","^ inferred in CMap",sep="\n"))
+  
+  dev.off()
+  
+}
+```
+
+Plots per ligand treatment of mean Z-score for each CMap cell line and logFC from NicheNet datasets.  
+
+```{r CMAP_NN_links,echo=F,results="asis"}
+temp_files <- list.files("docs/output_figs/",pattern="CMap")
+temp_lig <- matrix(sort(nn_ligands),ncol=4,byrow=T)
+for (L in 1:nrow(temp_lig)) {
+  cat("<p>")
+  for (LIG in temp_lig[L,]) {
+    if (!any(grepl(LIG,temp_files))) { next }
+    cat(" | ")
+    temp_ligfiles <- grep(paste0("_",LIG,"[._]"),temp_files,value=T)
+    cat(paste0('<a href="output_figs/',temp_ligfiles[!grepl("noTS",temp_ligfiles)],'">',LIG,'</a>'))
+    if (any(grepl("noTS",temp_ligfiles))) {
+      cat(paste0('<a href="output_figs/',
+                 temp_ligfiles[grepl("noTS",temp_ligfiles)],
+                 '">(no time-series)</a>'))
+    }
+    cat(" | ")
+  }
+  cat("</p>")
+  cat("\n")
+}
+
+cat('<p><img src="output_figs/CMapNN_IFNG.png"/></p>')
+```
+
+```{r load_lvl5, eval=F}
 load("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_inputs_allgenes.RData")
 rm(lig16)
 
@@ -654,7 +1079,7 @@ image(lvl5_data@mat[X,Y])
 
 # After removing time-series data
 
-```{r noTS_load_data, echo=F,message=F,warning=F}
+```{r noTS_load_data}
 rm(list=ls())
 
 source("~/Dropbox/GDB/line2user.R")
@@ -668,7 +1093,7 @@ load("~/Dropbox/GDB_archive/CMapCorr_files/NN_noTS_DEmeanlfc.RData")
 ## Correlation
 
 
-```{r noTS_corr_plot, echo=F,message=F,warning=F,fig.height=4,fig.width=9}
+```{r noTS_corr_plot,fig.height=4,fig.width=9}
 temp_order <- names(sort(sapply(unique(c(names(corr_all),names(corr_ct),names(corr_ds))),
                                 function(X) mean(c(corr_all[[X]],corr_ct[[X]],corr_ds[[X]])))))
 lig_col <- qualitative_hcl(length(temp_order),palette="dark3",alpha=0.5)
@@ -723,7 +1148,7 @@ rm(list=grep("^temp",ls(),value=T))
 
 ## Differential gene expression
 
-```{r noTS_diffexp_boxplot, echo=F,message=F,warning=F,fig.height=4,fig.width=9}
+```{r noTS_diffexp_boxplot,fig.height=4,fig.width=9}
 par(mar=c(1.5,3,1,1),mgp=2:0)
 temp_bxp <- list(ALL=-log10(unlist(P_all)),
                  CT=-log10(unlist(P_ct)),
@@ -756,7 +1181,7 @@ mtext(paste("p =",c(signif(wilcox.test(unlist(P_all),unlist(P_ct))$p.value,2),
 rm(list=c("X","Z",grep("^temp",ls(),value=T)))
 ```
 
-```{r noTS_diffexp_boxplot_v2, echo=F,message=F,warning=F,fig.height=4,fig.width=9}
+```{r noTS_diffexp_boxplot_v2,fig.height=4,fig.width=9}
 temp_y <- lapply(c("P_all","P_ct","P_ds"),function(X) {
   temp <- -log10(unlist(get(X)))
   names(temp) <- sapply(strsplit(names(unlist(get(X))),".",fixed=T),"[[",1)

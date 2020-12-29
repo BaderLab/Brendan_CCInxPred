@@ -22,8 +22,6 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
-<link href="site_libs/anchor-sections-1.0/anchor-sections.css" rel="stylesheet" />
-<script src="site_libs/anchor-sections-1.0/anchor-sections.js"></script>
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -78,6 +76,7 @@ h6 {
   text-align: left;
 }
 </style>
+
 
 
 
@@ -386,11 +385,31 @@ $(document).ready(function () {
 </div>
 
 
-<div id="using-all-data" class="section level1">
-<h1>Using all data</h1>
+<div id="nichenet-calculation-sanity-check" class="section level1">
+<h1>NicheNet calculation sanity check</h1>
+<p><img src="NicheNet_files/figure-html/plot_raw-1.png" width="576" /></p>
+<p>Looks like the sign of the logFC is flipped in the NicheNet calculations. Multiplying logFC values from the NicheNet dataset by -1 for the remainder of this analysis.</p>
+</div>
+<div id="comparing-across-vs-within-cell-type-per-ligand-treatment" class="section level1">
+<h1>Comparing across vs within cell type per ligand treatment</h1>
+<p>Previous analysis (see below) included a “within lab” category that was unclear, so it has been removed.<br />
+All data (including time-series) is included in this analysis. NicheNet calculation of time-series data seems to result in all positive logFC values, so that makes some things a little screwy. In those cases, time-series data was only compared to other time-series data.</p>
 <div id="correlation" class="section level2">
 <h2>Correlation</h2>
-<p><img src="NicheNet_files/figure-html/all_corr_boxplot-1.png" width="864" /></p>
+<p><img src="NicheNet_files/figure-html/AvC_corr_plot-1.png" width="864" /></p>
+</div>
+<div id="differential-gene-expression" class="section level2">
+<h2>Differential gene expression</h2>
+<p>Differentially expressed genes were determined by |logFC| &gt;= 1 and FDR &lt;= 0.1 (similar to Browaeys <em>et al.</em>, 2020). This figure shows number of DE genes overlapping across all datasets testing the same ligand vs. datasets testing the same ligand in the same cell type vs. datasets from the same accession number (and same ligand / cell type). P-values for overlap (y-axis) were determined after determining probability of overlapping DE genes by chance through bootstrapping.</p>
+<p><img src="NicheNet_files/figure-html/AvC_diffexp_boxplot_v2-1.png" width="864" /></p>
+</div>
+</div>
+<div id="using-all-data-including-time-series" class="section level1">
+<h1>Using all data (including time-series)</h1>
+<p>NicheNet calculation of time-series data seems to result in all positive logFC values, so that makes some things a little screwy. In those cases, time-series data was only compared to other time-series data.</p>
+<div id="correlation-1" class="section level2">
+<h2>Correlation</h2>
+<p><img src="NicheNet_files/figure-html/corr_boxplot-1.png" width="864" /></p>
 <p><img src="NicheNet_files/figure-html/corr_boxplot_compTS-1.png" width="864" /> Despite the goofiness of the time-series logFC calculations (all are positive?), there’s no discernible difference in correlation of logFC within time-series experiments vs non-time-series.</p>
 <p>Note that calculating correlation between time-series and non-TS logFC values is chaos, so those comparisons are skipped in the following figure.</p>
 <div id="final-correlation-figure" class="section level3">
@@ -398,91 +417,75 @@ $(document).ready(function () {
 <p><img src="NicheNet_files/figure-html/corr_plot-1.png" width="864" /></p>
 </div>
 </div>
-<div id="differential-gene-expression" class="section level2">
+<div id="differential-gene-expression-1" class="section level2">
 <h2>Differential gene expression</h2>
+<div id="overlap-of-de-genes" class="section level3">
+<h3>Overlap of DE genes</h3>
 <p>Differentially expressed genes were determined by logFC &gt;= 1 and FDR &lt;= 0.1 (as in Browaeys <em>et al.</em>, 2020). This figure shows number of DE genes overlapping across all datasets testing the same ligand vs. datasets testing the same ligand in the same cell type vs. datasets from the same accession number (and same ligand / cell type). P-values for overlap (y-axis) were determined after determining probability of overlapping DE genes by chance through bootstrapping.</p>
 <p><img src="NicheNet_files/figure-html/diffexp_boxplot-1.png" width="864" /></p>
 <p><img src="NicheNet_files/figure-html/diffexp_boxplot_v2-1.png" width="864" /></p>
+</div>
+<div id="averaged-logfc-per-ligand" class="section level3">
+<h3>Averaged logFC per ligand</h3>
 <p>Similar to CMap analyses, took mean LogFC across all samples treated with the same ligand, or same ligand in the same cell line, or from the same accession number (and same ligand / cell line).</p>
 <p><img src="NicheNet_files/figure-html/mean_LFC_hist-1.png" width="480" /></p>
+</div>
+<div id="averaged-logfc-per-ligand-compared-to-cmap" class="section level3">
+<h3>Averaged logFC per ligand compared to CMap</h3>
 <p>Connectivity Map data from the same set of ligands assayed in multiple experiments from the NicheNet datasets.</p>
 <p><img src="NicheNet_files/figure-html/CMap_DE_load-1.png" width="864" /></p>
 <p>Modified heatmaps showing logFC and FDR for selected genes from each sample from the NicheNet gold standard, as well as averages across all samples, all cell types, and all datasets where available. The figure below is an example for TNF.</p>
 <p>
-<a href="output_figs/NN_BDNF.png">BDNF</a>
+| <a href="output_figs/NN_BDNF.png">BDNF</a> | | <a href="output_figs/NN_BMP2.png">BMP2</a> | | <a href="output_figs/NN_CXCL12.png">CXCL12</a> | | <a href="output_figs/NN_EGF.png">EGF</a><a href="output_figs/NN_EGF_noTS.png">(no time-series)</a> |
 </p>
 <p>
-<a href="output_figs/NN_BMP2.png">BMP2</a>
+| <a href="output_figs/NN_HGF.png">HGF</a> | | <a href="output_figs/NN_IFNA1.png">IFNA1</a> | | <a href="output_figs/NN_IFNG.png">IFNG</a><a href="output_figs/NN_IFNG_noTS.png">(no time-series)</a> | | <a href="output_figs/NN_IGF1.png">IGF1</a> |
 </p>
 <p>
-<a href="output_figs/NN_CXCL12.png">CXCL12</a>
+| <a href="output_figs/NN_IL10.png">IL10</a> | | <a href="output_figs/NN_IL13.png">IL13</a><a href="output_figs/NN_IL13_noTS.png">(no time-series)</a> | | <a href="output_figs/NN_IL15.png">IL15</a> | | <a href="output_figs/NN_IL1B.png">IL1B</a><a href="output_figs/NN_IL1B_noTS.png">(no time-series)</a> |
 </p>
 <p>
-<a href="output_figs/NN_EGF.png">EGF</a> - <a href="output_figs/NN_EGF_noTS.png">EGF (no time-series)</a>
+| <a href="output_figs/NN_IL4.png">IL4</a><a href="output_figs/NN_IL4_noTS.png">(no time-series)</a> | | <a href="output_figs/NN_PDGFB.png">PDGFB</a> | | <a href="output_figs/NN_SHH.png">SHH</a><a href="output_figs/NN_SHH_noTS.png">(no time-series)</a> | | <a href="output_figs/NN_TGFB1.png">TGFB1</a><a href="output_figs/NN_TGFB1_noTS.png">(no time-series)</a> |
 </p>
 <p>
-<a href="output_figs/NN_HGF.png">HGF</a>
-</p>
-<p>
-<a href="output_figs/NN_IFNA1.png">IFNA1</a>
-</p>
-<p>
-<a href="output_figs/NN_IFNG.png">IFNG</a> - <a href="output_figs/NN_IFNG_noTS.png">IFNG (no time-series)</a>
-</p>
-<p>
-<a href="output_figs/NN_IGF1.png">IGF1</a>
-</p>
-<p>
-<a href="output_figs/NN_IL10.png">IL10</a>
-</p>
-<p>
-<a href="output_figs/NN_IL13.png">IL13</a> - <a href="output_figs/NN_IL13_noTS.png">IL13 (no time-series)</a>
-</p>
-<p>
-<a href="output_figs/NN_IL15.png">IL15</a>
-</p>
-<p>
-<a href="output_figs/NN_IL1B.png">IL1B</a> - <a href="output_figs/NN_IL1B_noTS.png">IL1B (no time-series)</a>
-</p>
-<p>
-<a href="output_figs/NN_IL4.png">IL4</a> - <a href="output_figs/NN_IL4_noTS.png">IL4 (no time-series)</a>
-</p>
-<p>
-<a href="output_figs/NN_PDGFB.png">PDGFB</a>
-</p>
-<p>
-<a href="output_figs/NN_SHH.png">SHH</a> - <a href="output_figs/NN_SHH_noTS.png">SHH (no time-series)</a>
-</p>
-<p>
-<a href="output_figs/NN_TGFB1.png">TGFB1</a> - <a href="output_figs/NN_TGFB1_noTS.png">TGFB1 (no time-series)</a>
-</p>
-<p>
-<a href="output_figs/NN_TGFB3.png">TGFB3</a>
-</p>
-<p>
-<a href="output_figs/NN_TNF.png">TNF</a> - <a href="output_figs/NN_TNF_noTS.png">TNF (no time-series)</a>
-</p>
-<p>
-<a href="output_figs/NN_VEGFA.png">VEGFA</a> - <a href="output_figs/NN_VEGFA_noTS.png">VEGFA (no time-series)</a>
-</p>
-<p>
-<a href="output_figs/NN_WNT1.png">WNT1</a> - <a href="output_figs/NN_WNT1_noTS.png">WNT1 (no time-series)</a>
+| <a href="output_figs/NN_TGFB3.png">TGFB3</a> | | <a href="output_figs/NN_TNF.png">TNF</a><a href="output_figs/NN_TNF_noTS.png">(no time-series)</a> | | <a href="output_figs/NN_VEGFA.png">VEGFA</a><a href="output_figs/NN_VEGFA_noTS.png">(no time-series)</a> | | <a href="output_figs/NN_WNT1.png">WNT1</a><a href="output_figs/NN_WNT1_noTS.png">(no time-series)</a> |
 </p>
 <p>
 <img src="output_figs/NN_TNF_noTS.png"/>
 </p>
+</div>
+<div id="comparing-nichenet-cmap-expression-changes-per-ligand" class="section level3">
+<h3>Comparing NicheNet &amp; CMap expression changes per ligand</h3>
+<p>Plots per ligand treatment of mean Z-score for each CMap cell line and logFC from NicheNet datasets.</p>
+<p>
+| <a href="output_figs/CMapNN_BMP2.png">BMP2</a> | | <a href="output_figs/CMapNN_EGF.png">EGF</a> |
+</p>
+<p>
+| <a href="output_figs/CMapNN_IFNA1.png">IFNA1</a> | | <a href="output_figs/CMapNN_IFNG.png">IFNG</a> |
+</p>
+<p>
+| <a href="output_figs/CMapNN_IL10.png">IL10</a> | | <a href="output_figs/CMapNN_IL13.png">IL13</a> | | <a href="output_figs/CMapNN_IL15.png">IL15</a> | | <a href="output_figs/CMapNN_IL1B.png">IL1B</a> |
+</p>
+<p>
+| <a href="output_figs/CMapNN_IL4.png">IL4</a> | | <a href="output_figs/CMapNN_PDGFB.png">PDGFB</a> | | <a href="output_figs/CMapNN_TGFB1.png">TGFB1</a> |
+</p>
+<p>
+| <a href="output_figs/CMapNN_TGFB3.png">TGFB3</a> | | <a href="output_figs/CMapNN_TNF.png">TNF</a> | | <a href="output_figs/CMapNN_VEGFA.png">VEGFA</a> | | <a href="output_figs/CMapNN_WNT1.png">WNT1</a> |
+</p>
+<p>
+<img src="output_figs/CMapNN_IFNG.png"/>
+</p>
 <hr />
-<p><img src="NicheNet_files/figure-html/load_lvl5-1.png" width="672" /></p>
-<hr />
+</div>
 </div>
 </div>
 <div id="after-removing-time-series-data" class="section level1">
 <h1>After removing time-series data</h1>
-<div id="correlation-1" class="section level2">
+<div id="correlation-2" class="section level2">
 <h2>Correlation</h2>
 <p><img src="NicheNet_files/figure-html/noTS_corr_plot-1.png" width="864" /></p>
 </div>
-<div id="differential-gene-expression-1" class="section level2">
+<div id="differential-gene-expression-2" class="section level2">
 <h2>Differential gene expression</h2>
 <p><img src="NicheNet_files/figure-html/noTS_diffexp_boxplot-1.png" width="864" /></p>
 <p><img src="NicheNet_files/figure-html/noTS_diffexp_boxplot_v2-1.png" width="864" /></p>

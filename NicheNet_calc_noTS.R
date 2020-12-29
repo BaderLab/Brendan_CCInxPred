@@ -68,7 +68,8 @@ nn_lig_rep <- pbsapply(nn_ligands,function(LIG) {
       temp <- temp[!rownames(temp) %in% temp_rm,]
     }
     rownames(temp) <- temp$gene
-    return(list(lfc=temp[temp_gene,"lfc"],
+    return(list(lfc=temp[temp_gene,"lfc"] * 
+                  ifelse(DSinfo[[LIG]][X,"time_series"],1,-1), ## BECAUSE NN FLIPPED logFC ##
                 qval=temp[temp_gene,"qval"]))
   },simplify=F)
   
@@ -120,11 +121,12 @@ for (LIG in nn_ligands) {
         temp_cor <- temp_cor[!temp_hits]
         rm(temp_hits)
       }
+      rm(Z)
     }
     if (length(temp_cor) > 0) {
       corr_all[[LIG]] <- append(corr_all[[LIG]],temp_cor)
     }
-    rm(Y,Z,temp_cor,temp_acc,temp_ct)
+    rm(Y,temp_cor,temp_acc,temp_ct)
   }
   
   if (length(temp_nts) > 1) {
@@ -155,11 +157,12 @@ for (LIG in nn_ligands) {
         temp_cor <- temp_cor[!temp_hits]
         rm(temp_hits)
       }
+      rm(Z)
     }
     if (length(temp_cor) > 0) {
       corr_all[[LIG]] <- append(corr_all[[LIG]],temp_cor)
     }
-    rm(Y,Z,temp_cor,temp_acc,temp_ct)
+    rm(Y,temp_cor,temp_acc,temp_ct)
   }
   rm(temp_nts,temp_ts)
 }
@@ -211,18 +214,21 @@ for (LIG in nn_ligands) {
     de_ds[[LIG]][[Y]] <- Reduce(intersect,nn_DE[[LIG]][temp_acc[[X]]])
     P_ds[[LIG]][[Y]] <- sum(DEbkgd[,as.character(length(temp_acc[[X]]))] >= 
                               length(de_ds[[LIG]][[Y]])) / nrow(DEbkgd)
+    P_ds[[LIG]][[Y]][P_ds[[LIG]][[Y]] == 0] <- 0.1 / nrow(DEbkgd)
   }
   for (X in names(temp_ct)[sapply(temp_ct,length) > 1]) {
     Y <- paste(temp_ct[[X]],collapse=".")
     de_ct[[LIG]][[Y]] <- Reduce(intersect,nn_DE[[LIG]][temp_ct[[X]]])
     P_ct[[LIG]][[Y]] <- sum(DEbkgd[,as.character(length(temp_ct[[X]]))] >= 
                               length(de_ct[[LIG]][[Y]])) / nrow(DEbkgd)
+    P_ct[[LIG]][[Y]][P_ct[[LIG]][[Y]] == 0] <- 0.1 / nrow(DEbkgd)
   }
   Y <- paste(rownames(DSinfo[[LIG]]),collapse=".")
   if (!Y %in% c(names(de_ct[[LIG]]),names(de_ds[[LIG]]))) {
     de_all[[LIG]][[Y]] <- Reduce(intersect,nn_DE[[LIG]])
     P_all[[LIG]][[Y]] <- sum(DEbkgd[,as.character(length(nn_DE[[LIG]]))] >= 
                                length(de_all[[LIG]][[Y]])) / nrow(DEbkgd)
+    P_all[[LIG]][[Y]][P_all[[LIG]][[Y]] == 0] <- 0.1 / nrow(DEbkgd)
   }
 }
 rm(list=c("X","Y","LIG",grep("^temp",ls(),value=T)))
