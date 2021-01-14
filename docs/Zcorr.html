@@ -23,6 +23,15 @@
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
 
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
 <style type="text/css">code{white-space: pre;}</style>
 <style type="text/css">
   pre:not([class]) {
@@ -67,6 +76,7 @@ h6 {
   text-align: left;
 }
 </style>
+
 
 
 
@@ -396,6 +406,18 @@ $(document).ready(function () {
 <h1>Comparison of all correlation distributions</h1>
 <p><img src="Zcorr_files/figure-html/compare_all-1.png" width="384" /><img src="Zcorr_files/figure-html/compare_all-2.png" width="384" /><img src="Zcorr_files/figure-html/compare_all-3.png" width="384" /><img src="Zcorr_files/figure-html/compare_all-4.png" width="384" /></p>
 </div>
+<div id="new-stuff" class="section level1">
+<h1>New stuff</h1>
+<div id="z-score-fat-tails" class="section level3">
+<h3>Z-score fat tails?</h3>
+<p><img src="Zcorr_files/figure-html/qq_zscore-1.png" width="768" /> Maybe…?</p>
+</div>
+<div id="better-correlation-figure" class="section level2">
+<h2>Better correlation figure</h2>
+<p><img src="Zcorr_files/figure-html/cors_per_lig-1.png" width="864" /></p>
+<p>The * denotes p &lt; 2.2e-16 from wilcoxon signed-rank test vs. mu of 0.</p>
+</div>
+</div>
 
 
 
@@ -406,7 +428,7 @@ $(document).ready(function () {
 
 // add bootstrap table styles to pandoc tables
 function bootstrapStylePandocTables() {
-  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
 }
 $(document).ready(function () {
   bootstrapStylePandocTables();

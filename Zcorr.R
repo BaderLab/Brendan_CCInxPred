@@ -80,7 +80,9 @@ for (LIG in c("lig16","lig295")) {
         get(paste0("ID",LIG))[get(DAT)@cdesc[get(paste0("ID",LIG)),"cell_id"] == C &
                                 get(DAT)@cdesc[get(paste0("ID",LIG)),"pert_iname"] == L]
       ),simplify=F)
-    temp <- unlist(temp,recursive=F)
+    temp_names <- as.vector(sapply(names(temp),function(X) paste(X,names(temp[[X]]),sep="_")))
+    temp <- unlist(temp,recursive=F,use.names=F)
+    names(temp) <- temp_names
     CORS <- pwCOR(get(DAT)@mat,temp)
     temp <- switch(grepl("all",DAT) + 1,
                    paste0(LIG,"_corr_ligct.RData"),
