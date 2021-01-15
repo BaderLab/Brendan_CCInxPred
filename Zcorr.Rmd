@@ -243,20 +243,24 @@ temp_labels <- c("ADM","IL1A","TNF")
 
 layout(rbind(1:3),widths=c(2,3,1))
 par(mar=c(5.5,4,2,1),mgp=2:0)
+plot(NA,NA,xlim=c(0,length(temp_labels) * 4),ylim=c(-1,1),
+     xlab=NA,ylab=NA,xaxt="n",yaxs="i")
+abline(h=0,lty=2,col="red")
 boxplot(unlist(sapply(temp_labels,function(X) 
   list(Lig=cor_lig[[X]],
        LigCT=unlist(cor_ligct[cor_ligct_lig == X]),
        Rep=unlist(cor_rep[cor_rep_lig == X])),
   simplify=F),recursive=F),xaxt="n",
-  col=as.vector(sapply(qualitative_hcl(length(temp_labels),palette="dark3"),rep,3)))
+  col=as.vector(sapply(qualitative_hcl(length(temp_labels),palette="dark3"),rep,3)),
+  pch=20,add=T,at=seq(length(temp_labels) * 4)[-seq(4,by=4,length.out=length(temp_labels))])
 mtext(temp_labels,side=3,line=0.1,
       col=qualitative_hcl(length(temp_labels),palette="dark3"),
-      at=seq(2,by=3,length.out=length(temp_labels)))
+      at=seq(2,by=4,length.out=length(temp_labels)))
 mtext("Pairwise Spearman correlation of Z-scores",side=2,line=2.2)
-text(seq(1,length(temp_labels) * 3),line2user(0.5,1),
+text(seq(length(temp_labels) * 4)[-seq(4,by=4,length.out=length(temp_labels))],
+     line2user(0.5,1),
      rep(c("By ligand","By ligand / cell line","By replicate"),length(temp_labels)),
      xpd=NA,srt=40,adj=1)
-abline(v=seq(3.5,by=3,length.out=length(temp_labels) - 1),lty=2)
 
 par(mar=c(4,4,1,0))
 plot(NA,NA,xlab=NA,ylab=NA,
