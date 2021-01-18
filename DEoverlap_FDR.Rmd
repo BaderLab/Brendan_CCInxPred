@@ -56,13 +56,13 @@ DE_heatmap <- function(Z_all,FDR_all,pDE_all,data_name=c("Ligands","Cell lines")
   
   layout(rbind(1:2),widths=c(6,1))
   if (nrow(FDR) >= 100) {
-    par(mar=c(4,6,1,0.5),mgp=2:0)
+    par(mar=c(4.5,6,1,0.5),mgp=2:0)
     label_cex <- 0.9
   } else if (data_name == "Ligands") {
-    par(mar=c(4,6,1,0.5),mgp=2:0)
+    par(mar=c(4.5,6,1,0.5),mgp=2:0)
     label_cex <- 1
   } else if (data_name == "Cell lines") {
-    par(mar=c(4,10,1.5,0.5),mgp=2:0)
+    par(mar=c(4.5,10,1.5,0.5),mgp=2:0)
     label_cex <- 0.9
   } else {
     stop("data_name must be 'Ligands' or 'Cell lines'")
@@ -75,6 +75,7 @@ DE_heatmap <- function(Z_all,FDR_all,pDE_all,data_name=c("Ligands","Cell lines")
   if (nrow(FDR) < 100) {
     mtext(lvl4_data@rdesc[rownames(FDR),"pr_gene_symbol"],
           side=1,las=2,at=1:nrow(FDR),adj=1.1,cex=0.7)
+    mtext("Genes",side=1,line=3.5,font=2,cex=1.5)
   } else {
     mtext("Genes",side=1,line=1,font=2,cex=1.5)
   }
@@ -100,9 +101,9 @@ DE_heatmap <- function(Z_all,FDR_all,pDE_all,data_name=c("Ligands","Cell lines")
        labels=c(-1 * round(max(abs(FDR))),
                 0,
                 round(max(abs(FDR)))),
-       xpd=NA,cex=0.8)
-  text(line2user(3,2),line2user(3,1),xpd=NA,
-       labels="Signed -log10 FDR",cex=0.8)
+       xpd=NA)
+  text(line2user(3,2),line2user(3.5,1),xpd=NA,
+       labels=paste("Signed","-log10 FDR",sep="\n"))
   
   if (!is.na(aCut)) {
     rect(xleft=which(abs(FDR) >= -log10(aCut),arr.ind=T)[,1] - 0.5,
@@ -119,7 +120,7 @@ DE_heatmap <- function(Z_all,FDR_all,pDE_all,data_name=c("Ligands","Cell lines")
          xleft=line2user(5,2),ybottom=line2user(1.7,1),ytop=line2user(1,1),
          xpd=NA,col=NA,border="mediumseagreen")
     text(line2user(3,2),line2user(0.5,1),adj=0.5,xpd=NA,
-         labels=paste0("FDR \u2264 ",aCut * 100,"%"),col="mediumseagreen",cex=0.8)  
+         labels=paste0("FDR \u2264 ",aCut * 100,"%"),col="mediumseagreen",cex=0.9)  
   }
   
   if (nrow(FDR) >= 100) {
@@ -322,7 +323,7 @@ Calculating significantly differentially expressed genes by Z-score threshold (9
 
 ## 16 ligands, 'landmark' genes only
 
-```{r ,fig.height=4,fig.width=9}
+```{r lig16_lig, fig.height=4,fig.width=9}
 temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/lig16_DE_lig_FDR.RData")
 DE_heatmap(meanZ_lig,FDR_lig,pDE_lig,"Ligands",aCut=0.1)
 rm(list=temp)
@@ -330,7 +331,7 @@ rm(list=temp)
 
 ## 295 ligands, 'landmark' genes only
 
-```{r fig.height=10,fig.width=9}
+```{r lig295_lig, fig.height=10,fig.width=9}
 temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/lig295_DE_lig_FDR.RData")
 DE_heatmap(meanZ_lig,FDR_lig,pDE_lig,"Ligands",aCut=0.05)
 # rm(list=temp)
@@ -391,7 +392,7 @@ rm(list=grep("^temp",ls(),value=T))
 
 ## 16 ligands, 'landmark' genes only
 
-```{r fig.height=4,fig.width=9}
+```{r lig16_ct, fig.height=4,fig.width=9}
 temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/lig16_DE_ct_FDR.RData")
 try(DE_heatmap(meanZ_ct,FDR_ct,pDE_ct,"Cell lines",aCut=0.1),silent=F)
 rm(list=temp)
@@ -400,7 +401,7 @@ rm(list=temp)
 
 ## 295 ligands, 'landmark' genes only
 
-```{r fig.height=4,fig.width=9}
+```{r lig295_ct, fig.height=4,fig.width=9}
 temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/lig295_DE_ct_FDR.RData")
 try(DE_heatmap(meanZ_ct,FDR_ct,pDE_ct,"Cell lines",aCut=0.1),silent=F)
 rm(list=temp)
@@ -411,12 +412,12 @@ rm(list=temp)
 
 ## 16 ligands, 'landmark' genes only
 
-```{r fig.height=6,fig.width=8}
+```{r lig16_ligct, fig.height=6,fig.width=8}
 temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/lig16_DE_ligct_FDR.RData")
 DE_heatmap(meanZ_ligct,FDR_ligct,pDE_ligct,"Ligands per cell line",aCut=0.001)
 ```
 
-```{r fig.height=5,fig.width=6}
+```{r lig16_ligct_pDE, fig.height=5,fig.width=6}
 pDE_heatmap(pDE_ligct[,"01"])
 rm(list=temp)
 ```
@@ -424,12 +425,12 @@ rm(list=temp)
 
 ## 295 ligands, 'landmark' genes only
 
-```{r fig.height=8,fig.width=9}
+```{r lig295_ligct, fig.height=8,fig.width=9}
 temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/lig295_DE_ligct_FDR.RData")
 DE_heatmap(meanZ_ligct,FDR_ligct,pDE_ligct,"Ligands per cell line",aCut=0.001)
 ```
 
-```{r fig.height=12,fig.width=5}
+```{r lig295_ligct_pDE, fig.height=12,fig.width=5}
 pDE_heatmap(pDE_ligct[,"01"])
 rm(list=temp)
 ```
@@ -438,7 +439,7 @@ rm(list=temp)
 
 # Comparing DE count distributions
 
-```{r fig.height=5,fig.width=9}
+```{r pDE_comparison, fig.height=5,fig.width=9}
 inD <- c("lig16_DE","lig295_DE")
 names(inD) <- c("16 ligands","295 ligands")
 
