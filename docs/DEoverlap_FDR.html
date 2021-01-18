@@ -23,6 +23,15 @@
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
 
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
 <style type="text/css">code{white-space: pre;}</style>
 <style type="text/css">
   pre:not([class]) {
@@ -67,6 +76,7 @@ h6 {
   text-align: left;
 }
 </style>
+
 
 
 
@@ -385,13 +395,15 @@ $(document).ready(function () {
 <div id="ligands-landmark-genes-only-1" class="section level2">
 <h2>295 ligands, ‘landmark’ genes only</h2>
 <p><img src="DEoverlap_FDR_files/figure-html/unnamed-chunk-2-1.png" width="864" /></p>
+<p>Example plot to clarify what “averaging per ligand” means:</p>
+<p><img src="DEoverlap_FDR_files/figure-html/demo_meanZ-1.png" width="576" /><img src="DEoverlap_FDR_files/figure-html/demo_meanZ-2.png" width="576" /><img src="DEoverlap_FDR_files/figure-html/demo_meanZ-3.png" width="576" /></p>
 </div>
 </div>
 <div id="averaging-per-cell-line" class="section level1">
 <h1>Averaging per cell line</h1>
 <div id="ligands-landmark-genes-only-2" class="section level2">
 <h2>16 ligands, ‘landmark’ genes only</h2>
-<pre><code>## Error in DE_heatmap(FDR_ct, pDE_ct, &quot;Cell lines&quot;, aCut = 0.1) : 
+<pre><code>## Error in DE_heatmap(meanZ_ct, FDR_ct, pDE_ct, &quot;Cell lines&quot;, aCut = 0.1) : 
 ##   Less than two samples reached FDR threshold of 10%</code></pre>
 </div>
 <div id="ligands-landmark-genes-only-3" class="section level2">
@@ -415,6 +427,7 @@ $(document).ready(function () {
 <div id="comparing-de-count-distributions" class="section level1">
 <h1>Comparing DE count distributions</h1>
 <p><img src="DEoverlap_FDR_files/figure-html/unnamed-chunk-9-1.png" width="864" /></p>
+<p>The * denotes p &lt; 2.2e-16 from the Wilcoxon rank-sum test comparing to averaging by ligand.</p>
 </div>
 
 
@@ -426,7 +439,7 @@ $(document).ready(function () {
 
 // add bootstrap table styles to pandoc tables
 function bootstrapStylePandocTables() {
-  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
 }
 $(document).ready(function () {
   bootstrapStylePandocTables();

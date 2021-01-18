@@ -1,3 +1,5 @@
+#### DEPRECATED ####
+
 library(cmapR)
 library(colorspace)
 library(pbapply)

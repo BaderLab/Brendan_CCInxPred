@@ -14,11 +14,10 @@ names(ALPHA) <- c("10","5","1","01")
 
 
 # LIG mean Z-score (unweighted) ----
-FDR_lig <- sapply(lig16,function(LIG)
-  p.adjust(pnorm(-abs(
-    rowMeans(lvl4_data@mat[,lvl4_data@cdesc$pert_iname == LIG])
-  )))
-)
+meanZ_lig <- sapply(lig16,function(LIG)
+  rowMeans(lvl4_data@mat[,lvl4_data@cdesc$pert_iname == LIG]))
+
+FDR_lig <- apply(meanZ_lig,2,function(X) p.adjust(pnorm(-abs(X))))
 
 samples_lig <- sapply(lig16,function(X) sum(lvl4_data@cdesc$pert_iname == X))
 
@@ -41,7 +40,7 @@ pDE_lig <- sapply(ALPHA,function(Z) {
   })
 })
 
-save(FDR_lig,pDE_lig,
+save(meanZ_lig,FDR_lig,pDE_lig,
      file=paste0("~/Dropbox/GDB_archive/CMapCorr_files/lig16_DE_lig_FDR.RData"))
 rm(list=grep("lig$",ls(),value=T))
 
@@ -49,11 +48,10 @@ rm(list=grep("lig$",ls(),value=T))
 
 
 # CT mean Z-score (unweighted) ----
-FDR_ct <- sapply(ct14,function(CT)
-  p.adjust(pnorm(-abs(
-    rowMeans(lvl4_data@mat[,lvl4_data@cdesc$cell_id == CT])
-  )))
-)
+meanZ_ct <- sapply(ct14,function(CT)
+  rowMeans(lvl4_data@mat[,lvl4_data@cdesc$cell_id == CT]))
+
+FDR_ct <- apply(meanZ_ct,2,function(X) p.adjust(pnorm(-abs(X))))
 
 samples_ct <- sapply(ct14,function(X) sum(lvl4_data@cdesc$cell_id == X))
 
@@ -76,7 +74,7 @@ pDE_ct <- sapply(ALPHA,function(Z) {
   })
 })
 
-save(FDR_ct,pDE_ct,
+save(meanZ_ct,FDR_ct,pDE_ct,
      file=paste0("~/Dropbox/GDB_archive/CMapCorr_files/lig16_DE_ct_FDR.RData"))
 rm(list=grep("ct$",ls(),value=T))
 
@@ -84,17 +82,17 @@ rm(list=grep("ct$",ls(),value=T))
 
 
 # LIG / CT mean Z-score (unweighted) ----
-FDR_ligct <- sapply(ct14,function(CT) {
+meanZ_ligct <- sapply(ct14,function(CT) {
   sapply(lig16,function(LIG) {
-    p.adjust(pnorm(-abs(
-      rowMeans(lvl4_data@mat[,lvl4_data@cdesc$cell_id == CT &
-                               lvl4_data@cdesc$pert_iname == LIG])
-    )))
+    rowMeans(lvl4_data@mat[,lvl4_data@cdesc$cell_id == CT &
+                             lvl4_data@cdesc$pert_iname == LIG])
   })
 },simplify=F)
 temp_colnames <- as.vector(sapply(names(ct14),function(X) paste(X,lig16,sep="_")))
-FDR_ligct <- do.call(cbind,FDR_ligct)
-colnames(FDR_ligct) <- temp_colnames
+meanZ_ligct <- do.call(cbind,meanZ_ligct)
+colnames(meanZ_ligct) <- temp_colnames
+
+FDR_ligct <- apply(meanZ_ligct,2,function(X) p.adjust(pnorm(-abs(X))))
 
 samples_ligct <- sapply(ct14,function(CT) {
   sapply(lig16,function(LIG) {
@@ -124,7 +122,7 @@ pDE_ligct <- sapply(ALPHA,function(Z) {
   })
 })
 
-save(FDR_ligct,pDE_ligct,
+save(meanZ_ligct,FDR_ligct,pDE_ligct,
      file=paste0("~/Dropbox/GDB_archive/CMapCorr_files/lig16_DE_ligct_FDR.RData"))
 rm(list=grep("ligct$",ls(),value=T))
 rm(list=grep("^temp",ls(),value=T))
@@ -136,19 +134,19 @@ rm(list=grep("^temp",ls(),value=T))
 temp_tx <- unique(lvl4_data@cdesc[,c("pert_iname","cell_id","pert_dose","pert_time")])
 rownames(temp_tx) <- apply(temp_tx,1,paste,collapse="_")
 
-FDR_rep <- apply(temp_tx,1,function(X) {
+meanZ_rep <- apply(temp_tx,1,function(X) {
   temp <- lvl4_data@cdesc$pert_iname == X[1] &
     lvl4_data@cdesc$cell_id == X[2] &
     lvl4_data@cdesc$pert_dose == X[3] &
     lvl4_data@cdesc$pert_time == X[4]
   return(
-    p.adjust(pnorm(-abs(
-      switch((sum(temp) > 1) + 1,
-             lvl4_data@mat[,temp],
-             rowMeans(lvl4_data@mat[,temp]))
-    )))
+    switch((sum(temp) > 1) + 1,
+           lvl4_data@mat[,temp],
+           rowMeans(lvl4_data@mat[,temp]))
   )
 })
+
+FDR_rep <- apply(meanZ_rep,2,function(X) p.adjust(pnorm(-abs(X))))
 
 samples_rep <- apply(temp_tx,1,function(X) 
   sum(lvl4_data@cdesc$pert_iname == X[1] &
@@ -177,7 +175,7 @@ pDE_rep <- sapply(ALPHA,function(Z) {
   })
 })
 
-save(FDR_rep,pDE_rep,
+save(meanZ_rep,FDR_rep,pDE_rep,
      file=paste0("~/Dropbox/GDB_archive/CMapCorr_files/lig16_DE_rep_FDR.RData"))
 rm(list=grep("ligct$",ls(),value=T))
 rm(list=grep("^temp",ls(),value=T))
