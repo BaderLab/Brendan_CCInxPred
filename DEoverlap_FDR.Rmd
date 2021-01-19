@@ -74,7 +74,7 @@ DE_heatmap <- function(Z_all,FDR_all,pDE_all,data_name=c("Ligands","Cell lines")
         xaxt="n",yaxt="n",xlab=NA,ylab=NA)
   if (nrow(FDR) < 100) {
     mtext(lvl4_data@rdesc[rownames(FDR),"pr_gene_symbol"],
-          side=1,las=2,at=1:nrow(FDR),adj=1.1,cex=0.7)
+          side=1,las=2,at=1:nrow(FDR),line=0.1,cex=0.7)
     mtext("Genes",side=1,line=3.5,font=2,cex=1.5)
   } else {
     mtext("Genes",side=1,line=1,font=2,cex=1.5)
@@ -365,6 +365,7 @@ for (LIG in temp_lig) {
   mtext("FDR",side=4,at=length(temp_gene) + 0.7,line=0.5,las=2,font=2)
 }
 
+rm(LIG)
 rm(list=temp)
 rm(list=grep("^temp",ls(),value=T))
 ```
@@ -430,9 +431,77 @@ temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/lig295_DE_ligct_FDR.RData")
 DE_heatmap(meanZ_ligct,FDR_ligct,pDE_ligct,"Ligands per cell line",aCut=0.001)
 ```
 
-```{r lig295_ligct_pDE, fig.height=12,fig.width=5}
-pDE_heatmap(pDE_ligct[,"01"])
+```{r lig295_ligct_pDE, fig.height=4,fig.width=9}
+temp_FDRcut <- 0.05
+
+pDEvector <- pDE_ligct[,as.character(temp_FDRcut * 100)]
+names(pDEvector) <- sub("large_","",names(pDEvector))
+
+scoreDE <- pDEvector + 1e-4
+scoreDE[scoreDE > 1] <- 1
+scoreDE <- -log10(scoreDE)
+
+scoreMAT <- tapply(scoreDE,as.factor(sub("^.+_","",names(scoreDE))),c)
+for (X in names(scoreMAT)) {
+  names(scoreMAT[[X]]) <- sub(paste0("_",X),"",names(scoreMAT[[X]]))
+  scoreMAT[[X]] <- scoreMAT[[X]][sort(names(scoreMAT[[X]]))]
+}
+rm(X)
+scoreMAT <- t(do.call(rbind,scoreMAT))
+
+if (ncol(scoreMAT) > 100) {
+  scoreMAT <- scoreMAT[,apply(scoreMAT,2,function(X) any(X >= -log10(0.05 + 1e-4)))]
+}
+
+temp_hLIG <- hclust(dist(t(scoreMAT)),method="ward.D2")
+temp_hCT <- hclust(dist(scoreMAT),method="ward.D2")
+scoreMAT <- scoreMAT[temp_hCT$order,temp_hLIG$order]
+
+par(mar=c(4.5,1,1,5.5),mgp=2:0)
+image(t(scoreMAT),
+      col=sequential_hcl(100,palette="PinkYl",rev=T),
+      x=1:ncol(scoreMAT),y=1:nrow(scoreMAT),
+      xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+mtext(paste0("Ligands (",ncol(scoreMAT)," / ",length(scoreDE) / nrow(scoreMAT),")"),
+      side=1,line=0.5,font=1,cex=1.2)
+
+text(x=rep(line2user(0.3,4),nrow(scoreMAT)),y=1:nrow(scoreMAT),
+     labels=rownames(scoreMAT),xpd=NA,adj=0,srt=315,cex=0.8)
+mtext("Cell lines",side=4,las=2,line=0.5,at=line2user(0,3),cex=1.2)
+
+rect(xleft=which(t(scoreMAT) >= -log10(0.05 + 1e-4),arr.ind=T)[,1] - 0.5,
+     xright=which(t(scoreMAT) >= -log10(0.05 + 1e-4),arr.ind=T)[,1] + 0.5,
+     ybottom=which(t(scoreMAT) >= -log10(0.05 + 1e-4),arr.ind=T)[,2] - 0.5,
+     ytop=which(t(scoreMAT) >= -log10(0.05 + 1e-4),arr.ind=T)[,2] + 0.5,
+     border="dodgerblue")
+
+temp_left <- par("usr")[1] + (par("usr")[2] - par("usr")[1]) * 0.2
+temp_right <- par("usr")[1] + (par("usr")[2] - par("usr")[1]) * 0.8
+
+segments(x0=seq(temp_left,temp_right,length.out=1000),
+         x1=seq(temp_left,temp_right,length.out=1000),
+         y0=rep(line2user(2,1),1000),y1=rep(line2user(2.6,1),1000),
+         xpd=NA,col=sequential_hcl(1000,palette="PinkYl",rev=T))
+mtext(c("100%","< 0.01%"),side=1,line=1.8,las=0,adj=c(1.1,-0.1),
+      at=c(temp_left,temp_right))
+mtext(paste0("Probability of at least # DE at ",
+             as.character(temp_FDRcut * 100),
+             "% FDR occuring by chance"),
+      las=0,side=1,line=2.7,adj=0.5,
+      at=temp_left + (temp_right - temp_left) / 2)
+
+rect(xleft=temp_left + (-log10(0.05 + 1e-4) / max(scoreMAT)) * (temp_right - temp_left),
+     xright=temp_right,ybottom=line2user(2,1),ytop=line2user(2.6,1),
+     xpd=NA,col=NA,border="dodgerblue")
+mtext("p <= 0.05",side=1,las=0,col="dodgerblue",cex=0.9,line=1,adj=1,at=temp_right)
+
+```
+
+```{r lig295_clean}
+rm(pDEvector)
 rm(list=temp)
+rm(list=grep("^score",ls(),value=T))
+rm(list=grep("^temp",ls(),value=T))
 ```
 
 
