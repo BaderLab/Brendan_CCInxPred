@@ -516,3 +516,70 @@ BoxP(inD)
 ```
 
 The * denotes p < 2.2e-16 from the Wilcoxon rank-sum test comparing to averaging by ligand.  
+
+
+```{r pDE_comparison_lig295, fig.width=6,fig.height=3.5}
+D <- "lig295_DE"
+
+load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/",D,"_lig_FDR.RData"))
+scoreDElig <- pDE_lig + 1e-4
+scoreDElig[scoreDElig > 1] <- 1
+scoreDElig <- -log10(scoreDElig)
+load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/",D,"_ligct_FDR.RData"))
+scoreDEligct <- pDE_ligct + 1e-4
+scoreDEligct[scoreDEligct > 1] <- 1
+scoreDEligct <- -log10(scoreDEligct)
+load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/",D,"_rep_FDR.RData"))
+scoreDErep <- pDE_rep + 1e-4
+scoreDErep[scoreDErep > 1] <- 1
+scoreDErep <- -log10(scoreDErep)
+
+par(mar=c(3,4.5,0.5,2),mgp=2:0)
+plot(NA,NA,xlim=c(0,4),ylim=c(1,15),
+     xlab="Probability of # DE at FDR thresholds",
+     xaxt="n",yaxt="n",ylab=NA)
+axis(1,at=-log10(c(1,0.1,0.05,0.01,0.001,0.0001)),
+     labels=c("100%","10%","5%","1%","0.1%","0.01%"))
+boxplot(scoreDElig,at=seq(1,by=4,length.out=4),
+        add=T,horizontal=T,
+        xaxt="n",yaxt="n",pch=".",cex=2,
+        border=qualitative_hcl(3,palette="dark3")[1],
+        col=qualitative_hcl(3,alpha=0.5,palette="dark3")[1])
+boxplot(scoreDEligct,at=seq(2,by=4,length.out=4),
+        add=T,horizontal=T,
+        xaxt="n",yaxt="n",pch=".",cex=2,
+        border=qualitative_hcl(3,palette="dark3")[2],
+        col=qualitative_hcl(3,alpha=0.5,palette="dark3")[2])
+temp_stat <- sapply(colnames(scoreDElig),function(X) 
+  wilcox.test(scoreDElig[,X],scoreDEligct[,X])$p.value)
+if (any(temp_stat <= 2.2e-16)) {
+  mtext("*",side=2,line=3.3,font=2,
+        at=seq(2,by=4,length.out=4)[temp_stat <= 2.2e-16])
+}
+boxplot(scoreDErep,at=seq(3,by=4,length.out=4),
+        add=T,horizontal=T,
+        xaxt="n",yaxt="n",pch=".",cex=2,
+        border=qualitative_hcl(3,palette="dark3")[3],
+        col=qualitative_hcl(3,alpha=0.5,palette="dark3")[3])
+temp_stat <- sapply(colnames(scoreDElig),function(X) 
+  wilcox.test(scoreDElig[,X],scoreDErep[,X])$p.value)
+if (any(temp_stat <= 2.2e-16)) {
+  mtext("*",side=2,line=3.3,font=2,
+        at=seq(3,by=4,length.out=4)[temp_stat <= 2.2e-16])
+}
+# points(seq(1,by=5,length.out=4),colMeans(scoreDEct),
+#        pch="-",cex=3,col=alpha("red",0.5))
+# points(seq(2,by=5,length.out=4),colMeans(scoreDElig),
+#        pch="-",cex=3,col=alpha("red",0.5))
+# points(seq(3,by=5,length.out=4),colMeans(scoreDEligct),
+#        pch="-",cex=3,col=alpha("red",0.5))
+# points(seq(4,by=5,length.out=4),colMeans(scoreDErep),
+#        pch="-",cex=3,col=alpha("red",0.5))
+mtext(rep(c("Ligand","Lig / Line","Replicate",NA),4),
+      col=c(qualitative_hcl(3,palette="dark3"),NA),
+      side=2,line=0.1,las=2,at=1:16)
+mtext(paste0(c(10,5,1,0.1),"% FDR"),
+      side=4,line=0,at=seq(2,by=4,length.out=4),cex=0.9)
+
+```
+
