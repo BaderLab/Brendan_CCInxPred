@@ -55,23 +55,23 @@ for (L in 1:nrow(CUTOFFS)) {
     temp_ct <- sapply(unique(DSinfo[[LIG]]$cell_type),function(X) 
       rownames(DSinfo[[LIG]])[DSinfo[[LIG]]$cell_type == X],
       simplify=F)
+    temp_ds <- c()
     for (X in names(temp_ct)[sapply(temp_ct,length) > 1]) {
-      Y <- paste(temp_ct[[X]],collapse=".")
-      de_ct[[LIG]][[Y]] <- Reduce(intersect,nn_DE[[LIG]][temp_ct[[X]]])
-      P_ct[[LIG]][[Y]] <- sum(DEbkgd[,as.character(length(temp_ct[[X]]))] >= 
-                                length(de_ct[[LIG]][[Y]])) / nrow(DEbkgd)
-      P_ct[[LIG]][[Y]][P_ct[[LIG]][[Y]] == 0] <- 0.1 / nrow(DEbkgd)
+      temp_ds <- append(temp_ds,paste(temp_ct[[X]],collapse="."))
+      de_ct[[LIG]][[X]] <- Reduce(intersect,nn_DE[[LIG]][temp_ct[[X]]])
+      P_ct[[LIG]][[X]] <- sum(DEbkgd[,as.character(length(temp_ct[[X]]))] >= 
+                                length(de_ct[[LIG]][[X]])) / nrow(DEbkgd)
+      P_ct[[LIG]][[X]][P_ct[[LIG]][[X]] == 0] <- 0.1 / nrow(DEbkgd)
     }
-    Y <- paste(rownames(DSinfo[[LIG]]),collapse=".")
-    if (!Y %in% names(de_ct[[LIG]])) {
-      de_all[[LIG]][[Y]] <- Reduce(intersect,nn_DE[[LIG]])
-      P_all[[LIG]][[Y]] <- sum(DEbkgd[,as.character(length(nn_DE[[LIG]]))] >= 
-                                 length(de_all[[LIG]][[Y]])) / nrow(DEbkgd)
-      P_all[[LIG]][[Y]][P_all[[LIG]][[Y]] == 0] <- 0.1 / nrow(DEbkgd)
+    if (!paste(rownames(DSinfo[[LIG]]),collapse=".") %in% temp_ds) {
+      de_all[[LIG]] <- Reduce(intersect,nn_DE[[LIG]])
+      P_all[[LIG]] <- sum(DEbkgd[,as.character(length(nn_DE[[LIG]]))] >= 
+                                 length(de_all[[LIG]])) / nrow(DEbkgd)
+      P_all[[LIG]][P_all[[LIG]] == 0] <- 0.1 / nrow(DEbkgd)
     }
   }
   
-  rm(list=c("X","Y","LIG",grep("^temp",ls(),value=T)))
+  rm(list=c("X","LIG",grep("^temp",ls(),value=T)))
   save(nn_DE,de_all,de_ct,P_all,P_ct,
        file=paste0(
          "~/Dropbox/GDB_archive/CMapCorr_files/NN_ALLvCT_DEovlp_",

@@ -112,7 +112,7 @@ load("~/Dropbox/GDB_archive/CMapCorr_files/NN_ALLvCT_corr.RData")
 
 ## Correlation
 
-```{r AvC_corr_plot,fig.height=4,fig.width=9}
+```{r AvC_corr_plot,fig.height=4,fig.width=8}
 temp_order <- names(sort(sapply(unique(c(names(corr_all),names(corr_ct))),
                                 function(X) mean(c(corr_all[[X]],corr_ct[[X]])))))
 lig_col <- qualitative_hcl(length(nn_ligands),palette="dark3",alpha=0.5)
@@ -172,18 +172,16 @@ Differentially expressed genes were determined by |logFC| >= 1 and FDR <= 0.1 (s
 par(mfrow=c(2,6),mgp=2:0)
 for (charLFC in c("2","4")) {
   for (charFDR in c("1","01")) {
-    load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/NN_ALLvCT_DEovlp_",
-                "LFC",charLFC,"FDR",charFDR,".RData"))
+    temp_ds <- load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/NN_ALLvCT_DEovlp_",
+                        "LFC",charLFC,"FDR",charFDR,".RData"))
     LFC <- log2(as.integer(charLFC))
     FDR <- as.numeric(paste0("0.",charFDR))
-    temp_y <- lapply(c("P_all","P_ct"),function(X) {
-      temp <- -log10(unlist(get(X)))
-      names(temp) <- sapply(strsplit(names(unlist(get(X))),".",fixed=T),"[[",1)
-      return(temp)
-    })
-    temp_x <- sapply(list(ALL=de_all,CT=de_ct),function(DE)
-      sapply(unlist(DE,recursive=F,use.names=F),length),simplify=F)
-    
+    temp_y <- lapply(c(ALL="P_all",CT="P_ct"),function(X) -log10(unlist(get(X))))
+    temp_x <- list(ALL=sapply(de_all,length),
+                   CT=sapply(unlist(de_ct,F,T),length))
+    temp_CTnames <- names(temp_y$CT)
+    names(temp_x$CT) <- names(temp_y$CT) <- sapply(strsplit(temp_CTnames,".",fixed=T),"[[",1)
+      
     par(mar=c(5,4,2,0.5))
     boxplot(temp_y,ylim=range(temp_y),outline=T,xaxt="n",yaxt="n",ylab=NA)
     text(1.5,line2user(-0.2,3),srt=90,adj=1,cex=1.2,
@@ -214,8 +212,85 @@ for (charLFC in c("2","4")) {
       mtext("# overlapping DE",side=1,line=2.5)
       mtext(N,side=1,line=4,font=2)
     },X=temp_x,Y=temp_y,N=c("Across cell types","Within cell type"))
+    rm(list=temp_ds)
+    # rm(list=grep("^temp",ls(),value=T))
   }
 }
+```
+
+```{r AvC_diffexp_boxplot_v3, fig.height=4,fig.width=9}
+charLFC <- "4"; charFDR <- "01"
+load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/NN_ALLvCT_DEovlp_",
+            "LFC",charLFC,"FDR",charFDR,".RData"))
+temp_y <- lapply(c(ALL="P_all",CT="P_ct"),function(X) -log10(unlist(get(X))))
+temp_x <- list(ALL=sapply(de_all,length),
+               CT=sapply(unlist(de_ct,F,T),length))
+temp_CTnames <- names(temp_y$CT)
+names(temp_y$CT) <- sapply(strsplit(temp_CTnames,".",fixed=T),"[[",1)
+names(temp_y$CT)[names(temp_y$CT) %in% unique(names(temp_y$CT)[duplicated(names(temp_y$CT))])] <- 
+  temp_CTnames[names(temp_y$CT) %in% unique(names(temp_y$CT)[duplicated(names(temp_y$CT))])]
+names(temp_x$CT) <- names(temp_y$CT)
+
+Plist <- Pstat <- list()
+for (charLFC in c("2","4")) {
+  for (charFDR in c("1","01")) {
+    temp_ds <- load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/NN_ALLvCT_DEovlp_",
+                        "LFC",charLFC,"FDR",charFDR,".RData"))
+    Plist[[length(Plist) + 1]] <- lapply(c(ALL="P_all",CT="P_ct"),function(X) -log10(unlist(get(X))))
+    Pstat[[length(Pstat) + 1]] <- wilcox.test(unlist(P_all),unlist(P_ct))$p.value
+    names(Plist)[length(Plist)] <- paste("|Log2FC| \u2265",
+                                         log2(as.integer(charLFC)),
+                                         "& FDR \u2264",
+                                         as.numeric(paste0("0.",charFDR)))
+    rm(list=temp_ds)
+  }
+}
+
+
+par(mfrow=c(1,2),mar=c(3,3,0.5,0.1),mgp=2:0)
+plot(NA,NA,xlim=range(unlist(temp_x)),ylim=range(unlist(Plist)),
+     yaxt="n",ylab="P # DE overlapping by chance",
+     xlab=paste("# overlapping DE at |Log2FC| \u2265",
+                log2(as.integer(charLFC)),
+                "& FDR \u2264",
+                as.numeric(paste0("0.",charFDR))))
+axis(2,at=-log10(c(1,0.1,0.05,1e-2,1e-3,1e-4,1e-5)),
+     labels=c("100%","10%","5%","1%","0.1%","0.01%","0.001%"))
+points(jitter(temp_x$ALL,2),jitter(temp_y$ALL,2),pch=20,col=alpha("red",0.5))
+points(jitter(temp_x$CT,2),jitter(temp_y$CT,2),pch=20,col=alpha("dodgerblue",0.5))
+text(temp_x$ALL[temp_y$ALL > -log10(0.05)],temp_y$ALL[temp_y$ALL > -log10(0.05)],
+     names(temp_y$ALL)[temp_y$ALL > -log10(0.05)],col="red",cex=0.6,pos=3,offset=0.2)
+temp_lab1 <- data.frame(x=temp_x$CT[temp_y$CT > -log10(0.05)],
+                        y=temp_y$CT[temp_y$CT > -log10(0.05)])
+temp_lab2 <- temp_lab1["TGFB1.fibroblast",,drop=F]
+temp_lab1 <- temp_lab1[rownames(temp_lab1) != "TGFB1.fibroblast",]
+text(temp_lab1,labels=rownames(temp_lab1),
+     col="dodgerblue",cex=0.6,offset=0.2,
+     pos=c(4,2)[(rownames(temp_lab1) == "BDNF") + 1])
+text(temp_lab2,labels=rownames(temp_lab2),
+     col="dodgerblue",cex=0.6,offset=0.2,adj=c(-0.01,-0.2))
+legend("topright",bty="n",pch=20,col=alpha(c("red","dodgerblue"),0.5),
+       legend=c("Across cell types","Within cell type"),cex=0.9,pt.cex=1,x.intersp=0.8)
+
+par(mar=c(3,0.1,0.5,3))
+boxplot(unlist(Plist,F,F),pch=20,yaxt="n",xaxt="n",ylab=NA,
+        at=seq(1,12)[-seq(3,by=3,length.out=4)],
+        col=alpha(c("red","dodgerblue"),0.5),
+        border=c("red","dodgerblue"))
+axis(4,at=-log10(c(1,0.1,0.05,1e-2,1e-3,1e-4,1e-5)),
+     labels=c("100%","10%","5%","1%","0.1%","0.01%","0.001%"))
+mtext("P # DE overlapping by chance",side=4,line=2)
+mtext(sub("&","\n&",names(Plist)),side=1,line=1,
+      at=seq(1.5,by=3,length.out=4),cex=0.9)
+mtext(paste("p =",signif(unlist(Pstat),2)),side=1,line=2,
+      at=seq(1.5,by=3,length.out=4),cex=0.9)
+
+```
+
+
+```{r cleanup_AvC}
+rm(list=ls())
+source("~/Dropbox/GDB/line2user.R")
 ```
 
 
