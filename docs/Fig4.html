@@ -23,6 +23,15 @@
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
 
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
 <style type="text/css">code{white-space: pre;}</style>
 <style type="text/css">
   pre:not([class]) {
@@ -67,6 +76,7 @@ h6 {
   text-align: left;
 }
 </style>
+
 
 
 
@@ -334,6 +344,30 @@ $(document).ready(function () {
     </li>
   </ul>
 </li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Paper Figs v2
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="Zcorr.html">Z-score correlation</a>
+    </li>
+    <li>
+      <a href="DEoverlap.html">DE overlap</a>
+    </li>
+    <li>
+      <a href="DEoverlap_FDR.html">DE overlap (FDR)</a>
+    </li>
+    <li>
+      <a href="RecExpr_FDR.html">Receptor availability</a>
+    </li>
+    <li>
+      <a href="NicheNet.html">NicheNet</a>
+    </li>
+  </ul>
+</li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         
@@ -360,6 +394,19 @@ $(document).ready(function () {
 <h2>All cell lines</h2>
 <p><img src="Fig4_files/figure-html/ALL_lvl4_heatmap-1.png" width="768" /></p>
 <p><img src="Fig4_files/figure-html/ALL_lvl4_MAplot-1.png" width="768" /></p>
+<p><img src="Fig4_files/figure-html/ALL_lvl4_volcplot-1.png" width="768" /></p>
+<p><img src="Fig4_files/figure-html/ALL_lvl4_MAplot_2-1.png" width="576" /></p>
+<pre><code>## 
+##  Wilcoxon signed rank test with continuity correction
+## 
+## data:  as.vector(ALL_aupr_new) and as.vector(ALL_aupr_all)
+## V = 4056, p-value &lt; 2.2e-16
+## alternative hypothesis: true location shift is not equal to 0
+## 95 percent confidence interval:
+##  -0.02064542 -0.00932169
+## sample estimates:
+## (pseudo)median 
+##    -0.01419736</code></pre>
 </div>
 
 
@@ -371,7 +418,7 @@ $(document).ready(function () {
 
 // add bootstrap table styles to pandoc tables
 function bootstrapStylePandocTables() {
-  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
 }
 $(document).ready(function () {
   bootstrapStylePandocTables();

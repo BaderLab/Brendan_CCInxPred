@@ -7,11 +7,19 @@ library(cmapR)
 library(ranger)
 library(colorspace)
 library(kableExtra)
+
+knitr::opts_chunk$set(
+  echo=F,
+  message=F,
+  warning=F
+)
 ```
+
+# Accuracy 
 
 ## Level 4
 
-```{r load_data_lvl4, message=FALSE, warning=FALSE, include=FALSE}
+```{r load_data_lvl4}
 if (exists("lvl4_data")) {
 } else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs.RData")) {
   load("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs.RData") 
@@ -22,16 +30,20 @@ if (exists("lvl4_data")) {
 
 [Random forest model source code](https://github.com/BaderLab/Brendan_CCInxPred/blob/master/200708_lvl4_withhold1CT.R)  
 
-```{r RFwithholdCT,echo=FALSE,message=FALSE,warning=FALSE,fig.height=4,fig.width=9,fig.show='hold'}
+```{r lvl4_RFwithholdCT,fig.height=4,fig.width=9,fig.show='hold'}
 if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200708_lvl4_withhold1CT.RData")) {
   temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200708_lvl4_withhold1CT.RData")
 } else {
   source("200708_lvl4_withhold1CT.R")
 }
+lvl4_rfresults <- rfresults
+lvl4_testIDs <- testIDs
+
+rm(list=temp)
 ```
 
 
-```{r lvl4_training_dist,eval=F,echo=FALSE,message=FALSE,warning=FALSE}
+```{r lvl4_training_dist,eval=F}
 t(sapply(ct14,function(CT) sapply(lig16,function(LIG) 
     sum(lvl4_data@cdesc[trainIDs[[1]],"cell_id"] == CT & lvl4_data@cdesc[trainIDs[[1]],"pert_iname"] == LIG))))
 
@@ -48,14 +60,14 @@ kable(tempdf,format="html")  %>%
 
 ```{r lvl4_confusion_matrix_calc, echo=F,message=F,warning=F}
 confusionCT <- sapply(ct14,function(CT) {
-  temp_confusion <- table(true=factor(lvl4_data@cdesc[testIDs[[CT]],"pert_iname"],levels=lig16),
-                          predicted=rfresults[[CT]]$predictions)
+  temp_confusion <- table(true=factor(lvl4_data@cdesc[lvl4_testIDs[[CT]],"pert_iname"],levels=lig16),
+                          predicted=lvl4_rfresults[[CT]]$predictions)
   return(sweep(temp_confusion,1,rowSums(temp_confusion),"/"))
 },simplify=F)
 
 lvl4_acc_ct <- t(sapply(confusionCT,diag))
 lvl4_counts <- t(sapply(ct14,function(CT) 
-  table(factor(lvl4_data@cdesc[testIDs[[CT]],"pert_iname"],levels=lig16))))
+  table(factor(lvl4_data@cdesc[lvl4_testIDs[[CT]],"pert_iname"],levels=lig16))))
 ```
 
 ```{r lvl4_confusion_matrix_perCT_plot, eval=F,echo=F,message=F,warning=F,fig.height=7,fig.width=7,fig.show='hold'}
@@ -105,7 +117,7 @@ mtext("Accuracy",las=0,side=1,line=0.9,at=7,adj=0.5)
 ## Level 5
 
 
-```{r load_data_lvl5, message=FALSE, warning=FALSE, include=FALSE}
+```{r load_data_lvl5}
 if (exists("lvl5_data")) {
 } else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_inputs.RData")) {
   load("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_inputs.RData") 
@@ -116,16 +128,20 @@ if (exists("lvl5_data")) {
 
 [Random forest model source code](https://github.com/BaderLab/Brendan_CCInxPred/blob/master/200708_lvl5_withhold1CT.R)  
 
-```{r lv5_RFwithholdCT,echo=FALSE,message=FALSE,warning=FALSE,fig.height=4,fig.width=9,fig.show='hold'}
+```{r lv5_RFwithholdCT,fig.height=4,fig.width=9,fig.show='hold'}
 if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200708_lvl5_withhold1CT.RData")) {
   temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200708_lvl5_withhold1CT.RData")
 } else {
   source("200708_lvl5_withhold1CT.R")
 }
+lvl5_rfresults <- rfresults
+lvl5_testIDs <- testIDs
+
+rm(list=temp)
 ```
 
 
-```{r lv5_training_dist,eval=F,echo=FALSE,message=FALSE,warning=FALSE}
+```{r lv5_training_dist,eval=F}
 t(sapply(ct14,function(CT) sapply(lig16,function(LIG) 
     sum(lvl5_data@cdesc[trainIDs[[1]],"cell_id"] == CT & lvl5_data@cdesc[trainIDs[[1]],"pert_iname"] == LIG))))
 
@@ -142,14 +158,16 @@ kable(tempdf,format="html")  %>%
 
 ```{r lv5_confusion_matrix_calc, echo=F,message=F,warning=F}
 confusionCT <- sapply(ct14,function(CT) {
-  temp_confusion <- table(true=factor(lvl5_data@cdesc[testIDs[[CT]],"pert_iname"],levels=lig16),
-                          predicted=rfresults[[CT]]$predictions)
+  temp_confusion <- table(true=factor(lvl5_data@cdesc[lvl5_testIDs[[CT]],"pert_iname"],levels=lig16),
+                          predicted=lvl5_rfresults[[CT]]$predictions)
   return(sweep(temp_confusion,1,rowSums(temp_confusion),"/"))
 },simplify=F)
 
 lvl5_acc_ct <- t(sapply(confusionCT,diag))
 lvl5_counts <- t(sapply(ct14,function(CT) 
-  table(factor(lvl5_data@cdesc[testIDs[[CT]],"pert_iname"],levels=lig16))))
+  table(factor(lvl5_data@cdesc[lvl5_testIDs[[CT]],"pert_iname"],levels=lig16))))
+
+rm(list=temp)
 ```
 
 ```{r lv5_confusion_matrix_perCT_plot, eval=F,echo=F,message=F,warning=F,fig.height=7,fig.width=7,fig.show='hold'}
@@ -198,14 +216,14 @@ mtext("Accuracy",las=0,side=1,line=0.9,at=7,adj=0.5)
 ## Compared to Level 5 control assay (leave-one-out)
 
 
-```{r RF_leave1out,echo=FALSE,message=FALSE,warning=FALSE}
+```{r RF_leave1out}
 if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200524_lvl5_mixall_balanced_leave1out_results.RData")) {
   temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200524_lvl5_mixall_balanced_leave1out_results.RData")
 } else {
   source("200524_lvl5_mixall_leave1out.R")
 }
 
-test_results <- data.frame(
+lvl5L1O_testresults <- data.frame(
   IDs=as.vector(testIDs),
   Labels=as.vector(t(sapply(rfresults,function(X) X$predictions))),
   stringsAsFactors=F
@@ -213,9 +231,9 @@ test_results <- data.frame(
 test_hits <- vector("list",sum(lvl5_data@cdesc$pert_iname %in% lig16))
 names(test_hits) <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname %in% lig16]
 
-for (X in 1:nrow(test_results)) {
-  test_hits[[test_results[X,"IDs"]]] <- append(test_hits[[test_results[X,"IDs"]]],
-                                               test_results[X,"Labels"])
+for (X in 1:nrow(lvl5L1O_testresults)) {
+  test_hits[[lvl5L1O_testresults[X,"IDs"]]] <- append(test_hits[[lvl5L1O_testresults[X,"IDs"]]],
+                                               lvl5L1O_testresults[X,"Labels"])
 }
 
 acc_leave1out <- sapply(names(test_hits),function(X) 
@@ -255,7 +273,7 @@ test_predictions <- sapply(lig16,function(X) {
 rm(X)
 ```
 
-```{r leave1out_acc_ct,echo=FALSE,message=FALSE,warning=FALSE,fig.height=5,fig.width=7,fig.show='hold'}
+```{r leave1out_acc_ct,fig.height=5,fig.width=7,fig.show='hold'}
 # see {RF_leave1out} for input code for this figure.
 
 par(mar=c(2,13,5,1),mgp=2:0,las=2)
@@ -279,6 +297,25 @@ segments(x0=seq(2.5,11.5,length.out=1000),
          xpd=NA,col=sequential_hcl(1000,palette="inferno",rev=T))
 mtext(c("0%","100%"),las=0,side=1,at=c(2.5,11.5),adj=c(1.1,-0.1))
 mtext("Accuracy",las=0,side=1,line=0.9,at=7,adj=0.5)
+```
+
+
+```{r vs_lvl5_leave1out, echo=FALSE,message=FALSE,warning=FALSE,fig.height=4,fig.width=7}
+temp_acc <- data.frame(lvl5L1O=as.vector(acc_leave1out_ct),
+                       lvl5CT=as.vector(lvl5_acc_ct),
+                       lvl4CT=as.vector(lvl4_acc_ct))
+temp_col <- qualitative_hcl(nrow(temp_acc),palette="dynamic",alpha=0.5)
+
+
+par(mfrow=c(1,2),mar=c(3,3,1,1),mgp=2:0)
+plot(NA,NA,xlim=c(0.9,3.1),ylim=c(0,1),
+     ylab="Accuracy",xaxt="n",xlab=NA)
+for (X in 1:nrow(temp_acc)) {
+  points(jitter(1:3,amount=0.1),temp_acc[X,],type="b",pch=20,col=temp_col[X])
+}
+boxplot(temp_acc)
+
+wilcox.test(temp_acc$lvl5L1O,temp_acc$lvl4CT,paired=T)
 ```
 
 
@@ -308,5 +345,38 @@ mtext(paste("Median ~",
       side=4,at=2,line=0.5)
 
 ```
+
+
+****
+
+# MCC
+
+Redone with multiclass MCC score (from Yardstick package) instead of accuracy.
+
+```{r}
+rm(list=ls()[!ls() %in% c("lvl4_data","lvl4_rfresults","lvl4_testIDs",
+                          "lvl5_data","lvl5_rfresults","lvl4_testIDs",
+                          "lvl5L1O_testresults","ct14","lig16")])
+```
+
+```{r CTRL_confusion}
+lvl5L1O_testresults$Labels <- as.factor(lvl5L1O_testresults$Labels)
+lvl5L1O_testresults$Truth <- as.factor(lvl5_data@cdesc[lvl5L1O_testresults$IDs,"pert_iname"])
+lvl5L1O_testresults$CellType <- as.factor(lvl5_data@cdesc[lvl5L1O_testresults$IDs,"cell_id"])
+
+print(paste("Lvl5 leave one out (CTRL) MCC:",
+            yardstick::mcc_vec(lvl5L1O_testresults$Truth,
+                               lvl5L1O_testresults$Labels)))
+  
+```
+
+
+```{r lvl4_confusion}
+CT <- "VCAP"
+table(true=factor(lvl4_data@cdesc[testIDs[[CT]],"pert_iname"],levels=lig16),
+                          predicted=lvl4_rfresults[[CT]]$predictions)
+```
+
+
 
 

@@ -9,13 +9,14 @@ library(scales)
 library(mccf1)
 library(ROCR)
 library(mccr)
+source("~/Dropbox/GDB/line2user.R")
 ```
 
 ```{r MAplot, echo=F,message=F,warning=F,fig.height=4,fig.width=9,fig.show='hold'}
 # metric_new / metric_all show be matrices where rows are cell lines and ligands are columns.
 MA_PLOT <- function(metric_new,metric_all,cts,ligs,metric_label,lig_label_thresh=0.1) {
-  temp_lig <- factor(sapply(colnames(metric_all),function(X) rep(X,nrow(metric_all))),levels=ligs)
-  temp_ct <- factor(sapply(colnames(metric_all),function(X) rownames(metric_all)),levels=cts)
+  temp_lig <- factor(sapply(colnames(metric_all),function(X) rep(X,nrow(metric_all)))) #,levels=ligs)
+  temp_ct <- factor(sapply(colnames(metric_all),function(X) rownames(metric_all))) #,levels=cts)
   
   par(mfrow=c(1,2),mar=c(3,3,2,1),mgp=2:0)
   plot(as.vector(metric_new) - as.vector(metric_all),
@@ -138,7 +139,7 @@ MA_PLOT(BREAST_aupr_new,BREAST_aupr_all,ctBR,lig16,"AUPR",0.1)
 
 ```
 ```{r echo=F,message=F,warning=F}
-rm(list=ls()[ls() != "MA_PLOT"])
+rm(list=ls()[!ls() %in% c("MA_PLOT","line2user")])
 ```
 
 
@@ -170,17 +171,23 @@ ALL_aupr_new <- sapply(names(scores_new),function(LIG) {
   })
 })
 
+temp_row <- hclust(dist(ALL_aupr_all),"single")$order
+temp_col <- hclust(dist(t(ALL_aupr_all)),"single")$order
+
+ALL_aupr_all <- ALL_aupr_all[temp_row,temp_col]
+ALL_aupr_new <- ALL_aupr_new[temp_row,temp_col]
 ```
 
 
 ```{r ALL_lvl4_heatmap, echo=F,message=F,warning=F,fig.height=8,fig.width=8,fig.show='hold'}
 temp_ct <- as.vector(sapply(qualitative_hcl(length(ct14),palette="dark3"),rep,2))
-temp_lig <- qualitative_hcl(length(lig16),palette="dark3")
+temp_lig <- qualitative_hcl(length(lig16),palette="dark3")[as.vector(sapply(1:8,function(X) c(X,X + 8)))]
+names(temp_lig) <- colnames(ALL_aupr_all)
 
 temp_both <- do.call(cbind,lapply(rownames(ALL_aupr_all),function(X) { 
-  temp <- cbind(ALL_aupr_new[X,],ALL_aupr_all[X,]) 
-  colnames(temp) <- c(names(ct14)[ct14 == X],
-                      paste0("CTRL_",names(ct14)[ct14 == X]))
+  temp <- cbind(ALL_aupr_all[X,],ALL_aupr_new[X,]) 
+  colnames(temp) <- c(paste0("CTRL_",names(ct14)[ct14 == X]),
+                      names(ct14)[ct14 == X])
   return(temp)
 }))
 
@@ -215,8 +222,48 @@ mtext("AUPR",las=0,side=1,line=0.9,at=5.5,adj=0.5)
 
 ```{r ALL_lvl4_MAplot, echo=F,message=F,warning=F,fig.height=4,fig.width=8,fig.show='hold'}
 MA_PLOT(ALL_aupr_new,ALL_aupr_all,ct14,lig16,"AUPR",0.2)
-# legend("topleft",bty="n",legend=ct14,pch=19,cex=0.8,
-#        col=qualitative_hcl(length(ct14),palette="dark3"),
-#        text.col=qualitative_hcl(length(ct14),palette="dark3"))
-
 ```
+
+```{r ALL_lvl4_volcplot, echo=F,message=F,warning=F,fig.height=4,fig.width=8,fig.show='hold'}
+temp_x <- ALL_aupr_new - ALL_aupr_all
+temp_y <- (ALL_aupr_new + ALL_aupr_all) / 2
+temp_x2 <- apply(temp_x,2,median)
+temp_y2 <- apply(temp_y,2,median)
+temp_stat <- apply(temp_x,2,function(X) wilcox.test(X)$p.value)
+par(mar=c(3,3,1,10),mgp=2:0)
+plot(NA,NA,xlim=range(temp_x),ylim=range(-log10(temp_stat)),yaxt="n",
+     xlab="Withheld - Control AUPR",ylab="Wilcoxon signed-rank test p-value")
+axis(2,at=-log10(c(1,0.1,0.05,0.01,1e-3,1e-4)),
+     labels=c(1,0.1,0.05,0.01,1e-3,1e-4))
+abline(v=0,lty=2)
+temp <- sapply(colnames(temp_x),function(X) 
+  lines(range(temp_x[,X]),rep(-log10(temp_stat[X]),2),col=temp_lig[X]))
+points(temp_x2,-log10(temp_stat),pch=19,col=temp_lig)
+legend(x=line2user(0,4),
+       y=par("usr")[3] + (par("usr")[4] - par("usr")[3]) / 2,
+       yjust=0.5,bty="n",xpd=NA,pch=19,col=temp_lig[order(temp_stat)],cex=0.98,
+       legend=paste0(names(temp_lig)[order(temp_stat)],
+         " (",signif(colMeans(ALL_aupr_all),2)[order(temp_stat)],")"))
+mtext("Ligand (Mean ctrl AUPR)",side=3,line=-0.1,at=line2user(0.1,4),adj=0)
+```
+
+```{r ALL_lvl4_MAplot_2, echo=F,message=F,warning=F,fig.height=4,fig.width=6,fig.show='hold'}
+plot(NA,NA,xlim=range(temp_x),ylim=range(temp_y),
+     xlab="Withheld - Control AUPR",ylab="Mean AUPR")
+abline(v=0,lty=2)
+temp <- sapply(colnames(temp_x),function(X) 
+  lines(range(temp_x[,X]),rep(temp_y2[X],2),col=temp_lig[X]))
+temp <- sapply(colnames(temp_x),function(X) 
+  lines(rep(temp_x2[X],2),range(temp_y[,X]),col=temp_lig[X]))
+
+points(temp_x2,temp_y2,pch=19,col=temp_lig)
+```
+
+
+
+
+
+```{r diff_stat, echo=F}
+wilcox.test(as.vector(ALL_aupr_new),as.vector(ALL_aupr_all),paired=T,conf.int=T)
+```
+
