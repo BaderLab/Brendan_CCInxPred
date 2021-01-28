@@ -23,6 +23,15 @@
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
 
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
 <style type="text/css">code{white-space: pre;}</style>
 <style type="text/css">
   pre:not([class]) {
@@ -67,6 +76,7 @@ h6 {
   text-align: left;
 }
 </style>
+
 
 
 
@@ -329,6 +339,33 @@ $(document).ready(function () {
     <li>
       <a href="Fig3_allgenes.html">Fig 3 (all genes)</a>
     </li>
+    <li>
+      <a href="Fig4.html">Fig 4</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Paper Figs v2
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="Zcorr.html">Z-score correlation</a>
+    </li>
+    <li>
+      <a href="DEoverlap.html">DE overlap</a>
+    </li>
+    <li>
+      <a href="DEoverlap_FDR.html">DE overlap (FDR)</a>
+    </li>
+    <li>
+      <a href="RecExpr_FDR.html">Receptor availability</a>
+    </li>
+    <li>
+      <a href="NicheNet.html">NicheNet</a>
+    </li>
   </ul>
 </li>
       </ul>
@@ -348,6 +385,8 @@ $(document).ready(function () {
 </div>
 
 
+<div id="accuracy" class="section level1">
+<h1>Accuracy</h1>
 <div id="level-4" class="section level2">
 <h2>Level 4</h2>
 <p><a href="https://github.com/BaderLab/Brendan_CCInxPred/blob/master/200708_lvl4_withhold1CT.R">Random forest model source code</a></p>
@@ -361,7 +400,37 @@ $(document).ready(function () {
 <div id="compared-to-level-5-control-assay-leave-one-out" class="section level2">
 <h2>Compared to Level 5 control assay (leave-one-out)</h2>
 <p><img src="LigPred_extrapolate_files/figure-html/leave1out_acc_ct-1.png" width="672" /></p>
+<p><img src="LigPred_extrapolate_files/figure-html/lvl4_vs_l1o-1.png" width="768" /></p>
+<p><img src="LigPred_extrapolate_files/figure-html/ALL_lvl4_volcplot-1.png" width="768" /></p>
+<pre><code>## 
+##  Wilcoxon signed rank test with continuity correction
+## 
+## data:  as.vector(lvl4_acc_ct) and as.vector(acc_leave1out_ct)
+## V = 5065, p-value = 0.0001294
+## alternative hypothesis: true location shift is not equal to 0
+## 95 percent confidence interval:
+##  -0.07124282 -0.02337594
+## sample estimates:
+## (pseudo)median 
+##    -0.04759526</code></pre>
+<pre><code>## [1] &quot;Mean accuracy of control: 32%&quot;</code></pre>
+<pre><code>## [1] &quot;Mean accuracy of withheld: 28%&quot;</code></pre>
+<pre><code>## [1] &quot;Median pairwise change in accuracy in withheld cell lines relative to control was -5% (p = 0.00013 by Wilcoxon signed-rank test).&quot;</code></pre>
+<p><img src="LigPred_extrapolate_files/figure-html/vs_lvl5_leave1out_new-1.png" width="672" /></p>
+<pre><code>## 
+##  Wilcoxon signed rank test with continuity correction
+## 
+## data:  temp_acc$lvl5L1O and temp_acc$lvl4CT
+## V = 10160, p-value = 0.0001294
+## alternative hypothesis: true location shift is not equal to 0</code></pre>
 <p><img src="LigPred_extrapolate_files/figure-html/vs_lvl5_leave1out-1.png" width="672" /></p>
+<hr />
+</div>
+</div>
+<div id="mcc" class="section level1">
+<h1>MCC</h1>
+<p>Redone with multiclass MCC score (from Yardstick package) instead of accuracy.</p>
+<pre><code>## [1] &quot;Lvl5 leave one out (CTRL) MCC: 0.331336580374155&quot;</code></pre>
 </div>
 
 
@@ -373,7 +442,7 @@ $(document).ready(function () {
 
 // add bootstrap table styles to pandoc tables
 function bootstrapStylePandocTables() {
-  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
 }
 $(document).ready(function () {
   bootstrapStylePandocTables();

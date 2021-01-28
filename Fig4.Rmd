@@ -264,6 +264,13 @@ points(temp_x2,temp_y2,pch=19,col=temp_lig)
 
 
 ```{r diff_stat, echo=F}
-wilcox.test(as.vector(ALL_aupr_new),as.vector(ALL_aupr_all),paired=T,conf.int=T)
-```
+temp <- wilcox.test(as.vector(ALL_aupr_new),as.vector(ALL_aupr_all),paired=T,conf.int=T)
+temp
 
+print(paste0("Mean AUPR of control: ",signif(mean(ALL_aupr_all),2)))
+print(paste0("Mean AUPR of withheld: ",signif(mean(ALL_aupr_new),2)))
+
+print(paste0("Median pairwise change in AUPR in withheld cell lines relative to control was ",
+             signif(temp$estimate,2)," (p = ",
+             signif(temp$p.value,2)," by Wilcoxon signed-rank test)."))
+```

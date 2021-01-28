@@ -7,7 +7,7 @@ library(cmapR)
 library(ranger)
 library(colorspace)
 library(kableExtra)
-
+source("~/Dropbox/GDB/line2user.R")
 knitr::opts_chunk$set(
   echo=F,
   message=F,
@@ -300,7 +300,81 @@ mtext("Accuracy",las=0,side=1,line=0.9,at=7,adj=0.5)
 ```
 
 
-```{r vs_lvl5_leave1out, echo=FALSE,message=FALSE,warning=FALSE,fig.height=4,fig.width=7}
+```{r lvl4_vs_l1o,fig.height=8,fig.width=8,fig.show='hold'}
+temp_ct <- as.vector(sapply(qualitative_hcl(length(ct14),palette="dark3"),rep,2))
+temp_lig <- qualitative_hcl(length(lig16),palette="dark3")[as.vector(sapply(1:8,function(X) c(X,X + 8)))]
+names(temp_lig) <- colnames(acc_leave1out_ct)
+
+temp_both <- do.call(cbind,lapply(rownames(acc_leave1out_ct),function(X) { 
+  temp <- cbind(acc_leave1out_ct[X,],lvl4_acc_ct[X,])
+  colnames(temp) <- c(paste0("CTRL_",X),X)
+  return(temp)
+}))
+
+par(mar=c(2,14,5,1),mgp=2:0,las=2)
+image(z=temp_both[,seq(ncol(temp_both),1)],
+      x=1:nrow(temp_both),y=1:ncol(temp_both),
+      col=sequential_hcl(100,palette="Inferno",rev=T),
+      breaks=seq(0,1,length.out=101),
+      xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+abline(h=seq(2.5,ncol(temp_both) - 1.5,2),col="white")
+
+mtext(rownames(temp_both),side=3,at=1:nrow(temp_both),adj=0,line=0.1,col=temp_lig)
+mtext("Withheld cell line",side=3,line=0.1,at=0.3,adj=1,las=0,font=2,cex=1.5)
+
+mtext(rev(colnames(temp_both)),col=rev(temp_ct),
+      side=2,at=1:ncol(temp_both),adj=1,line=0.1)
+mtext("Ligand",side=3,line=3.5,cex=1.5,font=2,las=0)
+
+text(as.vector(sapply(1:ncol(temp_both),function(X) 1:nrow(temp_both))),
+     as.vector(sapply(ncol(temp_both):1,function(X) rep(X,nrow(temp_both)))),
+     labels=as.vector(round(temp_both * 100)),cex=0.8,col="dodgerblue")
+mtext("% Accuracy",side=1,line=0.1,at=nrow(temp_both) + 0.5,adj=1,las=0,col="dodgerblue")
+
+segments(x0=seq(2,9,length.out=1000),
+         x1=seq(2,9,length.out=1000),
+         y0=rep(-0.1,1000),y1=rep(0.3,1000),
+         xpd=NA,col=sequential_hcl(1000,palette="inferno",rev=T))
+mtext(c("0%","100%"),las=0,side=1,at=c(2,9),adj=c(1.1,-0.1))
+mtext("Accuracy",las=0,side=1,line=0.9,at=5.5,adj=0.5)
+```
+
+```{r ALL_lvl4_volcplot, echo=F,message=F,warning=F,fig.height=4,fig.width=8,fig.show='hold'}
+temp_x <- lvl4_acc_ct - acc_leave1out_ct
+temp_y <- (lvl4_acc_ct + acc_leave1out_ct) / 2
+temp_x2 <- apply(temp_x,2,median)
+temp_y2 <- apply(temp_y,2,median)
+temp_stat <- apply(temp_x,2,function(X) wilcox.test(X)$p.value)
+par(mar=c(3,3,1,10),mgp=2:0)
+plot(NA,NA,xlim=range(temp_x),ylim=range(-log10(temp_stat)),yaxt="n",
+     xlab="Withheld - control accuracy",ylab="Wilcoxon signed-rank test p-value")
+axis(2,at=-log10(c(1,0.1,0.05,0.01,1e-3,1e-4)),
+     labels=c(1,0.1,0.05,0.01,1e-3,1e-4))
+abline(v=0,lty=2)
+temp <- sapply(colnames(temp_x),function(X) 
+  lines(range(temp_x[,X]),rep(-log10(temp_stat[X]),2),col=temp_lig[X]))
+points(temp_x2,-log10(temp_stat),pch=19,col=temp_lig)
+legend(x=line2user(0,4),
+       y=par("usr")[3] + (par("usr")[4] - par("usr")[3]) / 2,
+       yjust=0.5,bty="n",xpd=NA,pch=19,col=temp_lig[order(temp_stat)],cex=0.98,
+       legend=paste0(names(temp_lig)[order(temp_stat)],
+         " (",round(colMeans(acc_leave1out_ct) * 100)[order(temp_stat)],"%)"))
+mtext("Ligand (Mean ctrl Acc%)",side=3,line=-0.1,at=line2user(0.1,4),adj=0)
+```
+```{r diff_stat, echo=F}
+temp <- wilcox.test(as.vector(lvl4_acc_ct),as.vector(acc_leave1out_ct),paired=T,conf.int=T)
+temp
+
+print(paste0("Mean accuracy of control: ",round(mean(acc_leave1out_ct) * 100),"%"))
+print(paste0("Mean accuracy of withheld: ",round(mean(lvl4_acc_ct) * 100),"%"))
+
+print(paste0("Median pairwise change in accuracy in withheld cell lines relative to control was ",
+             round(temp$estimate * 100),"% (p = ",
+             signif(temp$p.value,2)," by Wilcoxon signed-rank test)."))
+```
+
+
+```{r vs_lvl5_leave1out_new, echo=FALSE,message=FALSE,warning=FALSE,fig.height=4,fig.width=7}
 temp_acc <- data.frame(lvl5L1O=as.vector(acc_leave1out_ct),
                        lvl5CT=as.vector(lvl5_acc_ct),
                        lvl4CT=as.vector(lvl4_acc_ct))
@@ -371,9 +445,9 @@ print(paste("Lvl5 leave one out (CTRL) MCC:",
 ```
 
 
-```{r lvl4_confusion}
+```{r lvl4_confusion,eval=F}
 CT <- "VCAP"
-table(true=factor(lvl4_data@cdesc[testIDs[[CT]],"pert_iname"],levels=lig16),
+table(true=factor(lvl4_data@cdesc[lvl4_testIDs[[CT]],"pert_iname"],levels=lig16),
                           predicted=lvl4_rfresults[[CT]]$predictions)
 ```
 
