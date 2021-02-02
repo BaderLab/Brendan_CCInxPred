@@ -42,4 +42,20 @@ table(sapply(lig295,function(LIG) sum(FDR_ligct[,temp_lig == LIG] <= 0.05)) > 0)
 table(sapply(lig295,function(LIG) sum(pDE_ligct[temp_lig == LIG,] <= 0.05)) > 0)
 
 
+# Corr CMap vs NN ----
+load("~/Dropbox/GDB_archive/CMapCorr_files/NN_ALLvCT_corr.RData")
+load("~/Dropbox/GDB_archive/CMapCorr_files/lig295_corr_lig.RData")
+CORS_lig <- CORS; rm(CORS)
+load("~/Dropbox/GDB_archive/CMapCorr_files/lig295_corr_ligct.RData")
+CORS_ligct <- CORS; rm(CORS)
+
+median(unlist(CORS_lig))
+median(unlist(corr_all))
+wilcox.test(unlist(CORS_lig),unlist(corr_all))
+t.test(unlist(CORS_lig),unlist(corr_all))
+
+median(unlist(CORS_ligct))
+median(unlist(corr_ct))
+wilcox.test(unlist(CORS_ligct),unlist(corr_ct))
+t.test(unlist(CORS_ligct),unlist(corr_ct))
 
