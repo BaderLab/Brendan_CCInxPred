@@ -5,6 +5,7 @@ title: "Re-analysis of NicheNet dataset"
 ```{r setup, include=F}
 library(colorspace)
 library(scales)
+library(UpSetR)
 source("~/Dropbox/GDB/line2user.R")
 knitr::opts_chunk$set(
   echo=F,
@@ -99,16 +100,69 @@ source("~/Dropbox/GDB/line2user.R")
 
 ****
 
-# Comparing across vs within cell type per ligand treatment 
-
-Previous analysis (see below) included a "within lab" category that was unclear, so it has been removed.  
-All data (including time-series) is included in this analysis.  NicheNet calculation of time-series data seems to result in all positive logFC values, so that makes some things a little screwy.  In those cases, time-series data was only compared to other time-series data.  
+# NicheNet data summary
 
 ```{r AvC_load_data}
 load("~/Dropbox/GDB_archive/CMapCorr_files/NN_ALLvCT_dat.RData")
 load("~/Dropbox/GDB_archive/CMapCorr_files/NN_ALLvCT_corr.RData")
 # load("~/Dropbox/GDB_archive/CMapCorr_files/NN_ALLvCT_DEovlp.RData")
 ```
+
+
+```{r DSsummary,fig.height=6,fig.width=7}
+temp_DScount <- table(do.call(rbind,DSinfo)[,c("cell_type","ligand")])
+temp_DScount <- temp_DScount[,rev(colnames(temp_DScount))]
+
+temp_ligcount <- apply(temp_DScount,1,function(X) sum(X > 0))
+temp_ctcount <- apply(temp_DScount,2,function(X) sum(X > 0))
+
+layout(matrix(c(2,1,0,3),2),widths=c(4,1),heights=c(1,4))
+par(mar=c(7,4,0,0),mgp=2:0)
+image(x=1:nrow(temp_DScount),y=1:ncol(temp_DScount),z=temp_DScount,
+      xaxt="n",yaxt="n",xlab=NA,ylab=NA,
+      col=sequential_hcl(max(temp_DScount) + 1,palette="purple-yellow",rev=T))
+abline(h=seq(1.5,ncol(temp_DScount)),col="grey80",lwd=0.5)
+abline(v=seq(1.5,nrow(temp_DScount)),col="grey80",lwd=0.5)
+text(1:nrow(temp_DScount),rep(line2user(0.5,1),nrow(temp_DScount)),
+     rownames(temp_DScount),srt=45,adj=c(1,0.5),xpd=NA,cex=0.9)
+mtext("Cell Type",side=1,line=6,font=2)
+mtext(colnames(temp_DScount),at=1:ncol(temp_DScount),
+      side=2,las=2,line=0.1,cex=0.9)
+mtext("Ligand",side=2,line=3,font=2)
+text(which(temp_DScount > 0,arr.ind=T),
+     labels=temp_DScount[temp_DScount > 0],
+     col="lightgoldenrodyellow",cex=0.9)
+
+par(mar=c(0.1,4,1,0))
+plot(temp_ligcount,type="h",lwd=20,lend=1,col="grey80",
+     bty="n",xaxt="n",xaxs="i",yaxs="i",
+     xlim=c(0.5,length(temp_ligcount) + 0.5),
+     ylim=c(0.5,max(temp_ligcount) + 0.5),
+     ylab=paste("Total","unique ligands",sep="\n"))
+
+par(mar=c(7,0.1,0,1),mgp=c(3,1,0))
+plot(NA,NA,xlim=c(0.5,max(temp_ctcount) + 0.5),ylim=c(0.5,length(temp_ctcount) + 0.5),
+     yaxt="n",yaxs="i",xaxs="i",bty="n",xlab=paste("Total unique","cell types",sep="\n"))
+temp <- sapply(seq_along(temp_ctcount),function(X)
+  points(c(0,temp_ctcount[X]),c(X,X),type="l",lwd=15,lend=1,col="grey80"))
+# plot(temp_ctcount,type="h",,
+#      xaxt="n",xaxs="i",bty="n",ylab=paste("Total","unique ligands",sep="\n"),
+#      xlim=c(0.5,length(temp_ligcount) + 0.5))
+
+```
+
+`r length(temp_ctcount)` ligands were assayed in multiple datasets, `r sum(temp_ctcount > 1)` of which occurred across more than one cell type.
+
+```{r DSsummary_cleanup}
+rm(list=grep("^temp",ls(),value=T))
+```
+
+
+****
+# Comparing across vs within cell type per ligand treatment 
+
+Previous analysis (see below) included a "within lab" category that was unclear, so it has been removed.  
+All data (including time-series) is included in this analysis.  NicheNet calculation of time-series data seems to result in all positive logFC values, so that makes some things a little screwy.  In those cases, time-series data was only compared to other time-series data.  
 
 ## Correlation
 

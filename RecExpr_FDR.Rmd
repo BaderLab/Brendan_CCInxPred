@@ -7,14 +7,21 @@ library(cmapR)
 library(ranger)
 library(colorspace)
 library(kableExtra)
+source("~/Dropbox/GDB/line2user.R")
+knitr::opts_chunk$set(
+  echo=F,
+  message=F,
+  warning=F
+)
 ```
 
+# 16 ligands
 
-# Receptor gene expression
+## Receptor gene expression
 
 The quantile-normalized transcriptomes per cell type (level 3 data) will be used to determine whether the cognate receptor for each ligand in the previous experiment is present.  Ligand-receptor interactions are from the Bader lab database included in [CCInx](https://baderlab.github.io/CCInx/).
 
-```{r load_data_lvl3_ctl,echo=FALSE,message=FALSE,warning=FALSE,include=TRUE}
+```{r load_data_lvl3_ctl,include=TRUE}
 if (exists("lvl3_ctl")) {
 } else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl3_allgenesctrl.RData")) {
   load("~/Dropbox/GDB_archive/CMapCorr_files/lvl3_allgenesctrl.RData") 
@@ -91,7 +98,7 @@ mtext("Frequency",side=1,cex=0.7)
 rm(list=grep("^temp",ls(),value=T))
 ```
 
-```{r rec_per_lig, echo=F,message=F,warning=F,fig.height=6,fig.width=9}
+```{r rec_per_lig,fig.height=6,fig.width=9}
 maxRL <- sapply(lig16R,function(X) apply(meanR[X,],2,max))
 meanRL <- sapply(lig16R,function(X) apply(meanR[X,],2,mean))
 
@@ -130,19 +137,7 @@ mtext(colnames(lig16Rmat),at=temp,
 
 
 ```
-```{r lig_DE, echo=F,message=F,warning=F,fig.height=6,fig.width=9}
-line2user <- function(line, side) {
-  lh <- par('cin')[2] * par('cex') * par('lheight')
-  x_off <- diff(grconvertX(c(0, lh), 'inches', 'npc'))
-  y_off <- diff(grconvertY(c(0, lh), 'inches', 'npc'))
-  switch(side,
-         `1` = grconvertY(-line * y_off, 'npc', 'user'),
-         `2` = grconvertX(-line * x_off, 'npc', 'user'),
-         `3` = grconvertY(1 + line * y_off, 'npc', 'user'),
-         `4` = grconvertX(1 + line * x_off, 'npc', 'user'),
-         stop("Side must be 1, 2, 3, or 4", call.=FALSE))
-}
-
+```{r lig_DE,fig.height=6,fig.width=9}
 temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/lig16_DE_ligct_FDR.RData")
 
 scoreDE <- pDE_ligct[,"01"] + 1e-4
@@ -227,7 +222,16 @@ mtext(paste("PCC =",signif(cor(as.vector(maxRL),as.vector(scoreMAT)),2)),
 
 Cognate receptor expression for each ligand was compared to probability scores for the number of differentially expressed genes associated with each ligand-treated cell line outlined [previously](https://baderlab.github.io/Brendan_CCInxPred/DEoverlap_FDR.html#averaging-within-each-ligand-per-cell-line).  Lines for each receptor are coloured by the spearman correlation coefficient between expression and DE score per cell type (purple is negative, green is positive), and the three most correlated receptor genes are labeled.
 
-```{r rec_DE_corr_detail,echo=FALSE,message=FALSE,warning=FALSE,fig.height=9,fig.width=9,fig.show='hold'}
+```{r rec_DE_corr}
+Rcor_scoreDE <- sapply(lig16,function(LIG)
+  apply(meanR[lig16R[[LIG]],rownames(scoreMAT)],1,function(X) 
+    cor(X,scoreMAT[,LIG],method="spearman")))
+
+```
+
+
+
+```{r rec_DE_corr_detail,fig.height=9,fig.width=9,fig.show='hold'}
 par(mfrow=c(4,4),mar=c(4,6.5,1,3.5),mgp=2:0)
 for (LIG in lig16) {
   plot(NA,NA,xlim=range(scoreMAT[,LIG]),ylim=c(0,15),bty="n",yaxt="n",
@@ -241,18 +245,16 @@ for (LIG in lig16) {
            y0=rep(par("usr")[3],1000),
            y1=rep(par("usr")[3] + (par("usr")[4] - par("usr")[3]) * 0.02,1000),
            lwd=2,col=sequential_hcl(1000,palette="inferno",rev=T))
-  
+
   temp_order <- rownames(scoreMAT)[order(scoreMAT[,LIG])]
-  temp_corr <- apply(meanR[lig16R[[LIG]],temp_order],1,function(X)
-    cor(scoreMAT[temp_order,LIG],X,method="spearman"))
-  temp_col <- diverge_hcl(100,palette="Purple-Green")[cut(c(-1,1,temp_corr),100,labels=F)[c(-1,-2)]]
+  temp_col <- diverge_hcl(100,palette="Purple-Green")[cut(c(-1,1,Rcor_scoreDE[[LIG]]),100,labels=F)[c(-1,-2)]]
   names(temp_col) <- lig16R[[LIG]]
-  for (GENE in lig16R[[LIG]][order(temp_corr)]) {
+  for (GENE in lig16R[[LIG]][order(Rcor_scoreDE[[LIG]])]) {
     points(scoreMAT[temp_order,LIG],
            meanR[GENE,temp_order],
            type="b",pch=20,col=temp_col[GENE],lwd=2)
   }
-  temp_top <- names(temp_corr)[order(temp_corr,decreasing=T)][1:3]
+  temp_top <- names(Rcor_scoreDE[[LIG]])[order(Rcor_scoreDE[[LIG]],decreasing=T)][1:3]
   text(scoreMAT[temp_order[length(temp_order)],LIG],
        meanR[temp_top,temp_order[length(temp_order)]],
        labels=temp_top,col=temp_col[temp_top],
@@ -270,4 +272,100 @@ for (LIG in lig16) {
 rm(list=c("LIG","GENE",grep("^temp",ls(),value=T)))
 ```
 
+```{r}
+temp_lig <- qualitative_hcl(length(lig16),palette="dark3")[as.vector(rbind(1:8,9:16))]
+names(temp_lig) <- lig16
+plot(NA,NA,xlim=range(scoreMAT),ylim=c(0,15),
+     xlab="# DE probability score",
+     ylab="Receptor expression per cell type")
+for (LIG in lig16) {
+  CT <- rownames(scoreMAT)[order(scoreMAT[,LIG])]
+  points(scoreMAT[CT,LIG],
+         meanR[names(which.max(Rcor_scoreDE[[LIG]])),CT],
+         type="b",pch=20,col=temp_lig[LIG])
+}
+```
+
+## Linear model
+
+```{r load_data_lvl3}
+rm(list=ls()[!ls() %in% c("line2user","lig16R","ct14","lig16")])
+load("~/Dropbox/GDB_archive/CMapCorr_files/lig16_DE_ligct_FDR.RData")
+load("~/Dropbox/GDB_archive/CMapCorr_files/lvl3_inputs_allgenes.RData")
+if (identical(rownames(lvl3_data_all@mat),rownames(lvl3_data_all_ctl@mat))) {
+  lvl3_data <- GCT(mat=cbind(lvl3_data_all_ctl@mat,lvl3_data_all@mat),
+                   rdesc=lvl3_data_all_ctl@rdesc,
+                   cdesc=rbind(lvl3_data_all_ctl@cdesc,lvl3_data_all@cdesc),
+                   rid=lvl3_data_all_ctl@rid,
+                   cid=c(lvl3_data_all_ctl@cid,lvl3_data_all@cid))
+  rm(lvl3_data_all,lvl3_data_all_ctl)
+} else {
+  stop("something's fucky")
+}
+```
+
+```{r}
+LIG <- "EGF"
+CT <- c("VCAP","HCC515")
+X <- names(lig16R[[LIG]][1])
+Y <- "1958"
+
+plot(lvl3_data@mat[X,],lvl3_data@mat[Y,],pch=".")
+points(lvl3_data@mat[X,lvl3_data@cdesc$pert_iname == LIG],
+       lvl3_data@mat[Y,lvl3_data@cdesc$pert_iname == LIG],
+       pch=".",cex=2,col="red")
+points(lvl3_data@mat[X,lvl3_data@cdesc$pert_iname == LIG & lvl3_data@cdesc$cell_id %in% CT],
+       lvl3_data@mat[Y,lvl3_data@cdesc$pert_iname == LIG & lvl3_data@cdesc$cell_id %in% CT],
+       pch=".",cex=3,col="dodgerblue")
+
+```
+
+
+# 295 ligands 
+
+```{r load_data_lig295}
+rm(list=ls())
+load("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs_allgenes.RData")
+lvl4_data <- lvl4_data_all
+rm(lvl4_data_all)
+
+temp_ligcountsperct <- sapply(unique(lvl4_data@cdesc$cell_id),function(CT)
+  length(unique(lvl4_data@cdesc[lvl4_data@cdesc$cell_id == CT,"pert_iname"])))
+ct9 <- names(temp_ligcountsperct)[temp_ligcountsperct > 100]
+names(ct9) <- sapply(ct9,function(X) names(ct14)[ct14 == X])
+
+temp_ctcountsperlig <- sapply(unique(lvl4_data@cdesc$pert_iname),function(LIG)
+  length(unique(lvl4_data@cdesc[lvl4_data@cdesc$pert_iname == LIG,"cell_id"])))
+
+lig295 <- names(temp_ctcountsperlig)[temp_ctcountsperlig >= 9]
+
+rm(list=ls()[!ls() %in% c("ct9","lig295")])
+source("~/Dropbox/GDB/line2user.R")
+```
+
+```{r load_data_recp}
+load("~/Dropbox/GDB_archive/CMapCorr_files/lvl3_allgenesctrl.RData")
+temp <- load(system.file("LigRecDB_RData/BaderCCIeditedbyBI_human.RData",package="CCInx"))
+
+lig295 <- lig295[lig295 %in% geneInfo$hgnc_symbol]
+
+lig295R <- sapply(lig295,function(X) {
+  temp <- c(inxDB$nodeB[inxDB$nodeA == X],inxDB$nodeA[inxDB$nodeB == X])
+  return(temp[grepl("Receptor",geneInfo[temp,"protein_type"])])
+},simplify=F)
+for (LIG in lig295) {
+  temp_in <- lig295R[[LIG]] %in% lvl3_ctl@rdesc$pr_gene_symbol
+  lig295R[[LIG]] <- lig295R[[LIG]][temp_in]
+  names(lig295R[[LIG]]) <- sapply(lig295R[[LIG]],function(X) 
+    lvl3_ctl@rdesc$id[lvl3_ctl@rdesc$pr_gene_symbol == X])
+}
+lig295R <- lig295R[sapply(lig295R,length) > 0]
+lig295 <- names(lig295R)
+
+rm(list=c(temp,"lig16","ct14","LIG","temp_in","temp"))
+```
+
+```{r}
+
+```
 
