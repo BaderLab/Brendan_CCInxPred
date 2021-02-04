@@ -7,6 +7,11 @@ library(cmapR)
 library(ranger)
 library(colorspace)
 library(kableExtra)
+knitr::opts_chunk$set(
+  echo=F,
+  message=F,
+  warning=F
+)
 ```
 
 
@@ -14,7 +19,7 @@ library(kableExtra)
 
 The quantile-normalized transcriptomes per cell type (level 3 data) will be used to determine whether the cognate receptor for each ligand in the previous experiment is present.  Ligand-receptor interactions are from the Bader lab database included in [CCInx](https://baderlab.github.io/CCInx/).
 
-```{r load_data_lvl3_ctl,echo=FALSE,message=FALSE,warning=FALSE,include=TRUE}
+```{r load_data_lvl3_ctl,include=TRUE}
 if (exists("lvl3_ctl")) {
 } else if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/lvl3_allgenesctrl.RData")) {
   load("~/Dropbox/GDB_archive/CMapCorr_files/lvl3_allgenesctrl.RData") 
@@ -44,7 +49,7 @@ rm(list=c("LIG","temp",temp))
 
 Below is an overview of all potential cognate receptors per ligand present in the data.  The left figure shows which ligands (dark purple) each receptor is known to interact with.  On the right is a heatmap showing mean normalized gene expression per cell type for each receptor gene, with darker indicating higher expression.  Gene names (rows) are ordered by heirarchical clustering of ligand-receptor interaction data, such that receptors common to the same ligand should be together.  **Landmark** gene expression was emperically determined rather than inferred (names indicated in bold).  Ligand names (columns, left) are ordered by heirarchical clustering of ligand-receptor interaction data, such that ligands sharing the same receptors should be proximal.  Cell type names (columns, right) are ordered by heirarchical clustering of mean receptor gene expression.
 
-```{r rec_expr,echo=FALSE,message=FALSE,warning=FALSE,fig.height=25,fig.width=9,fig.show='hold'}
+```{r rec_expr,fig.height=25,fig.width=9,fig.show='hold'}
 temp_genes <- unique(unlist(lapply(lig16R,names)))
 names(temp_genes) <- lvl3_ctl@rdesc[temp_genes,"pr_gene_symbol"]
 lig16Rmat <- sapply(lig16R,function(X) names(temp_genes) %in% X)
@@ -102,7 +107,7 @@ if (exists("lvl5_data")) {
 }
 ```
 
-```{r RF_leave1out,echo=FALSE,message=FALSE,warning=FALSE}
+```{r RF_leave1out}
 if (file.exists("~/Dropbox/GDB_archive/CMapCorr_files/200524_lvl5_mixall_balanced_leave1out_results.RData")) {
   temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200524_lvl5_mixall_balanced_leave1out_results.RData")
 } else {
@@ -161,7 +166,7 @@ rm(X,temp)
 
 Cognate receptor expression for each ligand was compared to the accuracy per cell line of the leave-one-out ligand classification model outlined [previously](https://baderlab.github.io/Brendan_CCInxPred/LigPred_lvl5.html#cell-type-biases-in-accuracy).  Lines for each receptor are coloured by the spearman correlation coefficient between expression and accuracy per cell type (purple is negative, green is positive), and the three most correlated receptor genes are labeled.
 
-```{r rec_expr_acc_corr,echo=FALSE,message=FALSE,warning=FALSE,fig.height=9,fig.width=9,fig.show='hold'}
+```{r rec_expr_acc_corr,fig.height=9,fig.width=9,fig.show='hold'}
 par(mfrow=c(4,4),mar=c(4,6.5,1,3.5),mgp=2:0)
 for (LIG in lig16) {
   plot(NA,NA,xlim=range(acc_leave1out_ct[,LIG]),ylim=c(0,15),bty="n",yaxt="n",
@@ -170,11 +175,11 @@ for (LIG in lig16) {
   mtext("Receptor expression per cell type",
         side=2,line=5.5,cex=0.7)
   title(LIG,line=0)
-  segments(x0=seq(0,1,length.out=1000),
-           x1=seq(0,1,length.out=1000),
-           y0=rep(par("usr")[3],1000),
-           y1=rep(par("usr")[3] + (par("usr")[4] - par("usr")[3]) * 0.02,1000),
-           lwd=2,col=sequential_hcl(1000,palette="inferno",rev=T))
+  # segments(x0=seq(0,1,length.out=1000),
+  #          x1=seq(0,1,length.out=1000),
+  #          y0=rep(par("usr")[3],1000),
+  #          y1=rep(par("usr")[3] + (par("usr")[4] - par("usr")[3]) * 0.02,1000),
+  #          lwd=2,col=sequential_hcl(1000,palette="inferno",rev=T))
   
   temp_order <- rownames(acc_leave1out_ct)[order(acc_leave1out_ct[,LIG])]
   temp_corr <- apply(meanR[lig16R[[LIG]],temp_order],1,function(X)
@@ -203,8 +208,17 @@ for (LIG in lig16) {
 }
 rm(list=c("LIG","GENE",grep("^temp",ls(),value=T)))
 ```
+```{r rec_expr_acc_corr_legend,fig.height=0.8,fig.width=9}
+par(mar=c(2.2,8,0.6,8))
+barplot(rep(1,1000),border=NA,space=0,yaxt="n",xaxs="i",
+        col=diverge_hcl(1000,palette="Purple-Green"))
+mtext(c(-1,0,1),side=1,line=0.1,at=c(0,500,1000))
+mtext("Spearman correlation coefficient",line=1.1,side=1,font=2)
+```
 
-```{r temp_IFNG, eval=FALSE,echo=FALSE,message=FALSE,warning=FALSE}
+
+
+```{r temp_IFNG, eval=FALSE}
 LIG <- "IFNG"
 par(mar=c(4,6.5,1,3.5),mgp=2:0)
 plot(NA,NA,xlim=range(acc_leave1out_ct[,LIG]),ylim=c(0,15),bty="n",yaxt="n",
@@ -252,7 +266,7 @@ text(acc_leave1out_ct[temp_order[1],LIG],
 
 ```
 
-```{r temp_EGF, eval=FALSE,echo=FALSE,message=FALSE,warning=FALSE}
+```{r temp_EGF, eval=FALSE}
 LIG <- "EGF"
 
 # grep("EGFR",lvl3_ctl@rdesc$pr_gene_symbol,value=TRUE)

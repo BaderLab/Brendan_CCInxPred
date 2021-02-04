@@ -1,4 +1,4 @@
-LIG <- "TNF"  
+LIG <- "IFNG"
 
 if (all(DSinfo[[LIG]]$time_series)) { next }
 if (!LIG %in% lvl4_data@cdesc$pert_iname) { next }
@@ -7,6 +7,7 @@ if (!LIG %in% lvl4_data@cdesc$pert_iname) { next }
 CM_ogZS <- sapply(unique(lvl4_data@cdesc$cell_id[lvl4_data@cdesc$pert_iname == LIG]),function(CT) 
   rowMeans(lvl4_data@mat[,lvl4_data@cdesc$pert_iname == LIG & lvl4_data@cdesc$cell_id == CT]))
 CM_ogFDR <- apply(CM_ogZS,2,function(Z) p.adjust(pnorm(-abs(Z))))
+colnames(CM_ogFDR) <- colnames(CM_ogZS) <- sapply(colnames(CM_ogZS),function(X) names(ct14)[ct14 == X])
 
 CM_GENES <- unique(c(
   rownames(CM_ogFDR)[apply(CM_ogFDR,1,function(X) sum(X <= 0.1) >= 2)]
@@ -119,10 +120,10 @@ FDR <- cbind(CM_FDR,NN_FDR)[rownames(ogFDR),colnames(ogFDR)]
 
 # PLOT ----
 png(paste0("docs/output_figs/CMapNN_",LIG,".png"),
-    width=nrow(FDR) * 0.2 + 2.45,height=ncol(FDR) * 0.2 + 1.2,
+    width=nrow(FDR) * 0.2 + 2.4,height=ncol(FDR) * 0.2 + 1.3,
     units="in",res=120)
 
-par(mar=c(4.5,11,1,1),mgp=2:0)
+par(mar=c(5.5,11,1,1),mgp=2:0)
 plot(x=NULL,y=NULL,xlim=c(0.5,nrow(FDR) + .5),ylim=c(0.5,ncol(FDR) + .5),
      xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab=NA,ylab=NA,bty="n",asp=1)
 # abline(h=1:ncol(FDR),col="grey90")
@@ -133,10 +134,12 @@ symbols(x=rep(1:nrow(FDR),ncol(FDR)),
         circles=as.vector(FDR)/2,inches=F,add=T,xpd=NA,
         fg=diverging_hcl(1000,palette="Blue-Red3")[as.vector(ZS)],
         bg=diverging_hcl(1000,palette="Blue-Red3")[as.vector(ZS)])
+mtext("Genes",side=1,line=3,font=2)
 text(1:nrow(FDR),rep(line2user(0.3,1),nrow(FDR)),
      ifelse(as.logical(as.integer(lvl4_data@rdesc[temp_CMgenes[rownames(FDR)],"pr_is_lm"])),
             yes=rownames(FDR),paste0(rownames(FDR),"^")),
      xpd=NA,adj=1,srt=45,cex=0.8)
+mtext("Cell lines",side=2,line=0.3,at=line2user(0.1,3),las=2,font=2)
 text(x=rep(line2user(0.3,2),ncol(FDR)),y=1:ncol(FDR),
      labels=colnames(FDR),xpd=NA,adj=1,srt=45,cex=0.8)
 
@@ -175,6 +178,8 @@ mtext(paste("* microarray data",
             "** timeseries data",
             "^ inferred in CMap",
             sep="; "),
-      side=1,line=3.5,cex=0.8,at=line2user(0.5,4),adj=1)
+      side=1,line=4.5,cex=0.8,at=line2user(0.5,4),adj=1)
+
+par("usr")
 
 dev.off()

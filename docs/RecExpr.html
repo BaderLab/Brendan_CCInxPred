@@ -23,6 +23,15 @@
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
 
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
 <style type="text/css">code{white-space: pre;}</style>
 <style type="text/css">
   pre:not([class]) {
@@ -67,6 +76,7 @@ h6 {
   text-align: left;
 }
 </style>
+
 
 
 
@@ -399,7 +409,7 @@ $(document).ready(function () {
 <div id="receptor-availability-affecting-ligand-prediction-accuracy" class="section level2">
 <h2>Receptor availability affecting ligand prediction accuracy</h2>
 <p>Cognate receptor expression for each ligand was compared to the accuracy per cell line of the leave-one-out ligand classification model outlined <a href="https://baderlab.github.io/Brendan_CCInxPred/LigPred_lvl5.html#cell-type-biases-in-accuracy">previously</a>. Lines for each receptor are coloured by the spearman correlation coefficient between expression and accuracy per cell type (purple is negative, green is positive), and the three most correlated receptor genes are labeled.</p>
-<p><img src="RecExpr_files/figure-html/rec_expr_acc_corr-1.png" width="864" /></p>
+<p><img src="RecExpr_files/figure-html/rec_expr_acc_corr-1.png" width="864" /> <img src="RecExpr_files/figure-html/rec_expr_acc_corr_legend-1.png" width="864" /></p>
 <hr />
 <div id="tumour-necrosis-factor-alpha-tnf" class="section level3">
 <h3>Tumour necrosis factor alpha (TNF)</h3>
@@ -418,7 +428,7 @@ $(document).ready(function () {
 
 // add bootstrap table styles to pandoc tables
 function bootstrapStylePandocTables() {
-  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
 }
 $(document).ready(function () {
   bootstrapStylePandocTables();
