@@ -1024,6 +1024,8 @@ for (LIG in sort(nn_ligands)) {
       NN_GENES <- rownames(NN_ogZS)[apply(sapply(colnames(NN_ogZS),function(X)
         abs(NN_ogZS[,X]) >= 1 & NN_ogFDR[,X] <= 0.1),
         1,function(Y) sum(Y) >= temp_samples)]  
+      print(length(NN_GENES))
+      print(temp_samples)
     }
   }
   if (any(any(!NN_GENES %in% lvl4_data@rdesc$pr_gene_symbol))) {

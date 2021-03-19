@@ -11,7 +11,7 @@
 
 
 
-<title>CCInxPred?</title>
+<title>Fig4</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -357,21 +357,27 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">CCInxPred?</h1>
+<h1 class="title toc-ignore">Fig4</h1>
 
 </div>
 
 
-<div id="abstract" class="section level1">
-<h1>Abstract</h1>
-<p>Can intercellular signals be identified by transcriptional changes?</p>
-<hr />
-<p>This should be where I outline the why and how of this project.<br />
-<a href="https://clue.io/connectopedia/data_levels" class="uri">https://clue.io/connectopedia/data_levels</a> for information on the input data.</p>
-<hr />
-<p><a href="https://github.com/BaderLab/Brendan_CCInxPred">Go to the github repo</a></p>
-<hr />
-</div>
+<p><img src="RFresults_forPaper_files/figure-html/fig4a-1.png" width="768" /></p>
+<p><img src="RFresults_forPaper_files/figure-html/fig4b-1.png" width="768" /></p>
+<pre><code>## 
+##  Wilcoxon signed rank test with continuity correction
+## 
+## data:  as.vector(ALL_aupr_new) and as.vector(ALL_aupr_all)
+## V = 4056, p-value &lt; 2.2e-16
+## alternative hypothesis: true location shift is not equal to 0
+## 95 percent confidence interval:
+##  -0.02064542 -0.00932169
+## sample estimates:
+## (pseudo)median 
+##    -0.01419736</code></pre>
+<pre><code>## [1] &quot;Mean AUPR of control: 0.19&quot;</code></pre>
+<pre><code>## [1] &quot;Mean AUPR of withheld: 0.16&quot;</code></pre>
+<pre><code>## [1] &quot;Median pairwise change in AUPR in withheld cell lines relative to control was -0.014 (p = 1.4e-18 by Wilcoxon signed-rank test).&quot;</code></pre>
 
 
 

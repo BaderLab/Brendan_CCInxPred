@@ -49,6 +49,14 @@ navbar:
       href: RecExpr_FDR.html
     - text: "NicheNet"
       href: NicheNet.html
+  - text: "Paper Figs v3"
+    menu:
+    - text: "Fig 1: Z-score correlation"
+      href: Zcorr_forPaper.html
+    - text: "Fig 2 & 3: DE overlap (FDR)"
+      href: DEoverlap_FDR_forPaper.html
+    - text: "Fig 4: RF results"
+      href: RFresults_forPaper.html
 
 
 output:
