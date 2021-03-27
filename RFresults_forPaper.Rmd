@@ -100,14 +100,12 @@ segments(x0=seq(2,9,length.out=1000),
          xpd=NA,col=sequential_hcl(1000,palette="inferno",rev=T))
 mtext(c("0%","100%"),las=0,side=1,at=c(2,9),adj=c(1.1,-0.1))
 mtext("AUPR",las=0,side=1,line=0.9,at=5.5,adj=0.5)
-```
 
-```{r ALL_lvl4_MAplot,eval=F,fig.height=4,fig.width=8}
-MA_PLOT(ALL_aupr_new,ALL_aupr_all,ct14,lig16,"AUPR",0.2)
+mtext("A",font=2,cex=1.5,line=3.5,side=3,las=0,at=line2user(13,2))
 ```
 
 ```{r fig4b,fig.height=4,fig.width=8}
-par(mar=c(3,3,1,10),mgp=2:0)
+par(mar=c(3,4,1,10),mgp=2:0)
 plot(NA,NA,xlim=range(temp_x),ylim=range(-log10(temp_stat)),yaxt="n",
      xlab="Withheld - Control AUPR",ylab="Wilcoxon signed-rank test p-value")
 axis(2,at=-log10(c(1,0.1,0.05,0.01,1e-3,1e-4)),
@@ -122,6 +120,8 @@ legend(x=line2user(0,4),
        legend=paste0(names(temp_lig)[order(temp_stat)],
          " (",signif(colMeans(ALL_aupr_all),2)[order(temp_stat)],")"))
 mtext("Ligand (Mean ctrl AUPR)",side=3,line=-0.1,at=line2user(0.1,4),adj=0)
+
+mtext("B",font=2,cex=1.5,line=-0.5,side=3,las=0,at=line2user(3,2))
 ```
 
 ```{r diff_stat}
@@ -135,3 +135,7 @@ print(paste0("Median pairwise change in AUPR in withheld cell lines relative to 
              signif(temp$estimate,2)," (p = ",
              signif(temp$p.value,2)," by Wilcoxon signed-rank test)."))
 ```
+
+
+# Version 2
+Fig4b could be simply boxplots showing withheld - control AUPR sorted by mean AUPR (and columns of A sorted the same to improve pattern recognition), with *** indicating p-values?  
