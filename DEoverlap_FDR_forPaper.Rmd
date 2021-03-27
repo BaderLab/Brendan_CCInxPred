@@ -151,11 +151,11 @@ if (!is.na(aCut)) {
 }
 
 if (nrow(FDR) >= 100) {
-  par(mar=c(4,0.5,1,1),mgp=2:0)
+  par(mar=c(4.5,0.5,1,1),mgp=2:0)
 } else if (data_name == "Ligands") {
-  par(mar=c(4,0.5,1,1),mgp=2:0)
+  par(mar=c(4.5,0.5,1,1),mgp=2:0)
 } else if (data_name == "Cell lines") {
-  par(mar=c(4,0.5,1.5,1),mgp=2:0)
+  par(mar=c(4.5,0.5,1.5,1),mgp=2:0)
 }
 image(z=scoreDE / max(scoreDE),
       x=1:nrow(scoreDE),y=1:ncol(scoreDE),
