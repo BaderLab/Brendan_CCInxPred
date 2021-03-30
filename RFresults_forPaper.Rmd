@@ -138,4 +138,105 @@ print(paste0("Median pairwise change in AUPR in withheld cell lines relative to 
 
 
 # Version 2
+
+```{r}
+rm(list=ls())
+source("~/Dropbox/GDB/line2user.R")
+load("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_lig16_inputs.RData")
+load("~/Dropbox/GDB_archive/CMapCorr_files/200817_newVall_probs_lvl4.RData")
+```
+
+
+```{r}
+ALL_aupr_all <- sapply(names(scores_new),function(LIG) {
+  sapply(names(scores_new[[LIG]]),function(CT) {
+    performance(
+      prediction(scores_all[[LIG]][[CT]]$score[!scores_all[[LIG]][[CT]]$train],
+                 as.integer(scores_all[[LIG]][[CT]]$label[!scores_all[[LIG]][[CT]]$train])),
+      "aucpr")@y.values[[1]]
+  })
+})
+
+ALL_aupr_new <- sapply(names(scores_new),function(LIG) {
+  sapply(names(scores_new[[LIG]]),function(CT) {
+    performance(
+      prediction(scores_new[[LIG]][[CT]]$score[!scores_new[[LIG]][[CT]]$train],
+                 as.integer(scores_new[[LIG]][[CT]]$label[!scores_new[[LIG]][[CT]]$train])),
+      "aucpr")@y.values[[1]]
+  })
+})
+
+temp_y <- colMeans(rbind(ALL_aupr_all,ALL_aupr_new))
+ALL_aupr_all <- ALL_aupr_all[,order(temp_y)]
+ALL_aupr_new <- ALL_aupr_new[,order(temp_y)]
+temp_x <- ALL_aupr_new - ALL_aupr_all
+temp_stat <- apply(temp_x,2,function(X) wilcox.test(X)$p.value)
+```
+
+
+```{r fig4a_v2, fig.height=8,fig.width=8}
+temp_ct <- as.vector(sapply(qualitative_hcl(length(ct14),palette="dark3"),rep,2))
+temp_lig <- qualitative_hcl(length(lig16),palette="dark3")[as.vector(sapply(1:8,function(X) c(X,X + 8)))]
+names(temp_lig) <- colnames(ALL_aupr_all)
+
+temp_both <- do.call(cbind,lapply(rownames(ALL_aupr_all),function(X) { 
+  temp <- cbind(ALL_aupr_all[X,],ALL_aupr_new[X,]) 
+  colnames(temp) <- c(paste0("CTRL_",names(ct14)[ct14 == X]),
+                      names(ct14)[ct14 == X])
+  return(temp)
+}))
+
+par(mar=c(2,14,5,1),mgp=2:0,las=2)
+image(z=temp_both[,seq(ncol(temp_both),1)],
+      x=1:nrow(temp_both),y=1:ncol(temp_both),
+      col=sequential_hcl(100,palette="Inferno",rev=T),
+      breaks=seq(0,1,length.out=101),
+      xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+abline(h=seq(2.5,ncol(temp_both) - 1.5,2),col="white")
+
+mtext(rownames(temp_both),side=3,at=1:nrow(temp_both),adj=0,line=0.1,col=temp_lig)
+mtext("Withheld cell line",side=3,line=0.1,at=0.3,adj=1,las=0,font=2,cex=1.5)
+
+mtext(rev(colnames(temp_both)),col=rev(temp_ct),
+      side=2,at=1:ncol(temp_both),adj=1,line=0.1)
+mtext("Ligand",side=3,line=3.5,cex=1.5,font=2,las=0)
+
+text(as.vector(sapply(1:ncol(temp_both),function(X) 1:nrow(temp_both))),
+     as.vector(sapply(ncol(temp_both):1,function(X) rep(X,nrow(temp_both)))),
+     labels=as.vector(round(temp_both * 100)),cex=0.8,col="dodgerblue")
+mtext(paste("% Area Under the","Precision-Recall curve",sep="\n"),
+      side=1,line=1,at=nrow(temp_both) + 0.5,adj=1,las=0,col="dodgerblue")
+
+segments(x0=seq(2,9,length.out=1000),
+         x1=seq(2,9,length.out=1000),
+         y0=rep(-0.1,1000),y1=rep(0.3,1000),
+         xpd=NA,col=sequential_hcl(1000,palette="inferno",rev=T))
+mtext(c("0%","100%"),las=0,side=1,at=c(2,9),adj=c(1.1,-0.1))
+mtext("AUPR",las=0,side=1,line=0.9,at=5.5,adj=0.5)
+
+mtext("A",font=2,cex=1.5,line=3.5,side=3,las=0,at=line2user(13,2))
+```
+
 Fig4b could be simply boxplots showing withheld - control AUPR sorted by mean AUPR (and columns of A sorted the same to improve pattern recognition), with *** indicating p-values?  
+
+```{r fig4b_v2,fig.height=4,fig.width=8}
+temp_stat2 <- cut(temp_stat,c(1,0.05,0.01,0.001,0.0001))
+levels(temp_stat2) <- c("***","**","*"," ")
+
+temp_stat3 <- as.character(signif(temp_stat,2))
+temp_stat3[grep("\\.[0-9]$",temp_stat3)] <- stringr::str_c(temp_stat3[grep("\\.[0-9]$",temp_stat3)],"0")
+
+par(mar=c(3,5,1,4),mgp=2:0)
+plot(x=NA,y=NA,yaxt="n",xlab="Withheld - Control AUPR",ylab=NA,
+     xlim=range(temp_x),ylim=c(0,ncol(temp_x) + 1),yaxs="i")
+abline(v=0,lty=2)
+boxplot(temp_x[,ncol(temp_x):1],horizontal=T,pch=20,add=T,xaxt="n",yaxt="n",
+        border=rev(temp_lig),col=alpha(rev(temp_lig),0.5))
+mtext(rev(colnames(temp_x)),at=1:ncol(temp_x),las=2,side=4,line=0.1,col=temp_lig)
+# mtext(rev(temp_stat2),at=1:ncol(temp_x),las=2,side=2,line=0.1)
+mtext(rev(temp_stat3),at=1:ncol(temp_x),las=2,side=2,line=0.1,family="mono")
+mtext("Wilcoxon signed-rank test p-value",side=2,line=4)
+mtext("B",font=2,cex=1.5,line=-0.5,side=3,las=0,at=line2user(4,2))
+```
+
+

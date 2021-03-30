@@ -57,8 +57,6 @@ navbar:
       href: DEoverlap_FDR_forPaper.html
     - text: "Fig 4: RF results"
       href: RFresults_forPaper.html
-    - text: "Fig 4: RF results"
-      href: RFresults_forPaper.html
     - text: "Fig 5: NicheNet"
       href: NicheNet_forPaper.html
 
