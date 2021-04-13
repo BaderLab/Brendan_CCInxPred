@@ -11,7 +11,7 @@
 
 
 
-<title>Biological factors affecting prediction accuracy</title>
+<title>Biological factors affecting transcriptional response to ligand stimulus</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -19,16 +19,29 @@
 <script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
 
-<style type="text/css">code{white-space: pre;}</style>
 <style type="text/css">
-  pre:not([class]) {
-    background-color: white;
-  }
-</style>
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
 <script type="text/javascript">
 if (window.hljs) {
   hljs.configure({languages: []});
@@ -41,32 +54,7 @@ if (window.hljs) {
 
 
 
-<style type="text/css">
-h1 {
-  font-size: 34px;
-}
-h1.title {
-  font-size: 38px;
-}
-h2 {
-  font-size: 30px;
-}
-h3 {
-  font-size: 24px;
-}
-h4 {
-  font-size: 18px;
-}
-h5 {
-  font-size: 16px;
-}
-h6 {
-  font-size: 12px;
-}
-.table th:not([align]) {
-  text-align: left;
-}
-</style>
+
 
 
 
@@ -76,10 +64,6 @@ h6 {
   max-width: 940px;
   margin-left: auto;
   margin-right: auto;
-}
-code {
-  color: inherit;
-  background-color: rgba(0, 0, 0, 0.04);
 }
 img {
   max-width:100%;
@@ -96,40 +80,13 @@ button.code-folding-btn:focus {
 summary {
   display: list-item;
 }
+pre code {
+  padding: 0;
+}
 </style>
 
 
 <style type="text/css">
-/* padding for bootstrap navbar */
-body {
-  padding-top: 51px;
-  padding-bottom: 40px;
-}
-/* offset scroll position for anchor links (for fixed navbar)  */
-.section h1 {
-  padding-top: 56px;
-  margin-top: -56px;
-}
-.section h2 {
-  padding-top: 56px;
-  margin-top: -56px;
-}
-.section h3 {
-  padding-top: 56px;
-  margin-top: -56px;
-}
-.section h4 {
-  padding-top: 56px;
-  margin-top: -56px;
-}
-.section h5 {
-  padding-top: 56px;
-  margin-top: -56px;
-}
-.section h6 {
-  padding-top: 56px;
-  margin-top: -56px;
-}
 .dropdown-submenu {
   position: relative;
 }
@@ -157,7 +114,7 @@ body {
   margin-right: -10px;
 }
 .dropdown-submenu:hover>a:after {
-  border-left-color: #ffffff;
+  border-left-color: #adb5bd;
 }
 .dropdown-submenu.pull-left {
   float: none;
@@ -169,7 +126,7 @@ body {
 }
 </style>
 
-<script>
+<script type="text/javascript">
 // manage active state of menu based on current page
 $(document).ready(function () {
   // active menu anchor
@@ -180,10 +137,23 @@ $(document).ready(function () {
   var menuAnchor = $('a[href="' + href + '"]');
 
   // mark it active
-  menuAnchor.parent().addClass('active');
+  menuAnchor.tab('show');
 
   // if it's got a parent navbar menu mark it active as well
   menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
 });
 </script>
 
@@ -195,7 +165,6 @@ $(document).ready(function () {
   max-height: 500px;
   min-height: 44px;
   overflow-y: auto;
-  background: white;
   border: 1px solid #ddd;
   border-radius: 4px;
 }
@@ -345,6 +314,9 @@ $(document).ready(function () {
       <a href="Zcorr.html">Z-score correlation</a>
     </li>
     <li>
+      <a href="GSEAcorr.html">GSEA correlation</a>
+    </li>
+    <li>
       <a href="DEoverlap.html">DE overlap</a>
     </li>
     <li>
@@ -358,6 +330,27 @@ $(document).ready(function () {
     </li>
   </ul>
 </li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Paper Figs v3
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="Zcorr_forPaper.html">Fig 1: Z-score correlation</a>
+    </li>
+    <li>
+      <a href="DEoverlap_FDR_forPaper.html">Fig 2 &amp; 3: DE overlap (FDR)</a>
+    </li>
+    <li>
+      <a href="RFresults_forPaper.html">Fig 4: RF results</a>
+    </li>
+    <li>
+      <a href="NicheNet_forPaper.html">Fig 5: NicheNet</a>
+    </li>
+  </ul>
+</li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         
@@ -366,18 +359,21 @@ $(document).ready(function () {
   </div><!--/.container -->
 </div><!--/.navbar -->
 
-<div class="fluid-row" id="header">
+<div id="header">
 
 
 
-<h1 class="title toc-ignore">Biological factors affecting prediction accuracy</h1>
+<h1 class="title toc-ignore">Biological factors affecting transcriptional response to ligand stimulus</h1>
 
 </div>
 
 
-<div id="receptor-gene-expression" class="section level1">
-<h1>Receptor gene expression</h1>
-<p>The quantile-normalized transcriptomes per cell type (level 3 data) will be used to determine whether the cognate receptor for each ligand in the previous experiment is present. Ligand-receptor interactions are from the Bader lab database included in <a href="https://baderlab.github.io/CCInx/">CCInx</a>.</p>
+<p>Associating receptor mRNA / protein abundance with transcriptional response. The quantile-normalized transcriptomes per cell type (level 3 data) will be used to determine whether the cognate receptor for each ligand is present.</p>
+<div id="receptor-mapping-from-ccinx" class="section level1">
+<h1>Receptor mapping from CCInx</h1>
+<p>Ligand-receptor interactions are from the Bader lab database included in <a href="https://baderlab.github.io/CCInx/">CCInx</a>.</p>
+<div id="receptor-expression-per-cell-line" class="section level2">
+<h2>Receptor expression per cell line</h2>
 <pre><code>## 91% (14%) of EGF receptors present in CMap data, either inferred or (assayed). 
 ## 100% (8%) of HGF receptors present in CMap data, either inferred or (assayed). 
 ## 94% (25%) of INS receptors present in CMap data, either inferred or (assayed). 
@@ -395,12 +391,76 @@ $(document).ready(function () {
 ## 99% (12%) of TNF receptors present in CMap data, either inferred or (assayed). 
 ## 100% (9%) of IL17A receptors present in CMap data, either inferred or (assayed).</code></pre>
 <p>Below is an overview of all potential cognate receptors per ligand present in the data. The left figure shows which ligands (dark purple) each receptor is known to interact with. On the right is a heatmap showing mean normalized gene expression per cell type for each receptor gene, with darker indicating higher expression. Gene names (rows) are ordered by heirarchical clustering of ligand-receptor interaction data, such that receptors common to the same ligand should be together. <strong>Landmark</strong> gene expression was emperically determined rather than inferred (names indicated in bold). Ligand names (columns, left) are ordered by heirarchical clustering of ligand-receptor interaction data, such that ligands sharing the same receptors should be proximal. Cell type names (columns, right) are ordered by heirarchical clustering of mean receptor gene expression.</p>
-<p><img src="RecExpr_FDR_files/figure-html/rec_expr-1.png" width="864" /></p>
-<p><img src="RecExpr_FDR_files/figure-html/rec_per_lig-1.png" width="864" /> <img src="RecExpr_FDR_files/figure-html/lig_DE-1.png" width="864" /></p>
-<div id="receptor-availability-affecting-transcriptional-response-to-ligand-treatment" class="section level2">
-<h2>Receptor availability affecting transcriptional response to ligand treatment</h2>
+<p><img src="RecExpr_FDR_files/figure-html/rec_expr_ccinx-1.png" width="864" /></p>
+<p><img src="RecExpr_FDR_files/figure-html/rec_per_lig_ccinx-1.png" width="864" /></p>
+</div>
+<div id="rf-accuracy-explained-by-receptor-availability" class="section level2">
+<h2>RF accuracy explained by receptor availability?</h2>
+<p>Cognate receptor expression for each ligand was compared to the accuracy per cell line of the leave-one-out ligand classification model outlined <a href="https://baderlab.github.io/Brendan_CCInxPred/LigPred_lvl5.html#cell-type-biases-in-accuracy">previously</a>. Lines for each receptor are coloured by the spearman correlation coefficient between expression and accuracy per cell type (purple is negative, green is positive), and the three most correlated receptor genes are labeled.</p>
+<p><img src="RecExpr_FDR_files/figure-html/rec_expr_acc_corr_ccinx-1.png" width="864" /></p>
+<p><img src="RecExpr_FDR_files/figure-html/legend1-1.png" width="864" /></p>
+</div>
+<div id="number-of-de-genes-explained-by-receptor-availability" class="section level2">
+<h2>Number of DE genes explained by receptor availability?</h2>
+<p><img src="RecExpr_FDR_files/figure-html/lig_DE_ccinx-1.png" width="864" /></p>
 <p>Cognate receptor expression for each ligand was compared to probability scores for the number of differentially expressed genes associated with each ligand-treated cell line outlined <a href="https://baderlab.github.io/Brendan_CCInxPred/DEoverlap_FDR.html#averaging-within-each-ligand-per-cell-line">previously</a>. Lines for each receptor are coloured by the spearman correlation coefficient between expression and DE score per cell type (purple is negative, green is positive), and the three most correlated receptor genes are labeled.</p>
-<p><img src="RecExpr_FDR_files/figure-html/rec_DE_corr_detail-1.png" width="864" /></p>
+<p><img src="RecExpr_FDR_files/figure-html/rec_DE_corr_detail_ccinx-1.png" width="864" /> <img src="RecExpr_FDR_files/figure-html/legend2-1.png" width="864" /></p>
+<hr />
+</div>
+</div>
+<div id="receptor-mapping-from-fantom5" class="section level1">
+<h1>Receptor mapping from FANTOM5</h1>
+<p>Ligand-receptor interactions are from the FANTOM5 database (Ramilowski et al.)</p>
+<div id="receptor-expression-per-cell-line-1" class="section level2">
+<h2>Receptor expression per cell line</h2>
+<pre><code>## 100% (50%) of EGF receptors present in CMap data, either inferred or (assayed). 
+## 100% (20%) of HGF receptors present in CMap data, either inferred or (assayed). 
+## 100% (33%) of INS receptors present in CMap data, either inferred or (assayed). 
+## 100% (67%) of IGF2 receptors present in CMap data, either inferred or (assayed). 
+## 100% (75%) of TGFA receptors present in CMap data, either inferred or (assayed). 
+## 100% (50%) of IGF1 receptors present in CMap data, either inferred or (assayed). 
+## 88% (50%) of FGF1 receptors present in CMap data, either inferred or (assayed). 
+## 100% (43%) of HBEGF receptors present in CMap data, either inferred or (assayed). 
+## 100% (0%) of IL6 receptors present in CMap data, either inferred or (assayed). 
+## 100% (40%) of IL4 receptors present in CMap data, either inferred or (assayed). 
+## 100% (0%) of IFNG receptors present in CMap data, either inferred or (assayed). 
+## 100% (75%) of BTC receptors present in CMap data, either inferred or (assayed). 
+## 80% (0%) of GDNF receptors present in CMap data, either inferred or (assayed). 
+## 100% (0%) of GAS6 receptors present in CMap data, either inferred or (assayed). 
+## 83% (17%) of TNF receptors present in CMap data, either inferred or (assayed). 
+## 100% (0%) of IL17A receptors present in CMap data, either inferred or (assayed).</code></pre>
+<p>Below is an overview of all potential cognate receptors per ligand present in the data. The left figure shows which ligands (dark purple) each receptor is known to interact with. On the right is a heatmap showing mean normalized gene expression per cell type for each receptor gene, with darker indicating higher expression. Gene names (rows) are ordered by heirarchical clustering of ligand-receptor interaction data, such that receptors common to the same ligand should be together. <strong>Landmark</strong> gene expression was emperically determined rather than inferred (names indicated in bold). Ligand names (columns, left) are ordered by heirarchical clustering of ligand-receptor interaction data, such that ligands sharing the same receptors should be proximal. Cell type names (columns, right) are ordered by heirarchical clustering of mean receptor gene expression.</p>
+<p><img src="RecExpr_FDR_files/figure-html/rec_expr_FANTOM5-1.png" width="864" /></p>
+<p><img src="RecExpr_FDR_files/figure-html/rec_per_lig_FANTOM5-1.png" width="864" /></p>
+</div>
+<div id="rf-accuracy-explained-by-receptor-availability-1" class="section level2">
+<h2>RF accuracy explained by receptor availability?</h2>
+<p>Cognate receptor expression for each ligand was compared to the accuracy per cell line of the leave-one-out ligand classification model outlined <a href="https://baderlab.github.io/Brendan_CCInxPred/LigPred_lvl5.html#cell-type-biases-in-accuracy">previously</a>. Lines for each receptor are coloured by the spearman correlation coefficient between expression and accuracy per cell type (purple is negative, green is positive), and the three most correlated receptor genes are labeled.</p>
+<p><img src="RecExpr_FDR_files/figure-html/rec_expr_acc_corr_FANTOM5-1.png" width="864" /></p>
+<p><img src="RecExpr_FDR_files/figure-html/legend3-1.png" width="864" /></p>
+</div>
+<div id="number-of-de-genes-explained-by-receptor-availability-1" class="section level2">
+<h2>Number of DE genes explained by receptor availability?</h2>
+<p><img src="RecExpr_FDR_files/figure-html/lig_DE_FANTOM5-1.png" width="864" /></p>
+<p>Cognate receptor expression for each ligand was compared to probability scores for the number of differentially expressed genes associated with each ligand-treated cell line outlined <a href="https://baderlab.github.io/Brendan_CCInxPred/DEoverlap_FDR.html#averaging-within-each-ligand-per-cell-line">previously</a>. Lines for each receptor are coloured by the spearman correlation coefficient between expression and DE score per cell type (purple is negative, green is positive), and the three most correlated receptor genes are labeled.</p>
+<p><img src="RecExpr_FDR_files/figure-html/rec_DE_corr_detail_FANTOM5-1.png" width="864" /></p>
+</div>
+<div id="transcriptional-activity-score-explained-by-receptor-availability" class="section level2">
+<h2>Transcriptional Activity Score explained by receptor availability?</h2>
+<p><img src="RecExpr_FDR_files/figure-html/TAS_acc_pDE_corr-1.png" width="768" /></p>
+<p><img src="RecExpr_FDR_files/figure-html/rec_expr_TAS_corr_FANTOM5-1.png" width="864" /></p>
+<p><img src="RecExpr_FDR_files/figure-html/legend5-1.png" width="864" /></p>
+<hr />
+</div>
+</div>
+<div id="proteomics-from-depmap-receptor-mapping-from-fantom5" class="section level1">
+<h1>Proteomics from DepMap, receptor mapping from FANTOM5</h1>
+<p>Ligand-receptor interactions are from the FANTOM5 database (Ramilowski et al.)</p>
+<div id="receptor-protein-abundance-per-cell-line" class="section level2">
+<h2>Receptor protein abundance per cell line</h2>
+<p><img src="RecExpr_FDR_files/figure-html/rec_expr_TAS_corr_depmap-1.png" width="864" /></p>
+<p><img src="RecExpr_FDR_files/figure-html/legend6-1.png" width="864" /></p>
+<p><img src="RecExpr_FDR_files/figure-html/rec_expr_acc_corr_depmap-1.png" width="864" /></p>
 </div>
 </div>
 
@@ -413,7 +473,7 @@ $(document).ready(function () {
 
 // add bootstrap table styles to pandoc tables
 function bootstrapStylePandocTables() {
-  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
 }
 $(document).ready(function () {
   bootstrapStylePandocTables();
@@ -431,7 +491,7 @@ $(document).ready(function () {
 
 $(document).ready(function () {
   $('.tabset-dropdown > .nav-tabs > li').click(function () {
-    $(this).parent().toggleClass('nav-tabs-open')
+    $(this).parent().toggleClass('nav-tabs-open');
   });
 });
 </script>

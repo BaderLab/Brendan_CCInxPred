@@ -60,4 +60,17 @@ wilcox.test(unlist(CORS_ligct),unlist(corr_ct))
 t.test(unlist(CORS_ligct),unlist(corr_ct))
 
 
+# TAS ----
+temp_sig <- read.table("~/Data_LINCS/phase1/GSE92742_Broad_LINCS_sig_metrics.txt",
+                       header=T,sep="\t",row.names=1,colClasses="character",quote="\"")
 
+TASdf <- data.frame(CC=as.numeric(temp_sig[lvl5_data@cid,"distil_cc_q75"]),
+                    SS=as.numeric(temp_sig[lvl5_data@cid,"distil_ss"]),
+                    TAS=as.numeric(temp_sig[lvl5_data@cid,"tas"]),
+                    cell_id=lvl5_data@cdesc$cell_id,
+                    pert_iname=lvl5_data@cdesc$pert_iname,
+                    pert_dose=lvl5_data@cdesc$pert_dose,
+                    pert_time=lvl5_data@cdesc$pert_time,
+                    row.names=lvl5_data@cid)
+TASdf$CC[TASdf$CC < -1] <- NA
+save(TASdf,file="~/Dropbox/GDB_archive/CMapCorr_files/lvl5_TAS.RData")

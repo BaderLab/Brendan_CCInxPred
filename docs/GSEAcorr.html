@@ -11,7 +11,7 @@
 
 
 
-<title>Biological factors affecting prediction accuracy</title>
+<title>Correlation between Z-scores</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -314,6 +314,9 @@ $(document).ready(function () {
       <a href="Zcorr.html">Z-score correlation</a>
     </li>
     <li>
+      <a href="GSEAcorr.html">GSEA correlation</a>
+    </li>
+    <li>
       <a href="DEoverlap.html">DE overlap</a>
     </li>
     <li>
@@ -360,82 +363,32 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Biological factors affecting prediction accuracy</h1>
+<h1 class="title toc-ignore">Correlation between Z-scores</h1>
 
 </div>
 
 
-<div id="receptor-gene-expression" class="section level1">
-<h1>Receptor gene expression</h1>
-<p>The quantile-normalized transcriptomes per cell type (level 3 data) will be used to determine whether the cognate receptor for each ligand in the previous experiment is present. Ligand-receptor interactions are from the Bader lab database included in <a href="https://baderlab.github.io/CCInx/">CCInx</a>.</p>
-<pre><code>## 91% (14%) of EGF receptors present in CMap data, either inferred or (assayed). 
-## 100% (8%) of HGF receptors present in CMap data, either inferred or (assayed). 
-## 94% (25%) of INS receptors present in CMap data, either inferred or (assayed). 
-## 100% (19%) of IGF2 receptors present in CMap data, either inferred or (assayed). 
-## 100% (33%) of TGFA receptors present in CMap data, either inferred or (assayed). 
-## 100% (15%) of IGF1 receptors present in CMap data, either inferred or (assayed). 
-## 94% (15%) of FGF1 receptors present in CMap data, either inferred or (assayed). 
-## 100% (31%) of HBEGF receptors present in CMap data, either inferred or (assayed). 
-## 97% (11%) of IL6 receptors present in CMap data, either inferred or (assayed). 
-## 98% (12%) of IL4 receptors present in CMap data, either inferred or (assayed). 
-## 93% (9%) of IFNG receptors present in CMap data, either inferred or (assayed). 
-## 100% (40%) of BTC receptors present in CMap data, either inferred or (assayed). 
-## 89% (11%) of GDNF receptors present in CMap data, either inferred or (assayed). 
-## 100% (0%) of GAS6 receptors present in CMap data, either inferred or (assayed). 
-## 99% (12%) of TNF receptors present in CMap data, either inferred or (assayed). 
-## 100% (9%) of IL17A receptors present in CMap data, either inferred or (assayed).</code></pre>
-<p>Below is an overview of all potential cognate receptors per ligand present in the data. The left figure shows which ligands (dark purple) each receptor is known to interact with. On the right is a heatmap showing mean normalized gene expression per cell type for each receptor gene, with darker indicating higher expression. Gene names (rows) are ordered by heirarchical clustering of ligand-receptor interaction data, such that receptors common to the same ligand should be together. <strong>Landmark</strong> gene expression was emperically determined rather than inferred (names indicated in bold). Ligand names (columns, left) are ordered by heirarchical clustering of ligand-receptor interaction data, such that ligands sharing the same receptors should be proximal. Cell type names (columns, right) are ordered by heirarchical clustering of mean receptor gene expression.</p>
-<p><img src="RecExpr_files/figure-html/rec_expr-1.png" width="864" /></p>
-<div id="receptor-availability-affecting-ligand-prediction-accuracy" class="section level2">
-<h2>Receptor availability affecting ligand prediction accuracy</h2>
-<p>Cognate receptor expression for each ligand was compared to the accuracy per cell line of the leave-one-out ligand classification model outlined <a href="https://baderlab.github.io/Brendan_CCInxPred/LigPred_lvl5.html#cell-type-biases-in-accuracy">previously</a>. Lines for each receptor are coloured by the spearman correlation coefficient between expression and accuracy per cell type (purple is negative, green is positive), and the three most correlated receptor genes are labeled.</p>
-<p><img src="RecExpr_files/figure-html/rec_expr_acc_corr-1.png" width="864" /> <img src="RecExpr_files/figure-html/rec_expr_acc_corr_legend-1.png" width="864" /></p>
-<hr />
-<div id="tumour-necrosis-factor-alpha-tnf" class="section level3">
-<h3>Tumour necrosis factor alpha (TNF)</h3>
-<p>TNF binds to two receptors, TNFR1 and TNFR2, neither of which are present in the CMap data (neither assayed nor inferred). This is probably because they are (at least TNFR1) ubiquitously expressed, and thus their expression profiles are not informative or easily inferred. That may also explain why the transcriptional response to TNF treatment is so consistent - the may be receptor is present on all cell types. Downstream of TNF receptor activation, the multiple signaling pathways with conflicting phenotypes can be activated, though our data shows robust increases in expression of a common subset of genes across cell lines (see above).</p>
-<hr />
-<hr />
+<p>Datasets tested, in order: - 16 ligands in 14 cell lines, landmark genes only. - 16 ligands in 14 cell lines, all genes (including inferred). - 295 ligands in 9 cell lines, landmark genes only. - 295 ligands in 9 cell lines, all genes (including inferred).</p>
+<div id="gsea-correlation-per-cell-line" class="section level1">
+<h1>GSEA correlation per cell line</h1>
+<p><img src="GSEAcorr_files/figure-html/ct-1.png" width="864" /><img src="GSEAcorr_files/figure-html/ct-2.png" width="864" /><img src="GSEAcorr_files/figure-html/ct-3.png" width="864" /><img src="GSEAcorr_files/figure-html/ct-4.png" width="864" /><img src="GSEAcorr_files/figure-html/ct-5.png" width="864" /><img src="GSEAcorr_files/figure-html/ct-6.png" width="864" /></p>
 </div>
+<div id="gsea-correlation-per-ligand" class="section level1">
+<h1>GSEA correlation per ligand</h1>
+<p><img src="GSEAcorr_files/figure-html/lig-1.png" width="864" /><img src="GSEAcorr_files/figure-html/lig-2.png" width="864" /><img src="GSEAcorr_files/figure-html/lig-3.png" width="864" /><img src="GSEAcorr_files/figure-html/lig-4.png" width="864" /><img src="GSEAcorr_files/figure-html/lig-5.png" width="864" /><img src="GSEAcorr_files/figure-html/lig-6.png" width="864" /></p>
 </div>
+<div id="gsea-correlation-per-ligand-cell-line" class="section level1">
+<h1>GSEA correlation per ligand &amp; cell line</h1>
+<p><img src="GSEAcorr_files/figure-html/ligct-1.png" width="864" /><img src="GSEAcorr_files/figure-html/ligct-2.png" width="864" /><img src="GSEAcorr_files/figure-html/ligct-3.png" width="864" /><img src="GSEAcorr_files/figure-html/ligct-4.png" width="864" /><img src="GSEAcorr_files/figure-html/ligct-5.png" width="864" /><img src="GSEAcorr_files/figure-html/ligct-6.png" width="864" /></p>
 </div>
-<div id="with-the-ramilowski-et-al-l-r-db" class="section level1">
-<h1>With the Ramilowski et al L-R DB:</h1>
+<div id="gsea-correlation-per-treatment-condition-replicate" class="section level1">
+<h1>GSEA correlation per treatment condition (replicate)</h1>
+<p><img src="GSEAcorr_files/figure-html/rep-1.png" width="864" /><img src="GSEAcorr_files/figure-html/rep-2.png" width="864" /><img src="GSEAcorr_files/figure-html/rep-3.png" width="864" /></p>
 </div>
-<div id="receptor-gene-expression-1" class="section level1">
-<h1>Receptor gene expression</h1>
-<p>The quantile-normalized transcriptomes per cell type (level 3 data) will be used to determine whether the cognate receptor for each ligand in the previous experiment is present. Ligand-receptor interactions are from the Bader lab database included in <a href="https://baderlab.github.io/CCInx/">CCInx</a>.</p>
-<pre><code>## NULL</code></pre>
-<pre><code>## 100% (50%) of EGF receptors present in CMap data, either inferred or (assayed). 
-## 100% (20%) of HGF receptors present in CMap data, either inferred or (assayed). 
-## 100% (33%) of INS receptors present in CMap data, either inferred or (assayed). 
-## 100% (67%) of IGF2 receptors present in CMap data, either inferred or (assayed). 
-## 100% (75%) of TGFA receptors present in CMap data, either inferred or (assayed). 
-## 100% (50%) of IGF1 receptors present in CMap data, either inferred or (assayed). 
-## 88% (50%) of FGF1 receptors present in CMap data, either inferred or (assayed). 
-## 100% (43%) of HBEGF receptors present in CMap data, either inferred or (assayed). 
-## 100% (0%) of IL6 receptors present in CMap data, either inferred or (assayed). 
-## 100% (40%) of IL4 receptors present in CMap data, either inferred or (assayed). 
-## 100% (0%) of IFNG receptors present in CMap data, either inferred or (assayed). 
-## 100% (75%) of BTC receptors present in CMap data, either inferred or (assayed). 
-## 80% (0%) of GDNF receptors present in CMap data, either inferred or (assayed). 
-## 100% (0%) of GAS6 receptors present in CMap data, either inferred or (assayed). 
-## 83% (17%) of TNF receptors present in CMap data, either inferred or (assayed). 
-## 100% (0%) of IL17A receptors present in CMap data, either inferred or (assayed).</code></pre>
-<p>Below is an overview of all potential cognate receptors per ligand present in the data. The left figure shows which ligands (dark purple) each receptor is known to interact with. On the right is a heatmap showing mean normalized gene expression per cell type for each receptor gene, with darker indicating higher expression. Gene names (rows) are ordered by heirarchical clustering of ligand-receptor interaction data, such that receptors common to the same ligand should be together. <strong>Landmark</strong> gene expression was emperically determined rather than inferred (names indicated in bold). Ligand names (columns, left) are ordered by heirarchical clustering of ligand-receptor interaction data, such that ligands sharing the same receptors should be proximal. Cell type names (columns, right) are ordered by heirarchical clustering of mean receptor gene expression.</p>
-<p><img src="RecExpr_files/figure-html/rec_expr_FANTOM5-1.png" width="864" /></p>
-<div id="receptor-availability-affecting-ligand-prediction-accuracy-1" class="section level2">
-<h2>Receptor availability affecting ligand prediction accuracy</h2>
-<p>Cognate receptor expression for each ligand was compared to the accuracy per cell line of the leave-one-out ligand classification model outlined <a href="https://baderlab.github.io/Brendan_CCInxPred/LigPred_lvl5.html#cell-type-biases-in-accuracy">previously</a>. Lines for each receptor are coloured by the spearman correlation coefficient between expression and accuracy per cell type (purple is negative, green is positive), and the three most correlated receptor genes are labeled.</p>
-<p><img src="RecExpr_files/figure-html/rec_expr_acc_corr_FANTOM5-1.png" width="864" /></p>
-<p><img src="RecExpr_files/figure-html/rec_expr_acc_corr_legend_FANTOM5-1.png" width="864" /></p>
-</div>
-<div id="transcriptional-activity-score" class="section level2">
-<h2>Transcriptional Activity Score</h2>
-<p><img src="RecExpr_files/figure-html/rec_expr_TAS_corr_FANTOM5-1.png" width="864" /></p>
-<p><img src="RecExpr_files/figure-html/TAS_acc_corr-1.png" width="864" /></p>
-<p><img src="RecExpr_files/figure-html/TAS_acc_corr2-1.png" width="480" /></p>
-</div>
+<div id="comparison-of-all-correlation-distributions" class="section level1">
+<h1>Comparison of all correlation distributions</h1>
+<p>using level 4 data only</p>
+<p><img src="GSEAcorr_files/figure-html/cors_per_lig-1.png" width="576" /><img src="GSEAcorr_files/figure-html/cors_per_lig-2.png" width="576" /><img src="GSEAcorr_files/figure-html/cors_per_lig-3.png" width="576" /></p>
 </div>
 
 

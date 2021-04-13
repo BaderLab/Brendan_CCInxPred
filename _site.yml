@@ -41,6 +41,8 @@ navbar:
     menu:
     - text: "Z-score correlation"
       href: Zcorr.html
+    - text: "GSEA correlation"
+      href: GSEAcorr.html
     - text: "DE overlap"
       href: DEoverlap.html
     - text: "DE overlap (FDR)"

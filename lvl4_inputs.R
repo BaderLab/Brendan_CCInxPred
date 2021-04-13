@@ -1,3 +1,4 @@
+library(rhdf5)
 library(cmapR)
 
 temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/lvl3_inputs.RData")

@@ -1,0 +1,195 @@
+---
+title: "Correlation between Z-scores"
+---
+  
+```{r setup, echo=F,message=F,warning=F}
+library(scales)
+library(colorspace)
+source("~/Dropbox/GDB/line2user.R")
+.PAR <- par(no.readonly=T)
+knitr::opts_chunk$set(
+  echo=F,
+  message=F,
+  warning=F
+)
+```
+
+
+```{r FX}
+CORR_BXP <- function(Z) {
+  files <- grep(paste0("_",Z,".RData$"),
+                list.files("~/Dropbox/GDB_archive/CMapCorr_files/",pattern="^corrGSEA"),
+                value=T)
+  for (DAT in unique(sapply(strsplit(files,"_"),"[[",2))) {
+    for (GSEA in unique(sapply(strsplit(files,"_"),"[[",3))) {
+      load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/corrGSEA_",DAT,"_",GSEA,"_",Z,".RData"))
+      
+      temp_ds <- paste(DAT,GSEA)
+      
+      if (Z %in% c("ligct","rep")) {
+        temp_lig <- as.factor(sub("_[A-Za-z0-9_]+$","",names(CORS)))
+        temp_ord1 <- tapply(CORS,temp_lig,function(X) names(X)[order(sapply(X,median))])
+        temp_ord2 <- order(tapply(CORS,temp_lig,function(X) median(unlist(X))))
+        temp_order <- temp_ord1[temp_ord2]
+        CORS <- CORS[unlist(temp_order)]
+        temp_border <- qualitative_hcl(length(temp_order),palette="dark3")
+        temp_border <- unlist(mapply(rep,
+                                     x=temp_border,
+                                     times=sapply(temp_order,length),
+                                     SIMPLIFY=F))
+        temp_col <- alpha(temp_border,0.5)
+        temp_bot <- switch(1 + (length(temp_order) < 20),1.5,4)
+      } else {
+        temp_order <- order(sapply(CORS,median))
+        CORS <- CORS[temp_order]
+        temp_border <- qualitative_hcl(length(CORS),palette="dark3")
+        temp_col <- qualitative_hcl(length(CORS),palette="dark3",alpha=0.5)
+        temp_bot <- switch(1 + (length(CORS) < 20),1.5,4)
+      }
+      if (length(CORS) > 300) {
+        temp_border <- alpha(temp_border,0.5)
+        temp_col <- alpha(temp_col,0.2)
+      }      
+      par(mar=c(temp_bot,4,2,1),mgp=2:0)
+      boxplot(CORS,outline=T,pch=".",xaxt="n",yaxs="i",ylim=c(-1,1),
+              border=temp_border,col=temp_col,
+              ylab=paste("Pairwise Spearman correlation of",
+                         paste("Normalized Enrichment Score per",
+                               switch(Z,
+                                      lig="ligand",
+                                      ct="cell line",
+                                      ligct="ligand & cell line",
+                                      rep="treatment condition")),
+                         sep="\n"),
+              main=temp_ds)
+      if (length(CORS) > 300) {
+        points(sapply(CORS,median),pch=".",col=alpha(temp_border,1))
+      }
+      abline(h=0,col="red",lty=2)
+      if (temp_bot > 1.5) {
+        if (Z %in% c("ligct","rep")) {
+          mtext(names(temp_order),side=1,
+                at=cumsum(sapply(temp_order,length)) - sapply(temp_order,length) / 2,
+                las=2,xpd=NA,line=0.1,
+                col=alpha(temp_border,1)[cumsum(sapply(temp_order,length))])
+        } else {
+          mtext(names(CORS),side=1,at=seq_along(CORS),
+                las=2,xpd=NA,line=0.1,col=alpha(temp_border,1))
+        }
+      } else {
+        mtext(switch(Z,
+                     lig="Ligands",
+                     ct="Cell lines",
+                     ligct="Ligands per cell line",
+                     rep="Treatment conditions"),
+              side=1,line=0.2,cex=1.1,font=2)
+      }
+    }
+  }
+}
+```
+
+Datasets tested, in order:
+- 16 ligands in 14 cell lines, landmark genes only.
+- 16 ligands in 14 cell lines, all genes (including inferred).
+- 295 ligands in 9 cell lines, landmark genes only.
+- 295 ligands in 9 cell lines, all genes (including inferred).
+
+
+# GSEA correlation per cell line
+```{r ct, fig.height=4,fig.width=9}
+CORR_BXP("ct")
+```
+
+
+# GSEA correlation per ligand
+```{r lig, fig.height=4,fig.width=9}
+CORR_BXP("lig")
+```
+
+
+# GSEA correlation per ligand & cell line
+```{r ligct, fig.height=4,fig.width=9}
+CORR_BXP("ligct")
+```
+
+
+# GSEA correlation per treatment condition (replicate)
+```{r rep, fig.height=4,fig.width=9}
+CORR_BXP("rep")
+```
+
+
+
+# Comparison of all correlation distributions
+
+using level 4 data only  
+
+```{r}
+rm(list=ls())
+```
+
+```{r cors_per_lig, fig.height=4,fig.width=6}
+source("~/Dropbox/GDB/line2user.R")
+
+temp_GSEA <- unique(sapply(
+  strsplit(list.files("~/Dropbox/GDB_archive/CMapCorr_files/",pattern="^corrGSEA"),"_"),
+  "[[",3))
+for (GSEA in temp_GSEA) {
+  
+  temp <- load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/corrGSEA_lvl4_",GSEA,"_lig.RData"))
+  cor_lig <- get(temp)
+  temp <- load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/corrGSEA_lvl4_",GSEA,"_ligct.RData"))
+  cor_ligct <- get(temp)
+  temp <- load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/corrGSEA_lvl4_",GSEA,"_rep.RData"))
+  cor_rep <- get(temp)
+  rm(list=c(temp,"temp"))
+  
+  
+  cor_ligct_lig <- sapply(strsplit(names(cor_ligct),"_"),"[[",1)
+  cor_rep_lig <- sapply(strsplit(names(cor_rep),"_"),"[[",1)
+  
+  diff_ligct <- sapply(names(cor_lig),function(LIG) 
+    mean(unlist(cor_ligct[cor_ligct_lig == LIG])) - mean(cor_lig[[LIG]]))
+  mean_ligct <- sapply(names(cor_lig),function(LIG) 
+    mean(c(unlist(cor_ligct[cor_ligct_lig == LIG]),cor_lig[[LIG]])))
+  
+  diff_rep <- sapply(names(cor_lig),function(LIG) 
+    mean(unlist(cor_rep[cor_rep_lig == LIG])) - mean(cor_lig[[LIG]]))
+  mean_rep <- sapply(names(cor_lig),function(LIG) 
+    mean(c(unlist(cor_rep[cor_rep_lig == LIG]),cor_lig[[LIG]])))
+  
+  
+  layout(rbind(1:2),widths=c(1,2))
+  
+  par(mar=c(5,3,1,0),mgp=2:0)
+  boxplot(list(diff_ligct,diff_rep),
+          col=c("red","dodgerblue"),xaxt="n",
+          ylab="Difference in mean vs. by ligand")
+  text(c(1,2),rep(line2user(0.5,1),2),
+       c("By ligand / cell line","By replicate"),
+       adj=1,srt=45,xpd=NA,cex=0.8)
+  abline(h=0,lty=2)
+  if (wilcox.test(diff_ligct)$p.value < 2.2e-16) {
+    mtext("*",side=3,at=1,line=-0.3)
+  }
+  if (wilcox.test(diff_rep)$p.value < 2.2e-16) {
+    mtext("*",side=3,at=2,line=-0.3)
+  }
+  
+  par(mar=c(5,0,1,1))
+  plot(NA,NA,xlab=NA,ylab=NA,yaxt="n",
+       xlim=range(c(mean_ligct,mean_rep)),ylim=range(diff_ligct,diff_rep))
+  mtext(paste("Mean pairwise Spearman correlation of",
+              paste0("GSEA Normalized Enrichment Score (",GSEA,")"),
+              sep="\n"),
+        side=1,line=3.2)
+  abline(h=0,lty=2)
+  points(mean_ligct,diff_ligct,pch=20,col=alpha("red",0.5))
+  points(mean_rep,diff_rep,pch=20,col=alpha("dodgerblue",0.5))
+  legend("bottomright",c("By ligand / cell line","By replicate"),
+         pch=20,col=alpha(c("red","dodgerblue"),0.5),cex=0.8,bty="n")
+  
+}
+```
+

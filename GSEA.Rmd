@@ -1,0 +1,52 @@
+---
+title: "GSEA overlap"
+---
+```{r setup, echo=F,message=F,warning=F}
+library(scales)
+library(colorspace)
+library(fgsea)
+source("~/Dropbox/GDB/line2user.R")
+.PAR <- par(no.readonly=T)
+knitr::opts_chunk$set(
+  echo=F,
+  message=F,
+  warning=F
+)
+```
+
+
+```{r}
+load("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_inputs.RData")
+
+# Create pathways lists ----
+# http://www.baderlab.org/GeneSets
+# ^ ALL ----
+temp_file <- "~/Dropbox/GDB_archive/Human_GOBP_AllPathways_no_GO_iea_March_01_2021_symbol.gmt" 
+temp_lines <- strsplit(readLines(temp_file), "\t")
+pathways_ALL <- lapply(temp_lines,tail,-2)
+pathwayNames_ALL <- sapply(temp_lines,function(X) X[2])
+names(pathwayNames_ALL) <- names(pathways_ALL) <- sapply(temp_lines,head,1)
+
+# ^ GO biological process ----
+temp_file <- "~/Dropbox/GDB_archive/Human_GO_bp_no_GO_iea_symbol.gmt" # http://www.baderlab.org/GeneSets
+temp_lines <- strsplit(readLines(temp_file), "\t")
+pathways_GOBP <- lapply(temp_lines,tail,-2)
+pathwayNames_GOBP <- sapply(temp_lines,function(X) X[2])
+names(pathwayNames_GOBP) <- names(pathways_GOBP) <- sapply(temp_lines,head,1)
+
+# ^ Reactome ----
+temp_file <- "~/Dropbox/GDB_archive/Human_Reactome_March_01_2021_symbol.gmt" # http://www.baderlab.org/GeneSets
+temp_lines <- strsplit(readLines(temp_file), "\t")
+pathways_REACT <- lapply(temp_lines,tail,-2)
+pathwayNames_REACT <- sapply(temp_lines,function(X) X[2])
+names(pathwayNames_REACT) <- names(pathways_REACT) <- sapply(temp_lines,head,1)
+
+rm(list=grep("^temp",ls(),value=T))
+```
+
+```{r}
+LIG <- "ACHE"
+
+fgsea()
+```
+

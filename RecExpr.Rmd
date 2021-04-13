@@ -1,5 +1,5 @@
 ---
-title: "Biological factors affecting prediction accuracy"
+title: "Old Receptor Expression scratchpad"
 ---
   
 ```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
@@ -14,8 +14,9 @@ knitr::opts_chunk$set(
 )
 ```
 
+Associating receptor mRNA / protein abundance with transcriptional response.
 
-# Receptor gene expression
+# Receptor mapping via
 
 The quantile-normalized transcriptomes per cell type (level 3 data) will be used to determine whether the cognate receptor for each ligand in the previous experiment is present.  Ligand-receptor interactions are from the Bader lab database included in [CCInx](https://baderlab.github.io/CCInx/).
 
@@ -49,7 +50,7 @@ rm(list=c("LIG","temp",temp))
 
 Below is an overview of all potential cognate receptors per ligand present in the data.  The left figure shows which ligands (dark purple) each receptor is known to interact with.  On the right is a heatmap showing mean normalized gene expression per cell type for each receptor gene, with darker indicating higher expression.  Gene names (rows) are ordered by heirarchical clustering of ligand-receptor interaction data, such that receptors common to the same ligand should be together.  **Landmark** gene expression was emperically determined rather than inferred (names indicated in bold).  Ligand names (columns, left) are ordered by heirarchical clustering of ligand-receptor interaction data, such that ligands sharing the same receptors should be proximal.  Cell type names (columns, right) are ordered by heirarchical clustering of mean receptor gene expression.
 
-```{r rec_expr,fig.height=25,fig.width=9,fig.show='hold'}
+```{r rec_expr,fig.height=25,fig.width=9}
 temp_genes <- unique(unlist(lapply(lig16R,names)))
 names(temp_genes) <- lvl3_ctl@rdesc[temp_genes,"pr_gene_symbol"]
 lig16Rmat <- sapply(lig16R,function(X) names(temp_genes) %in% X)
@@ -192,6 +193,7 @@ for (LIG in lig16) {
            type="b",pch=20,col=temp_col[GENE],lwd=2)
   }
   temp_top <- names(temp_corr)[order(temp_corr,decreasing=T)][1:3]
+  temp_top <- temp_top[!is.na(temp_top)]
   text(acc_leave1out_ct[temp_order[length(temp_order)],LIG],
        meanR[temp_top,temp_order[length(temp_order)]],
        labels=temp_top,col=temp_col[temp_top],
@@ -215,9 +217,6 @@ barplot(rep(1,1000),border=NA,space=0,yaxt="n",xaxs="i",
 mtext(c(-1,0,1),side=1,line=0.1,at=c(0,500,1000))
 mtext("Spearman correlation coefficient",line=1.1,side=1,font=2)
 ```
-
-
-
 ```{r temp_IFNG, eval=FALSE}
 LIG <- "IFNG"
 par(mar=c(4,6.5,1,3.5),mgp=2:0)
@@ -326,3 +325,99 @@ text(acc_leave1out_ct[temp_order[1],LIG],
 TNF binds to two receptors, TNFR1 and TNFR2, neither of which are present in the CMap data (neither assayed nor inferred).  This is probably because they are (at least TNFR1) ubiquitously expressed, and thus their expression profiles are not informative or easily inferred.  That may also explain why the transcriptional response to TNF treatment is so consistent - the may be receptor is present on all cell types.  Downstream of TNF receptor activation, the multiple signaling pathways with conflicting phenotypes can be activated, though our data shows robust increases in expression of a common subset of genes across cell lines (see above).
 
 ****
+
+# Yanked from RecExpr_FDR:
+
+```{r}
+temp_lig <- qualitative_hcl(length(lig16),palette="dark3")[as.vector(rbind(1:8,9:16))]
+names(temp_lig) <- lig16
+plot(NA,NA,xlim=range(scoreMAT),ylim=c(0,15),
+     xlab="# DE probability score",
+     ylab="Receptor expression per cell type")
+for (LIG in lig16) {
+  CT <- rownames(scoreMAT)[order(scoreMAT[,LIG])]
+  points(scoreMAT[CT,LIG],
+         meanR[names(which.max(Rcor_scoreDE[[LIG]])),CT],
+         type="b",pch=20,col=temp_lig[LIG])
+}
+```
+
+## Linear model
+
+```{r load_data_lvl3}
+rm(list=ls()[!ls() %in% c("line2user","lig16R","ct14","lig16")])
+load("~/Dropbox/GDB_archive/CMapCorr_files/lig16_DE_ligct_FDR.RData")
+load("~/Dropbox/GDB_archive/CMapCorr_files/lvl3_inputs_allgenes.RData")
+if (identical(rownames(lvl3_data_all@mat),rownames(lvl3_data_all_ctl@mat))) {
+  lvl3_data <- GCT(mat=cbind(lvl3_data_all_ctl@mat,lvl3_data_all@mat),
+                   rdesc=lvl3_data_all_ctl@rdesc,
+                   cdesc=rbind(lvl3_data_all_ctl@cdesc,lvl3_data_all@cdesc),
+                   rid=lvl3_data_all_ctl@rid,
+                   cid=c(lvl3_data_all_ctl@cid,lvl3_data_all@cid))
+  rm(lvl3_data_all,lvl3_data_all_ctl)
+} else {
+  stop("something's fucky")
+}
+```
+
+```{r}
+LIG <- "EGF"
+CT <- c("VCAP","HCC515")
+X <- names(lig16R[[LIG]][1])
+Y <- "1958"
+
+plot(lvl3_data@mat[X,],lvl3_data@mat[Y,],pch=".")
+points(lvl3_data@mat[X,lvl3_data@cdesc$pert_iname == LIG],
+       lvl3_data@mat[Y,lvl3_data@cdesc$pert_iname == LIG],
+       pch=".",cex=2,col="red")
+points(lvl3_data@mat[X,lvl3_data@cdesc$pert_iname == LIG & lvl3_data@cdesc$cell_id %in% CT],
+       lvl3_data@mat[Y,lvl3_data@cdesc$pert_iname == LIG & lvl3_data@cdesc$cell_id %in% CT],
+       pch=".",cex=3,col="dodgerblue")
+
+```
+
+
+# 295 ligands 
+
+```{r load_data_lig295}
+rm(list=ls())
+load("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs_allgenes.RData")
+lvl4_data <- lvl4_data_all
+rm(lvl4_data_all)
+
+temp_ligcountsperct <- sapply(unique(lvl4_data@cdesc$cell_id),function(CT)
+  length(unique(lvl4_data@cdesc[lvl4_data@cdesc$cell_id == CT,"pert_iname"])))
+ct9 <- names(temp_ligcountsperct)[temp_ligcountsperct > 100]
+names(ct9) <- sapply(ct9,function(X) names(ct14)[ct14 == X])
+
+temp_ctcountsperlig <- sapply(unique(lvl4_data@cdesc$pert_iname),function(LIG)
+  length(unique(lvl4_data@cdesc[lvl4_data@cdesc$pert_iname == LIG,"cell_id"])))
+
+lig295 <- names(temp_ctcountsperlig)[temp_ctcountsperlig >= 9]
+
+rm(list=ls()[!ls() %in% c("ct9","lig295")])
+source("~/Dropbox/GDB/line2user.R")
+```
+
+```{r load_data_recp}
+load("~/Dropbox/GDB_archive/CMapCorr_files/lvl3_allgenesctrl.RData")
+temp <- load(system.file("LigRecDB_RData/BaderCCIeditedbyBI_human.RData",package="CCInx"))
+
+lig295 <- lig295[lig295 %in% geneInfo$hgnc_symbol]
+
+lig295R <- sapply(lig295,function(X) {
+  temp <- c(inxDB$nodeB[inxDB$nodeA == X],inxDB$nodeA[inxDB$nodeB == X])
+  return(temp[grepl("Receptor",geneInfo[temp,"protein_type"])])
+},simplify=F)
+for (LIG in lig295) {
+  temp_in <- lig295R[[LIG]] %in% lvl3_ctl@rdesc$pr_gene_symbol
+  lig295R[[LIG]] <- lig295R[[LIG]][temp_in]
+  names(lig295R[[LIG]]) <- sapply(lig295R[[LIG]],function(X) 
+    lvl3_ctl@rdesc$id[lvl3_ctl@rdesc$pr_gene_symbol == X])
+}
+lig295R <- lig295R[sapply(lig295R,length) > 0]
+lig295 <- names(lig295R)
+
+rm(list=c(temp,"lig16","ct14","LIG","temp_in","temp"))
+```
+
