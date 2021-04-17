@@ -5,6 +5,7 @@ title: "Biological factors affecting transcriptional response to ligand stimulus
 ```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
 library(cmapR)
 library(ranger)
+library(scales)
 library(colorspace)
 library(kableExtra)
 source("~/Dropbox/GDB/line2user.R")
@@ -899,72 +900,60 @@ Ligand-receptor interactions are from the FANTOM5 database (Ramilowski et al.)
 ## Receptor protein abundance per cell line 
 
 ```{r load_data_depmap,include=TRUE}
-rm(list=ls())
-load("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_inputs.RData")
-rm(lvl5_data)
-
-temp <- load(system.file("LigRecDB_RData/FANTOM5_human.RData",package="CCInx"))
-lig16R <- sapply(lig16,function(X) {
-  temp <- c(inxDB$nodeB[inxDB$nodeA == X],inxDB$nodeA[inxDB$nodeB == X])
-  return(temp[grepl("Receptor",geneInfo[temp,"protein_type"])])
-},simplify=F)
-rm(list=c(temp,"temp"))
+rm(list=ls()[!ls() %in% c("meanR","acc_leave1out_ct","scoreMAT","meanTAS","lig16R","ct14","lig16")])
 
 temp_MS <- read.csv("~/Dropbox/GDB_archive/CMapCorr_files/protein_quant_current_normalized.csv.gz")
 temp_receptors <- temp_MS$Gene_Symbol %in% unique(unlist(lig16R))
 temp_lines <- unlist(sapply(ct14,function(X) 
                 grep(paste0("^",X,"_"),colnames(temp_MS),value=T))) 
-MS <- temp_MS[temp_receptors,temp_lines]
+temp_all_MS <- temp_MS[temp_receptors,-c(1:6)]
+temp_all_MS <- temp_all_MS[,!grepl("^TenP",colnames(temp_all_MS))]
+temp_z_MS <- apply(temp_all_MS,1,function(X) (X - mean(X,na.rm=T)) / sd(X,na.rm=T))
+
+MS <- t(temp_z_MS[temp_lines,])
 rownames(MS) <- temp_MS$Gene_Symbol[temp_receptors]
 colnames(MS) <- names(temp_lines)
+MS <- MS[!apply(MS,1,function(X) all(is.na(X))),]
 
-lig16R <- sapply(lig16R,function(X) X[X %in% rownames(MS)])
+lig16R_MS <- sapply(lig16R,function(X) X[X %in% rownames(MS)])
 
 rm(list=grep("^temp",ls(),value=T))
 ```
 
-```{r loadTAS_depmap}
-load("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_TAS.RData")
-
-meanTAS <- sapply(lig16,function(LIG) {
-  sapply(ct14,function(CT) {
-    mean(TASdf$TAS[TASdf$cell_id == CT & TASdf$pert_iname == LIG])
-  })
-})
-meanTAS <- meanTAS[colnames(MS),]
-```
 
 ```{r rec_expr_TAS_corr_depmap,fig.height=9,fig.width=9,fig.show='hold'}
+temp_TAS <- meanTAS[colnames(MS),]
+
 par(mfrow=c(4,4),mar=c(4,6.5,1,3.5),mgp=2:0)
 for (LIG in lig16) {
   plot(NA,NA,bty="n",yaxt="n",
-       ylim=range(MS[lig16R[[LIG]],],na.rm=T),
-       xlim=range(meanTAS[,LIG]),# xlim=c(0,1),
+       ylim=range(MS[lig16R_MS[[LIG]],],na.rm=T),
+       xlim=range(temp_TAS[,LIG]),# xlim=c(0,1),
        xlab="Mean TAS per cell type",ylab=NA)
   axis(2,line=3.5)
   mtext("Receptor relative abundance per cell type",
         side=2,line=5.5,cex=0.7)
   title(LIG,line=0)
 
-  temp_order <- rownames(meanTAS)[order(meanTAS[,LIG])]
-  temp_corr <- apply(MS[lig16R[[LIG]],temp_order],1,function(X)
-    cor(meanTAS[temp_order,LIG],X,method="spearman",use="na.or.complete"))
+  temp_order <- rownames(temp_TAS)[order(temp_TAS[,LIG])]
+  temp_corr <- apply(MS[lig16R_MS[[LIG]],temp_order,drop=F],1,function(X)
+    cor(temp_TAS[temp_order,LIG],X,method="spearman",use="na.or.complete"))
   temp_col <- diverge_hcl(100,palette="Purple-Green")[cut(c(-1,1,temp_corr),100,labels=F)[c(-1,-2)]]
-  names(temp_col) <- lig16R[[LIG]]
-  for (GENE in lig16R[[LIG]][order(temp_corr)]) {
+  names(temp_col) <- lig16R_MS[[LIG]]
+  for (GENE in lig16R_MS[[LIG]][order(temp_corr)]) {
     temp_MS <- MS[GENE,temp_order]
-    temp_MS <- temp_MS[,!is.na(temp_MS),drop=F]
+    temp_MS <- temp_MS[!is.na(temp_MS)]
     if (length(temp_MS) < 1) { next }
-    points(meanTAS[names(temp_MS),LIG],temp_MS,
+    points(temp_TAS[names(temp_MS),LIG],temp_MS,
            type="b",pch=20,col=temp_col[GENE],lwd=2)
   }
   temp_top <- names(temp_corr)[order(temp_corr,decreasing=T)][1:3]
   temp_top <- temp_top[!is.na(temp_top)]
-  text(meanTAS[temp_order[length(temp_order)],LIG],
+  text(temp_TAS[temp_order[length(temp_order)],LIG],
        MS[temp_top,temp_order[length(temp_order)]],
        labels=temp_top,col=temp_col[temp_top],
        pos=4,xpd=NA,offset=0.4)
-  text(meanTAS[temp_order[1],LIG],
+  text(temp_TAS[temp_order[1],LIG],
        MS[temp_top,temp_order[1]],
        labels=temp_top,col=temp_col[temp_top],
        pos=2,xpd=NA,offset=0.4)
@@ -981,98 +970,276 @@ mtext(c(-1,0,1),side=1,line=0.1,at=c(0,500,1000))
 mtext("Spearman correlation coefficient",line=1.1,side=1,font=2)
 ```
 
-
-```{r RF_leave1out_depmap}
-load("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_inputs.RData") 
-temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/200524_lvl5_mixall_balanced_leave1out_results.RData")
-
-test_results <- data.frame(
-  IDs=as.vector(testIDs),
-  Labels=as.vector(t(sapply(rfresults,function(X) X$predictions))),
-  stringsAsFactors=F
-)
-test_hits <- vector("list",sum(lvl5_data@cdesc$pert_iname %in% lig16))
-names(test_hits) <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname %in% lig16]
-
-for (X in 1:nrow(test_results)) {
-  test_hits[[test_results[X,"IDs"]]] <- append(test_hits[[test_results[X,"IDs"]]],
-                                               test_results[X,"Labels"])
-}
-
-acc_leave1out <- sapply(names(test_hits),function(X) 
-  sum(test_hits[[X]] == lvl5_data@cdesc[X,"pert_iname"]) / 
-    length(test_hits[[X]]))
-acc_leave1out_totals <- sapply(lig16,function(X) {
-  Y <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname == X]
-  return(sum(unlist(test_hits[Y]) == X) / 
-           length(unlist(test_hits[Y])))
-})
-
-acc_leave1out_ct <- sapply(lig16,function(X) {
-  sapply(ct14,function(Y) {
-    Z <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname == X &
-                                     lvl5_data@cdesc$cell_id == Y]
-    return(sum(unlist(test_hits[Z]) == X) / 
-             length(unlist(test_hits[Z])))
-  })
-})
-
-test_counts <- sapply(lig16,function(X) {
-  sapply(ct14,function(Y) {
-    sum(lvl5_data@cdesc$pert_iname == X &
-          lvl5_data@cdesc$cell_id == Y)
-  })
-})
-
-test_predictions <- sapply(lig16,function(X) {
-  sapply(ct14,function(Y) {
-    temp <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname == X &
-                                        lvl5_data@cdesc$cell_id == Y]
-    return(table(factor(unlist(test_hits[temp]),levels=lig16)) / 
-             length(unlist(test_hits[temp])))
-  })
-},simplify=F)
-
-rm(X,temp)
-```
-
 ```{r rec_expr_acc_corr_depmap,fig.height=9,fig.width=9,fig.show='hold'}
-acc_leave1out_ct <- acc_leave1out_ct[colnames(MS),]
+temp_acc <- acc_leave1out_ct[colnames(MS),]
 
 par(mfrow=c(4,4),mar=c(4,6.5,1,3.5),mgp=2:0)
 for (LIG in lig16) {
   plot(NA,NA,bty="n",yaxt="n",
-       ylim=range(MS[lig16R[[LIG]],],na.rm=T),
-       xlim=range(acc_leave1out_ct[,LIG]),# xlim=c(0,1),
-       xlab="RF accuracy per cell type",ylab=NA)
+       ylim=range(MS[lig16R_MS[[LIG]],],na.rm=T),
+       xlim=range(temp_acc[,LIG]),# xlim=c(0,1),
+       xlab="Prediction accuracy per cell type",ylab=NA)
   axis(2,line=3.5)
   mtext("Receptor relative abundance per cell type",
         side=2,line=5.5,cex=0.7)
   title(LIG,line=0)
 
-  temp_order <- rownames(acc_leave1out_ct)[order(acc_leave1out_ct[,LIG])]
-  temp_corr <- apply(MS[lig16R[[LIG]],temp_order],1,function(X)
-    cor(acc_leave1out_ct[temp_order,LIG],X,method="spearman",use="na.or.complete"))
+  temp_order <- rownames(temp_acc)[order(temp_acc[,LIG])]
+  temp_corr <- apply(MS[lig16R_MS[[LIG]],temp_order,drop=F],1,function(X)
+    cor(temp_acc[temp_order,LIG],X,method="spearman",use="na.or.complete"))
   temp_col <- diverge_hcl(100,palette="Purple-Green")[cut(c(-1,1,temp_corr),100,labels=F)[c(-1,-2)]]
-  names(temp_col) <- lig16R[[LIG]]
-  for (GENE in lig16R[[LIG]][order(temp_corr)]) {
+  names(temp_col) <- lig16R_MS[[LIG]]
+  for (GENE in lig16R_MS[[LIG]][order(temp_corr)]) {
     temp_MS <- MS[GENE,temp_order]
-    temp_MS <- temp_MS[,!is.na(temp_MS),drop=F]
+    temp_MS <- temp_MS[!is.na(temp_MS)]
     if (length(temp_MS) < 1) { next }
-    points(acc_leave1out_ct[names(temp_MS),LIG],temp_MS,
+    points(temp_acc[names(temp_MS),LIG],temp_MS,
            type="b",pch=20,col=temp_col[GENE],lwd=2)
   }
   temp_top <- names(temp_corr)[order(temp_corr,decreasing=T)][1:3]
   temp_top <- temp_top[!is.na(temp_top)]
-  text(acc_leave1out_ct[temp_order[length(temp_order)],LIG],
+  text(temp_acc[temp_order[length(temp_order)],LIG],
        MS[temp_top,temp_order[length(temp_order)]],
        labels=temp_top,col=temp_col[temp_top],
        pos=4,xpd=NA,offset=0.4)
-  text(acc_leave1out_ct[temp_order[1],LIG],
+  text(temp_acc[temp_order[1],LIG],
        MS[temp_top,temp_order[1]],
        labels=temp_top,col=temp_col[temp_top],
        pos=2,xpd=NA,offset=0.4)
   
 }
 rm(list=c("LIG","GENE",grep("^temp",ls(),value=T)))
+```
+
+```{r rec_expr_DE_corr_depmap, fig.height=9,fig.width=9}
+temp_scoreMAT <- scoreMAT[colnames(MS),]
+
+par(mfrow=c(4,4),mar=c(4,6.5,1,3.5),mgp=2:0)
+for (LIG in lig16) {
+  plot(NA,NA,bty="n",yaxt="n",
+       ylim=range(MS[lig16R_MS[[LIG]],],na.rm=T),
+       xlim=range(temp_scoreMAT[,LIG]),# xlim=c(0,1),
+       xlab="# DE probability score",ylab=NA)
+  axis(2,line=3.5)
+  mtext("Receptor relative abundance per cell type",
+        side=2,line=5.5,cex=0.7)
+  title(LIG,line=0)
+
+  temp_order <- rownames(temp_scoreMAT)[order(temp_scoreMAT[,LIG])]
+  temp_corr <- apply(MS[lig16R_MS[[LIG]],temp_order,drop=F],1,function(X)
+    cor(temp_scoreMAT[temp_order,LIG],X,method="spearman",use="na.or.complete"))
+  temp_col <- diverge_hcl(100,palette="Purple-Green")[cut(c(-1,1,temp_corr),100,labels=F)[c(-1,-2)]]
+  names(temp_col) <- lig16R_MS[[LIG]]
+  for (GENE in lig16R_MS[[LIG]][order(temp_corr)]) {
+    temp_MS <- MS[GENE,temp_order]
+    temp_MS <- temp_MS[!is.na(temp_MS)]
+    if (length(temp_MS) < 1) { next }
+    points(temp_scoreMAT[names(temp_MS),LIG],temp_MS,
+           type="b",pch=20,col=temp_col[GENE],lwd=2)
+  }
+  temp_top <- names(temp_corr)[order(temp_corr,decreasing=T)][1:3]
+  temp_top <- temp_top[!is.na(temp_top)]
+  text(temp_scoreMAT[temp_order[length(temp_order)],LIG],
+       MS[temp_top,temp_order[length(temp_order)]],
+       labels=temp_top,col=temp_col[temp_top],
+       pos=4,xpd=NA,offset=0.4)
+  text(temp_scoreMAT[temp_order[1],LIG],
+       MS[temp_top,temp_order[1]],
+       labels=temp_top,col=temp_col[temp_top],
+       pos=2,xpd=NA,offset=0.4)
+  
+}
+rm(list=c("LIG","GENE",grep("^temp",ls(),value=T)))
+
+```
+
+## Correlation between mRNA and protein abundance
+
+```{r expr_prot_corr, fig.height=5,fig.width=6}
+temp_meanR <- as.vector(meanR[rownames(MS),colnames(MS)])
+temp_MS <- as.vector(MS)
+
+par(mar=c(3,3,2,1),mgp=2:0)
+plot(temp_meanR,temp_MS,pch=20, #pch=".",cex=2,
+     xlab="Receptor normalized expression per cell type",
+     ylab="Receptor relative abundance per cell type")
+mtext(paste("Spearman rank correlation:",
+            signif(cor(temp_meanR,temp_MS,method="spearman",use="na.or.complete"),3)))
+
+rm(list=grep("^temp",ls(),value=T))
+```
+
+
+# Summary figures
+
+```{r summary, fig.width=8,fig.height=12}
+SUMMPLOT <- function(XDAT,YDAT,XLAB,YLAB) {
+  temp_lig16R <- sapply(lig16R,function(X) X[X %in% rownames(YDAT)])
+  temp_X <- XDAT[colnames(YDAT),]
+  
+  temp_R <- unlist(sapply(rownames(temp_X),function(CT) {
+    sapply(colnames(temp_X),function(LIG) {
+      YDAT[temp_lig16R[[LIG]],CT][!is.na(YDAT[temp_lig16R[[LIG]],CT])]
+    })
+  },simplify=F),recursive=F)
+  
+  plot(NA,NA,xlab=XLAB,ylab=YLAB,
+       xlim=range(temp_X,na.rm=T),ylim=range(temp_R,na.rm=T))
+  for (X in seq_along(temp_R)) {
+    if (length(temp_R[[X]]) <= 0) { next }
+    points(rep(as.vector(temp_X)[X],length(temp_R[[X]])),
+           sort(temp_R[[X]],na.last=T),
+           type="l",col=alpha(1,0.2))
+    points(rep(as.vector(temp_X)[X],length(temp_R[[X]])),
+           sort(temp_R[[X]]),
+           pch=".",cex=3)
+  }
+}
+
+par(mfcol=c(3,2),mar=c(3,3,2,1),mgp=2:0)
+SUMMPLOT(acc_leave1out_ct,meanR,"Random forest accuracy","Receptor normalized gene expression")
+SUMMPLOT(scoreMAT,meanR,"#DE probability score","Receptor normalized gene expression")
+SUMMPLOT(meanTAS,meanR,"Transcriptional activity score","Receptor normalized gene expression")
+SUMMPLOT(acc_leave1out_ct,MS,"Random forest accuracy","Receptor relative protein abundance")
+SUMMPLOT(scoreMAT,MS,"#DE probability score","Receptor relative protein abundance")
+SUMMPLOT(meanTAS,MS,"Transcriptional activity score","Receptor relative protein abundance")
+
+```
+
+## 295 ligands in 9 cell lines
+
+```{r prep295_lig}
+rm(list=ls())
+
+temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs.RData")
+
+temp_ligcountsperct <- sapply(unique(lvl4_data@cdesc$cell_id),function(CT)
+  length(unique(lvl4_data@cdesc[lvl4_data@cdesc$cell_id == CT,"pert_iname"])))
+ct9 <- names(temp_ligcountsperct)[temp_ligcountsperct > 100]
+names(ct9) <- sapply(ct9,function(X) names(ct14)[ct14 == X])
+
+temp_ctcountsperlig <- sapply(unique(lvl4_data@cdesc$pert_iname),function(LIG)
+  length(unique(lvl4_data@cdesc[lvl4_data@cdesc$pert_iname == LIG,"cell_id"])))
+
+lig295 <- names(temp_ctcountsperlig)[temp_ctcountsperlig >= 9]
+
+rm(list=c(temp,grep("^temp",ls(),value=T)))
+```
+
+```{r prep295_meanR}
+load("~/Dropbox/GDB_archive/CMapCorr_files/lvl3_allgenesctrl.RData") 
+rm(lig16,ct14)
+# temp <- load(system.file("LigRecDB_RData/BaderCCIeditedbyBI_human.RData",package="CCInx"))
+temp <- load(system.file("LigRecDB_RData/FANTOM5_human.RData",package="CCInx"))
+
+lig295R <- sapply(lig295,function(X) {
+  temp <- c(inxDB$nodeB[inxDB$nodeA == X],inxDB$nodeA[inxDB$nodeB == X])
+  return(temp[grepl("Receptor",geneInfo[temp,"protein_type"])])
+},simplify=F)
+lig295R <- lig295R[sapply(lig295R,length) > 0]
+rm(lig295)
+for (LIG in names(lig295R)) {
+  temp_in <- lig295R[[LIG]] %in% lvl3_ctl@rdesc$pr_gene_symbol
+  lig295R[[LIG]] <- lig295R[[LIG]][temp_in]
+  names(lig295R[[LIG]]) <- sapply(lig295R[[LIG]],function(X) 
+    lvl3_ctl@rdesc$id[lvl3_ctl@rdesc$pr_gene_symbol == X])
+}
+
+temp_genes <- unique(unlist(lapply(lig295R,names)))
+names(temp_genes) <- lvl3_ctl@rdesc[temp_genes,"pr_gene_symbol"]
+meanR <- sapply(ct9,function(CT) rowMeans(lvl3_ctl@mat[temp_genes,lvl3_ctl@cdesc$cell_id == CT]))
+rownames(meanR) <- names(temp_genes)
+
+rm(list=c("LIG","lvl3_ctl",temp,grep("^temp",ls(),value=T)))
+```
+
+```{r prep295_protMS}
+temp_MS <- read.csv("~/Dropbox/GDB_archive/CMapCorr_files/protein_quant_current_normalized.csv.gz")
+temp_receptors <- temp_MS$Gene_Symbol %in% unique(unlist(lig295R))
+temp_lines <- unlist(sapply(ct9,function(X) 
+                grep(paste0("^",X,"_"),colnames(temp_MS),value=T))) 
+temp_all_MS <- temp_MS[temp_receptors,-c(1:6)]
+temp_all_MS <- temp_all_MS[,!grepl("^TenP",colnames(temp_all_MS))]
+temp_z_MS <- apply(temp_all_MS,1,function(X) (X - mean(X,na.rm=T)) / sd(X,na.rm=T))
+
+MS <- t(temp_z_MS[temp_lines,])
+rownames(MS) <- temp_MS$Gene_Symbol[temp_receptors]
+colnames(MS) <- names(temp_lines)
+MS <- MS[!apply(MS,1,function(X) all(is.na(X))),]
+
+rm(list=grep("^temp",ls(),value=T))
+```
+
+```{r 295_expr_prot_corr, fig.height=5,fig.width=6}
+temp_meanR <- as.vector(meanR[rownames(MS),colnames(MS)])
+temp_MS <- as.vector(MS)
+
+par(mar=c(3,3,2,1),mgp=2:0)
+plot(temp_meanR,temp_MS,pch=20,col=alpha(1,0.5), #pch=".",cex=2,
+     xlab="Receptor normalized expression per cell type",
+     ylab="Receptor relative abundance per cell type")
+mtext(paste("Spearman rank correlation:",
+            signif(cor(temp_meanR,temp_MS,method="spearman",use="na.or.complete"),3)))
+
+rm(list=grep("^temp",ls(),value=T))
+```
+
+
+```{r prep295_scoreDE}
+temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/lig295_DE_ligct_FDR.RData")
+
+scoreDE <- pDE_ligct[,"01"] + 1e-4
+scoreDE[scoreDE > 1] <- 1
+scoreDE <- -log10(scoreDE)
+  
+scoreMAT <- tapply(scoreDE,as.factor(sub("^.+_","",names(scoreDE))),c)
+for (X in names(scoreMAT)) {
+  names(scoreMAT[[X]]) <- sub(paste0("_",X),"",names(scoreMAT[[X]]))
+  scoreMAT[[X]] <- scoreMAT[[X]][sort(names(scoreMAT[[X]]))]
+}
+scoreMAT <- t(do.call(rbind,scoreMAT))
+
+rm(list=c(temp,"temp","X","scoreDE"))
+```
+
+```{r prep295_TAS}
+load("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_TAS.RData")
+meanTAS <- sapply(names(lig295R),function(LIG) {
+  sapply(ct9,function(CT) {
+    mean(TASdf$TAS[TASdf$cell_id == CT & TASdf$pert_iname == LIG])
+  })
+})
+rm(TASdf)
+```
+
+```{r summary295, fig.width=8,fig.height=8}
+SUMMPLOT <- function(XDAT,YDAT,XLAB,YLAB) {
+  temp_lig295R <- sapply(lig295R,function(X) X[X %in% rownames(YDAT)])
+  temp_X <- XDAT[colnames(YDAT),]
+  
+  temp_R <- unlist(sapply(rownames(temp_X),function(CT) {
+    sapply(colnames(temp_X),function(LIG) {
+      YDAT[temp_lig295R[[LIG]],CT][!is.na(YDAT[temp_lig295R[[LIG]],CT])]
+    })
+  },simplify=F),recursive=F)
+  
+  plot(NA,NA,xlab=XLAB,ylab=YLAB,
+       xlim=range(temp_X,na.rm=T),ylim=range(temp_R,na.rm=T))
+  for (X in seq_along(temp_R)) {
+    if (length(temp_R[[X]]) <= 0) { next }
+    points(rep(as.vector(temp_X)[X],length(temp_R[[X]])),
+           sort(temp_R[[X]],na.last=T),
+           type="l",col=alpha(1,0.1))
+    points(rep(as.vector(temp_X)[X],length(temp_R[[X]])),
+           sort(temp_R[[X]]),
+           pch=".",col=alpha(1,0.5),cex=3)
+  }
+}
+
+par(mfcol=c(2,2),mar=c(3,3,2,1),mgp=2:0)
+SUMMPLOT(scoreMAT,meanR,"#DE probability score","Receptor normalized gene expression")
+SUMMPLOT(meanTAS,meanR,"Transcriptional activity score","Receptor normalized gene expression")
+SUMMPLOT(scoreMAT,MS,"#DE probability score","Receptor relative protein abundance")
+SUMMPLOT(meanTAS,MS,"Transcriptional activity score","Receptor relative protein abundance")
+
 ```
