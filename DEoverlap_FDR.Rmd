@@ -583,3 +583,57 @@ mtext(paste0(c(10,5,1,0.1),"% FDR"),
 
 ```
 
+****
+
+# Probability of overlapping DE
+
+
+```{r cleanup}
+rm(list=ls())
+source("~/Dropbox/GDB/line2user.R")
+```
+
+```{r load_data_lvl5}
+load("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_inputs.RData")
+
+temp_ligcountsperct <- sapply(unique(lvl5_data@cdesc$cell_id),function(CT)
+  length(unique(lvl5_data@cdesc[lvl5_data@cdesc$cell_id == CT,"pert_iname"])))
+ct9 <- names(temp_ligcountsperct)[temp_ligcountsperct > 100]
+names(ct9) <- sapply(ct9,function(X) names(ct14)[ct14 == X])
+
+temp_ctcountsperlig <- sapply(unique(lvl5_data@cdesc$pert_iname),function(LIG)
+  length(unique(lvl5_data@cdesc[lvl5_data@cdesc$pert_iname == LIG,"cell_id"])))
+
+lig295 <- names(temp_ctcountsperlig)[temp_ctcountsperlig >= 9]
+
+rm(list=c("ct14","lig16",grep("^temp",ls(),value=T)))
+```
+
+```{r testing_summary_methods, fig.height=2,fig.width=8}
+temp_overlap <- sapply(lig295,function(LIG) {
+  sapply(ct9, function(CT) {
+    ID <- lvl5_data@cid[lvl5_data@cdesc$pert_iname == LIG & lvl5_data@cdesc$cell_id == CT]
+    temp <- pnorm(-abs(lvl5_data@mat[,ID,drop=F]))
+    return(sum(apply(temp,1,function(X) all(X <= 0.05))))
+  })
+})
+
+temp_meanZ <- sapply(lig295,function(LIG) {
+  sapply(ct9, function(CT) {
+    ID <- lvl5_data@cid[lvl5_data@cdesc$pert_iname == LIG & lvl5_data@cdesc$cell_id == CT]
+    return(sum(pnorm(-abs(rowMeans(lvl5_data@mat[,ID,drop=F]))) <= 0.05))
+  })
+})
+
+par(mar=c(3,6,1,1),mgp=2:0)
+boxplot(list(OVERLAP=temp_overlap,MEANZ=temp_meanZ),horizontal=T,yaxt="n",pch=".",cex=2,
+        xlab="# DE genes common across replicates at p <= 0.05 when summarized as shown")
+mtext(c("Intersect","Mean Z score"),side=2,las=2,line=0.5,at=c(1,2))
+```
+
+Using level5 data (moderated Z score of all replicates).  To summarize signatures across dosage and duration, going to take the mean Z score.  This seems more fair, given that different ligand / cell line combinations have differing numbers of dosage/duration replicates.
+
+```{r}
+
+```
+
