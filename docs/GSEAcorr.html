@@ -11,7 +11,7 @@
 
 
 
-<title>Correlation between Z-scores</title>
+<title>GSEA</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -314,7 +314,7 @@ $(document).ready(function () {
       <a href="Zcorr.html">Z-score correlation</a>
     </li>
     <li>
-      <a href="GSEAcorr.html">GSEA correlation</a>
+      <a href="GSEAcorr.html">GSEA results</a>
     </li>
     <li>
       <a href="DEoverlap.html">DE overlap</a>
@@ -338,10 +338,10 @@ $(document).ready(function () {
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="Zcorr_forPaper.html">Fig 1: Z-score correlation</a>
+      <a href="DEoverlap_FDR_forPaper.html">Fig 1 &amp; 2: DE overlap (FDR)</a>
     </li>
     <li>
-      <a href="DEoverlap_FDR_forPaper.html">Fig 2 &amp; 3: DE overlap (FDR)</a>
+      <a href="Zcorr_forPaper.html">Fig 3: GSEA (&amp; Z-score) correlation</a>
     </li>
     <li>
       <a href="RFresults_forPaper.html">Fig 4: RF results</a>
@@ -363,32 +363,50 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Correlation between Z-scores</h1>
+<h1 class="title toc-ignore">GSEA</h1>
 
 </div>
 
 
-<p>Datasets tested, in order: - 16 ligands in 14 cell lines, landmark genes only. - 16 ligands in 14 cell lines, all genes (including inferred). - 295 ligands in 9 cell lines, landmark genes only. - 295 ligands in 9 cell lines, all genes (including inferred).</p>
-<div id="gsea-correlation-per-cell-line" class="section level1">
-<h1>GSEA correlation per cell line</h1>
-<p><img src="GSEAcorr_files/figure-html/ct-1.png" width="864" /><img src="GSEAcorr_files/figure-html/ct-2.png" width="864" /><img src="GSEAcorr_files/figure-html/ct-3.png" width="864" /><img src="GSEAcorr_files/figure-html/ct-4.png" width="864" /><img src="GSEAcorr_files/figure-html/ct-5.png" width="864" /><img src="GSEAcorr_files/figure-html/ct-6.png" width="864" /></p>
+<div id="enrichment-score-correlation" class="section level1">
+<h1>Enrichment score correlation</h1>
+<p>Level 4 data (Z-scores) including inferred genes were used in GSEA analysis. Pathway database was either GO-BP, Reactome, or All (<code>Human_GOBP_AllPathways_no_GO_iea_March_01_2021_entrezgene.gmt</code> from <a href="http://www.baderlab.org/GeneSets" class="uri">http://www.baderlab.org/GeneSets</a>). Inferred genes were included because without them, most pathways were not covered, which both artificially increased correlation of NES and drastically reduced power due to lack of genes.</p>
+<p>Correlation of NES is a really dumb way of comparing enriched gene sets, but I already did the analysis, so here it is.</p>
+<div id="gsea-correlation-per-cell-line" class="section level2">
+<h2>GSEA correlation per cell line</h2>
+<p><img src="GSEAcorr_files/figure-html/ct-1.png" width="864" /><img src="GSEAcorr_files/figure-html/ct-2.png" width="864" /><img src="GSEAcorr_files/figure-html/ct-3.png" width="864" /></p>
 </div>
-<div id="gsea-correlation-per-ligand" class="section level1">
-<h1>GSEA correlation per ligand</h1>
-<p><img src="GSEAcorr_files/figure-html/lig-1.png" width="864" /><img src="GSEAcorr_files/figure-html/lig-2.png" width="864" /><img src="GSEAcorr_files/figure-html/lig-3.png" width="864" /><img src="GSEAcorr_files/figure-html/lig-4.png" width="864" /><img src="GSEAcorr_files/figure-html/lig-5.png" width="864" /><img src="GSEAcorr_files/figure-html/lig-6.png" width="864" /></p>
+<div id="gsea-correlation-per-ligand" class="section level2">
+<h2>GSEA correlation per ligand</h2>
+<p><img src="GSEAcorr_files/figure-html/lig-1.png" width="864" /><img src="GSEAcorr_files/figure-html/lig-2.png" width="864" /><img src="GSEAcorr_files/figure-html/lig-3.png" width="864" /></p>
 </div>
-<div id="gsea-correlation-per-ligand-cell-line" class="section level1">
-<h1>GSEA correlation per ligand &amp; cell line</h1>
-<p><img src="GSEAcorr_files/figure-html/ligct-1.png" width="864" /><img src="GSEAcorr_files/figure-html/ligct-2.png" width="864" /><img src="GSEAcorr_files/figure-html/ligct-3.png" width="864" /><img src="GSEAcorr_files/figure-html/ligct-4.png" width="864" /><img src="GSEAcorr_files/figure-html/ligct-5.png" width="864" /><img src="GSEAcorr_files/figure-html/ligct-6.png" width="864" /></p>
+<div id="gsea-correlation-per-ligand-cell-line" class="section level2">
+<h2>GSEA correlation per ligand &amp; cell line</h2>
+<p><img src="GSEAcorr_files/figure-html/ligct-1.png" width="864" /><img src="GSEAcorr_files/figure-html/ligct-2.png" width="864" /><img src="GSEAcorr_files/figure-html/ligct-3.png" width="864" /></p>
 </div>
-<div id="gsea-correlation-per-treatment-condition-replicate" class="section level1">
-<h1>GSEA correlation per treatment condition (replicate)</h1>
+<div id="gsea-correlation-per-treatment-condition-replicate" class="section level2">
+<h2>GSEA correlation per treatment condition (replicate)</h2>
 <p><img src="GSEAcorr_files/figure-html/rep-1.png" width="864" /><img src="GSEAcorr_files/figure-html/rep-2.png" width="864" /><img src="GSEAcorr_files/figure-html/rep-3.png" width="864" /></p>
 </div>
-<div id="comparison-of-all-correlation-distributions" class="section level1">
-<h1>Comparison of all correlation distributions</h1>
-<p>using level 4 data only</p>
+<div id="comparison-of-all-correlation-distributions" class="section level2">
+<h2>Comparison of all correlation distributions</h2>
+<p>As you can see, correlation of NES amongst replicates was the only thing that improved, which sort of makes sense as we don’t expect low magnitude NES pathways to correlate at all.</p>
 <p><img src="GSEAcorr_files/figure-html/cors_per_lig-1.png" width="576" /><img src="GSEAcorr_files/figure-html/cors_per_lig-2.png" width="576" /><img src="GSEAcorr_files/figure-html/cors_per_lig-3.png" width="576" /></p>
+<hr />
+</div>
+</div>
+<div id="overlap-of-enriched-gene-sets" class="section level1">
+<h1>Overlap of enriched gene sets</h1>
+<blockquote>
+<p>This is per gene set, which is a weird way of thinking about it.</p>
+</blockquote>
+<p><img src="GSEAcorr_files/figure-html/unnamed-chunk-5-1.png" width="864" /></p>
+</div>
+<div id="mean-nes" class="section level1">
+<h1>Mean NES</h1>
+<p><img src="GSEAcorr_files/figure-html/unnamed-chunk-8-1.png" width="864" /></p>
+<p><img src="GSEAcorr_files/figure-html/unnamed-chunk-9-1.png" width="864" /> <img src="GSEAcorr_files/figure-html/unnamed-chunk-10-1.png" width="864" /></p>
+<p><img src="GSEAcorr_files/figure-html/unnamed-chunk-11-1.png" width="864" /><img src="GSEAcorr_files/figure-html/unnamed-chunk-11-2.png" width="864" /><img src="GSEAcorr_files/figure-html/unnamed-chunk-11-3.png" width="864" /><img src="GSEAcorr_files/figure-html/unnamed-chunk-11-4.png" width="864" /></p>
 </div>
 
 

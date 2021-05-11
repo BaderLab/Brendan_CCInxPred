@@ -198,7 +198,7 @@ cor_rep <- get(temp)
 rm(list=c(temp,"temp"))
 ```
 
-```{r cors_per_lig2, fig.height=4,fig.width=9}
+```{r cors_per_lig2, fig.height=5,fig.width=8}
 cor_ligct_lig <- sapply(strsplit(names(cor_ligct),"_"),"[[",1)
 cor_rep_lig <- sapply(strsplit(names(cor_rep),"_"),"[[",1)
 
@@ -216,37 +216,6 @@ diff_rep <- sapply(names(cor_lig),function(LIG)
 mean_rep <- sapply(names(cor_lig),function(LIG) 
   mean(c(unlist(cor_rep[cor_rep_lig == LIG]),cor_lig[[LIG]])))
 
-temp_labels <- c("ADM","IL1A","TNF")
-temp_bxp <- sapply(temp_labels,function(X) 
-  list(Lig=cor_lig[[X]],
-       LigCT=unlist(cor_ligct[cor_ligct_lig == X]),
-       Rep=unlist(cor_rep[cor_rep_lig == X])),
-  simplify=F)
-temp_stat <- sapply(temp_bxp,function(X) 
-  c(LigCT=wilcox.test(X$LigCT,X$Lig)$p.value,
-       Rep=wilcox.test(X$Rep,X$Lig)$p.value))
-
-layout(rbind(1:3),widths=c(2,3,1))
-par(mar=c(5.5,6,2.5,1),mgp=2:0)
-plot(NA,NA,xlim=c(0,length(temp_labels) * 4),ylim=c(-1,1),
-     xlab=NA,ylab=NA,xaxt="n",yaxs="i")
-abline(h=0,lty=2,col="red")
-
-boxplot(unlist(temp_bxp,recursive=F),xaxt="n",
-  col=as.vector(sapply(qualitative_hcl(length(temp_labels),palette="dark3"),rep,3)),
-  pch=20,add=T,at=seq(length(temp_labels) * 4)[-seq(4,by=4,length.out=length(temp_labels))])
-mtext(temp_labels,side=3,line=0.1,
-      col=qualitative_hcl(length(temp_labels),palette="dark3"),
-      at=seq(2,by=4,length.out=length(temp_labels)))
-
-mtext("Pairwise Spearman correlation of Z-scores",side=2,line=2.2)
-text(seq(length(temp_labels) * 4)[-seq(4,by=4,length.out=length(temp_labels))],
-     line2user(0.5,1),
-     rep(c("By ligand","By ligand / cell line","By replicate"),length(temp_labels)),
-     xpd=NA,srt=40,adj=1)
-mtext("B",font=2,cex=1.5,line=0.5,side=3,at=line2user(4.5,2))
-mtext("*",side=3,line=-1.5,at=c(2,3,6,7,10,11)[as.vector(temp_stat) <= 0.05])
-
 temp_all <- sapply(names(cor_lig),function(X)
   list(Lig=cor_lig[[X]],
        LigCT=unlist(cor_ligct[cor_ligct_lig == X]),
@@ -257,11 +226,49 @@ temp_all_stat <- sapply(temp_all,function(X)
        Rep=wilcox.test(X$Rep,X$Lig)$p.value))
 
 
-par(mar=c(4,5,2.5,0))
-plot(NA,NA,xlab=NA,ylab=NA,
+# par(mar=c(5.5,6,2.5,1),mgp=2:0)
+# plot(NA,NA,xlim=c(0,length(temp_labels) * 4),ylim=c(-1,1),
+#      xlab=NA,ylab=NA,xaxt="n",yaxs="i")
+# abline(h=0,lty=2,col="red")
+# 
+# boxplot(unlist(temp_bxp,recursive=F),xaxt="n",
+#   col=as.vector(sapply(qualitative_hcl(length(temp_labels),palette="dark3"),rep,3)),
+#   pch=20,add=T,at=seq(length(temp_labels) * 4)[-seq(4,by=4,length.out=length(temp_labels))])
+# mtext(temp_labels,side=3,line=0.1,
+#       col=qualitative_hcl(length(temp_labels),palette="dark3"),
+#       at=seq(2,by=4,length.out=length(temp_labels)))
+# 
+# mtext("Pairwise Spearman correlation of Z-scores",side=2,line=2.2)
+# text(seq(length(temp_labels) * 4)[-seq(4,by=4,length.out=length(temp_labels))],
+#      line2user(0.5,1),
+#      rep(c("By ligand","By ligand / cell line","By replicate"),length(temp_labels)),
+#      xpd=NA,srt=40,adj=1)
+# mtext("B",font=2,cex=1.5,line=0.5,side=3,at=line2user(4.5,2))
+# mtext("*",side=3,line=-1.5,at=c(2,3,6,7,10,11)[as.vector(temp_stat) <= 0.05])
+
+
+layout(rbind(1:2),widths=c(1,2))
+par(mar=c(5,4,1,0),mgp=2:0)
+boxplot(list(diff_ligct,diff_rep),col=c("red","dodgerblue"),xaxt="n",pch=".",cex=2)
+abline(h=0,lty=2)
+mtext("Difference in mean correlation vs. by ligand",side=2,line=2.2)
+text(c(1,2),rep(line2user(0.5,1),2),
+       c("By ligand / cell line","By replicate"),
+       adj=1,srt=35,xpd=NA,cex=0.9)
+if (wilcox.test(diff_ligct)$p.value < 2.2e-16) {
+  mtext("*",side=3,at=1,font=2,line=-0.3)
+}
+if (wilcox.test(diff_rep)$p.value < 2.2e-16) {
+  mtext("*",side=3,at=2,font=2,line=-0.3)
+}
+mtext("A",font=2,cex=1.5,line=-0.5,side=3,at=line2user(3.5,2))
+
+par(mar=c(5,0,1,4))
+plot(NA,NA,xlab=NA,ylab=NA,yaxt="n",
      xlim=range(c(mean_ligct,mean_rep)),ylim=range(diff_ligct,diff_rep))
 mtext("Mean pairwise Spearman correlation of Z-scores",side=1,line=2.2)
-mtext("Difference in mean vs. by ligand",side=2,line=2.2)
+axis(4)
+mtext("Difference in mean correlation vs. by ligand",side=4,line=2.2)
 abline(h=0,lty=2)
 points(mean_rep[temp_all_stat["Rep",names(mean_rep)] > 0.05],
        diff_rep[temp_all_stat["Rep",names(mean_rep)] > 0.05],
@@ -275,32 +282,14 @@ points(mean_rep[temp_all_stat["Rep",names(mean_rep)] <= 0.05],
 points(mean_ligct[temp_all_stat["LigCT",names(mean_ligct)] <= 0.05],
        diff_ligct[temp_all_stat["LigCT",names(mean_ligct)] <= 0.05],
        pch=19,col=alpha("red",0.5))
-text(mean_rep[temp_labels],diff_rep[temp_labels],
-     temp_labels,col="dodgerblue",pos=c(2,4,4),offset=0.2)
-text(mean_ligct[temp_labels],diff_ligct[temp_labels],
-     temp_labels,col="red",pos=c(2,4,4),offset=0.2)
-legend("bottomright",
-       c("By ligand / cell line","Difference vs. by ligand p \u2264 0.05",
-         "By replicate","Difference vs. by ligand p \u2264 0.05"),
-       pch=c(20,19,20,19),col=c(alpha("red",c(0.2,0.5)),alpha("dodgerblue",c(0.2,0.5))))
-mtext("C",font=2,cex=1.5,line=0.5,side=3,at=line2user(4,2))
+legend("bottomright",bty="n",
+       c("By ligand / cell line","By replicate","\u0394 ligand p \u2264 0.05"),
+       pch=c(20,20,19),col=c(alpha(c("red","dodgerblue","black"),0.5)))
 
 
-par(mar=c(4,0,2.5,4))
-boxplot(list(diff_ligct,diff_rep),col=c("red","dodgerblue"),
-        yaxt="n",xaxt="n")
-abline(h=0,lty=2)
-axis(4)
-mtext("Difference in mean vs. by ligand",side=4,line=2.2)
-if (wilcox.test(diff_ligct)$p.value < 2.2e-16) {
-  mtext("*",side=3,at=1,line=-0.5)
-}
-if (wilcox.test(diff_rep)$p.value < 2.2e-16) {
-  mtext("*",side=3,at=2,line=-0.5)
-}
 
 ```
 
 
-* p <= 0.05 by Wilcoxon rank-sum test.  
+"*" p < 2.2e-16 by Wilcoxon signed-rank test.  
 

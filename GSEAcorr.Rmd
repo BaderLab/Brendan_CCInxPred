@@ -1,11 +1,12 @@
 ---
-title: "Correlation between Z-scores"
+title: "GSEA"
 ---
   
 ```{r setup, echo=F,message=F,warning=F}
 library(scales)
 library(colorspace)
 source("~/Dropbox/GDB/line2user.R")
+par(mar=c(3,3,2,1),mgp=2:0)
 .PAR <- par(no.readonly=T)
 knitr::opts_chunk$set(
   echo=F,
@@ -14,116 +15,114 @@ knitr::opts_chunk$set(
 )
 ```
 
+# Enrichment score correlation
 
 ```{r FX}
 CORR_BXP <- function(Z) {
   files <- grep(paste0("_",Z,".RData$"),
-                list.files("~/Dropbox/GDB_archive/CMapCorr_files/",pattern="^corrGSEA"),
+                list.files("~/Dropbox/GDB_archive/CMapCorr_files/",pattern="^corrGSEA_[A-Z]"),
                 value=T)
-  for (DAT in unique(sapply(strsplit(files,"_"),"[[",2))) {
-    for (GSEA in unique(sapply(strsplit(files,"_"),"[[",3))) {
-      load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/corrGSEA_",DAT,"_",GSEA,"_",Z,".RData"))
-      
-      temp_ds <- paste(DAT,GSEA)
-      
+  for (GSEA in unique(sapply(strsplit(files,"_"),"[[",2))) {
+    load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/corrGSEA_",GSEA,"_",Z,".RData"))
+    
+    temp_ds <- GSEA
+    
+    if (Z %in% c("ligct","rep")) {
+      temp_lig <- as.factor(sub("_[A-Za-z0-9_]+$","",names(CORS)))
+      temp_ord1 <- tapply(CORS,temp_lig,function(X) names(X)[order(sapply(X,median))])
+      temp_ord2 <- order(tapply(CORS,temp_lig,function(X) median(unlist(X))))
+      temp_order <- temp_ord1[temp_ord2]
+      CORS <- CORS[unlist(temp_order)]
+      temp_border <- qualitative_hcl(length(temp_order),palette="dark3")
+      temp_border <- unlist(mapply(rep,
+                                   x=temp_border,
+                                   times=sapply(temp_order,length),
+                                   SIMPLIFY=F))
+      temp_col <- alpha(temp_border,0.5)
+      temp_bot <- switch(1 + (length(temp_order) < 20),1.5,4)
+    } else {
+      temp_order <- order(sapply(CORS,median))
+      CORS <- CORS[temp_order]
+      temp_border <- qualitative_hcl(length(CORS),palette="dark3")
+      temp_col <- qualitative_hcl(length(CORS),palette="dark3",alpha=0.5)
+      temp_bot <- switch(1 + (length(CORS) < 20),1.5,4)
+    }
+    if (length(CORS) > 300) {
+      temp_border <- alpha(temp_border,0.5)
+      temp_col <- alpha(temp_col,0.2)
+    }      
+    par(mar=c(temp_bot,4,2,1),mgp=2:0)
+    boxplot(CORS,outline=T,pch=".",xaxt="n",yaxs="i",ylim=c(-1,1),
+            border=temp_border,col=temp_col,
+            ylab=paste("Pairwise Spearman correlation of",
+                       paste("Normalized Enrichment Score per",
+                             switch(Z,
+                                    lig="ligand",
+                                    ct="cell line",
+                                    ligct="ligand & cell line",
+                                    rep="treatment condition")),
+                       sep="\n"),
+            main=temp_ds)
+    if (length(CORS) > 300) {
+      points(sapply(CORS,median),pch=".",col=alpha(temp_border,1))
+    }
+    abline(h=0,col="red",lty=2)
+    if (temp_bot > 1.5) {
       if (Z %in% c("ligct","rep")) {
-        temp_lig <- as.factor(sub("_[A-Za-z0-9_]+$","",names(CORS)))
-        temp_ord1 <- tapply(CORS,temp_lig,function(X) names(X)[order(sapply(X,median))])
-        temp_ord2 <- order(tapply(CORS,temp_lig,function(X) median(unlist(X))))
-        temp_order <- temp_ord1[temp_ord2]
-        CORS <- CORS[unlist(temp_order)]
-        temp_border <- qualitative_hcl(length(temp_order),palette="dark3")
-        temp_border <- unlist(mapply(rep,
-                                     x=temp_border,
-                                     times=sapply(temp_order,length),
-                                     SIMPLIFY=F))
-        temp_col <- alpha(temp_border,0.5)
-        temp_bot <- switch(1 + (length(temp_order) < 20),1.5,4)
+        mtext(names(temp_order),side=1,
+              at=cumsum(sapply(temp_order,length)) - sapply(temp_order,length) / 2,
+              las=2,xpd=NA,line=0.1,
+              col=alpha(temp_border,1)[cumsum(sapply(temp_order,length))])
       } else {
-        temp_order <- order(sapply(CORS,median))
-        CORS <- CORS[temp_order]
-        temp_border <- qualitative_hcl(length(CORS),palette="dark3")
-        temp_col <- qualitative_hcl(length(CORS),palette="dark3",alpha=0.5)
-        temp_bot <- switch(1 + (length(CORS) < 20),1.5,4)
+        mtext(names(CORS),side=1,at=seq_along(CORS),
+              las=2,xpd=NA,line=0.1,col=alpha(temp_border,1))
       }
-      if (length(CORS) > 300) {
-        temp_border <- alpha(temp_border,0.5)
-        temp_col <- alpha(temp_col,0.2)
-      }      
-      par(mar=c(temp_bot,4,2,1),mgp=2:0)
-      boxplot(CORS,outline=T,pch=".",xaxt="n",yaxs="i",ylim=c(-1,1),
-              border=temp_border,col=temp_col,
-              ylab=paste("Pairwise Spearman correlation of",
-                         paste("Normalized Enrichment Score per",
-                               switch(Z,
-                                      lig="ligand",
-                                      ct="cell line",
-                                      ligct="ligand & cell line",
-                                      rep="treatment condition")),
-                         sep="\n"),
-              main=temp_ds)
-      if (length(CORS) > 300) {
-        points(sapply(CORS,median),pch=".",col=alpha(temp_border,1))
-      }
-      abline(h=0,col="red",lty=2)
-      if (temp_bot > 1.5) {
-        if (Z %in% c("ligct","rep")) {
-          mtext(names(temp_order),side=1,
-                at=cumsum(sapply(temp_order,length)) - sapply(temp_order,length) / 2,
-                las=2,xpd=NA,line=0.1,
-                col=alpha(temp_border,1)[cumsum(sapply(temp_order,length))])
-        } else {
-          mtext(names(CORS),side=1,at=seq_along(CORS),
-                las=2,xpd=NA,line=0.1,col=alpha(temp_border,1))
-        }
-      } else {
-        mtext(switch(Z,
-                     lig="Ligands",
-                     ct="Cell lines",
-                     ligct="Ligands per cell line",
-                     rep="Treatment conditions"),
-              side=1,line=0.2,cex=1.1,font=2)
-      }
+    } else {
+      mtext(switch(Z,
+                   lig="Ligands",
+                   ct="Cell lines",
+                   ligct="Ligands per cell line",
+                   rep="Treatment conditions"),
+            side=1,line=0.2,cex=1.1,font=2)
     }
   }
 }
+
 ```
 
-Datasets tested, in order:
-- 16 ligands in 14 cell lines, landmark genes only.
-- 16 ligands in 14 cell lines, all genes (including inferred).
-- 295 ligands in 9 cell lines, landmark genes only.
-- 295 ligands in 9 cell lines, all genes (including inferred).
+Level 4 data (Z-scores) including inferred genes were used in GSEA analysis.  Pathway database was either GO-BP, Reactome, or All (`Human_GOBP_AllPathways_no_GO_iea_March_01_2021_entrezgene.gmt` from http://www.baderlab.org/GeneSets).  Inferred genes were included because without them, most pathways were not covered, which both artificially increased correlation of NES and drastically reduced power due to lack of genes.
+
+Correlation of NES is a really dumb way of comparing enriched gene sets, but I already did the analysis, so here it is.
 
 
-# GSEA correlation per cell line
+## GSEA correlation per cell line
 ```{r ct, fig.height=4,fig.width=9}
 CORR_BXP("ct")
 ```
 
 
-# GSEA correlation per ligand
+## GSEA correlation per ligand
 ```{r lig, fig.height=4,fig.width=9}
 CORR_BXP("lig")
 ```
 
 
-# GSEA correlation per ligand & cell line
+## GSEA correlation per ligand & cell line
 ```{r ligct, fig.height=4,fig.width=9}
 CORR_BXP("ligct")
 ```
 
 
-# GSEA correlation per treatment condition (replicate)
+## GSEA correlation per treatment condition (replicate)
 ```{r rep, fig.height=4,fig.width=9}
 CORR_BXP("rep")
 ```
 
 
 
-# Comparison of all correlation distributions
+## Comparison of all correlation distributions
 
-using level 4 data only  
+As you can see, correlation of NES amongst replicates was the only thing that improved, which sort of makes sense as we don't expect low magnitude NES pathways to correlate at all.
 
 ```{r}
 rm(list=ls())
@@ -133,15 +132,15 @@ rm(list=ls())
 source("~/Dropbox/GDB/line2user.R")
 
 temp_GSEA <- unique(sapply(
-  strsplit(list.files("~/Dropbox/GDB_archive/CMapCorr_files/",pattern="^corrGSEA"),"_"),
-  "[[",3))
+  strsplit(list.files("~/Dropbox/GDB_archive/CMapCorr_files/",pattern="^corrGSEA_[A-Z]"),"_"),
+  "[[",2))
 for (GSEA in temp_GSEA) {
   
-  temp <- load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/corrGSEA_lvl4_",GSEA,"_lig.RData"))
+  temp <- load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/corrGSEA_",GSEA,"_lig.RData"))
   cor_lig <- get(temp)
-  temp <- load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/corrGSEA_lvl4_",GSEA,"_ligct.RData"))
+  temp <- load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/corrGSEA_",GSEA,"_ligct.RData"))
   cor_ligct <- get(temp)
-  temp <- load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/corrGSEA_lvl4_",GSEA,"_rep.RData"))
+  temp <- load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/corrGSEA_",GSEA,"_rep.RData"))
   cor_rep <- get(temp)
   rm(list=c(temp,"temp"))
   
@@ -191,5 +190,219 @@ for (GSEA in temp_GSEA) {
          pch=20,col=alpha(c("red","dodgerblue"),0.5),cex=0.8,bty="n")
   
 }
+```
+
+****
+
+# Overlap of enriched gene sets
+
+```{r}
+rm(list=ls())
+source("~/Dropbox/GDB/line2user.R")
+
+load("~/Dropbox/GDB_archive/CMapCorr_files/lvl5_inputs_allgenes.RData")
+temp_ligcountsperct <- sapply(unique(lvl5_data@cdesc$cell_id),function(CT)
+  length(unique(lvl5_data@cdesc[lvl5_data@cdesc$cell_id == CT,"pert_iname"])))
+ct9 <- names(temp_ligcountsperct)[temp_ligcountsperct > 100]
+names(ct9) <- sapply(ct9,function(X) names(ct14)[ct14 == X])
+
+temp_ctcountsperlig <- sapply(unique(lvl5_data@cdesc$pert_iname),function(LIG)
+  length(unique(lvl5_data@cdesc[lvl5_data@cdesc$pert_iname == LIG &
+                                  lvl5_data@cdesc$cell_id %in% ct9,"cell_id"])))
+lig295 <- names(temp_ctcountsperlig)[temp_ctcountsperlig == 9]
+lig295 <- sort(lig295)
+
+temp_id <- rownames(lvl5_data@cdesc)[lvl5_data@cdesc$pert_iname %in% lig295 & 
+                                       lvl5_data@cdesc$cell_id %in% ct9]
+lvl5_data@mat <- lvl5_data@mat[,temp_id]
+lvl5_data@cdesc <- lvl5_data@cdesc[temp_id,]
+lvl5_data@cid <- temp_id
+rm(list=c("lig16","ct14",grep("^temp",ls(),value=T)))
+```
+
+
+```{r}
+load("~/Dropbox/GDB_archive/CMapCorr_files/povlpGSEA_ALL.RData")
+
+Roverlap_ct <-sapply(Noverlap_ct,function(X)
+  sapply(colnames(X),function(CTname)
+    X[,CTname] / sum(lvl5_data@cdesc$cell_id == ct9[CTname])
+  ),simplify=F)
+
+Roverlap_lig <-sapply(Noverlap_lig,function(X)
+  sapply(colnames(X),function(LIG)
+    X[,LIG] / sum(lvl5_data@cdesc$pert_iname == LIG)
+  ),simplify=F)
+
+Roverlap_ligct <-sapply(Noverlap_ligct,function(X)
+  sapply(colnames(X),function(LIGCT) {
+    temp <- strsplit(LIGCT,"_")[[1]]
+    X[,LIGCT] / sum(lvl5_data@cdesc$pert_iname == temp[1] &
+                    lvl5_data@cdesc$cell_id == temp[2])
+  }),simplify=F)
+
+
+```
+
+```{r eval=F,fig.width=9,fig.height=9}
+cutFDR <- names(Noverlap_ct)
+
+par(mfcol=c(3,3),mar=c(3,3,2,1),mgp=2:0)
+for (FDR in cutFDR) {
+  plot(as.vector(Roverlap_ct[[FDR]]),
+       as.vector(-log10(Poverlap_ct[[FDR]])),
+       xlim=c(0,1),pch=".")
+  plot(as.vector(Roverlap_lig[[FDR]]),
+       as.vector(-log10(Poverlap_lig[[FDR]])),
+       xlim=c(0,1),pch=".")
+  plot(as.vector(Roverlap_ligct[[FDR]]),
+       as.vector(-log10(Poverlap_ligct[[FDR]])),
+       xlim=c(0,1),pch=".")
+}
+
+```
+
+
+> This is per gene set, which is a weird way of thinking about it.
+
+```{r fig.width=9,fig.height=6}
+cutFDR <- names(Noverlap_ct)
+temp_p <- c(1,.5,.1,.05,.01,.001,.0001)
+
+par(mfrow=c(3,2),mar=c(3,3,2,1),mgp=2:0)
+for (FDR in cutFDR) {
+  boxplot(list(CT=-log10(Poverlap_ct[[FDR]]),
+               Lig=-log10(Poverlap_lig[[FDR]]),
+               LigCT=-log10(Poverlap_ligct[[FDR]])),
+          pch=".",yaxt="n",main=paste0("FDR: 0.",FDR),
+          ylab="P significant gene sets by chance")
+  axis(2,at=-log10(temp_p),labels=temp_p)
+  
+  
+  boxplot(list(CT=Roverlap_ct[[FDR]],
+               Lig=Roverlap_lig[[FDR]],
+               LigCT=Roverlap_ligct[[FDR]]),
+          pch=".",ylab="Proportion of overlapping")
+}
+
+```
+
+# Mean NES
+
+```{r}
+rm(list=ls())
+source("~/Dropbox/GDB/line2user.R")
+
+load("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs_allgenes.RData")
+lvl4_data <- lvl4_data_all; rm(lvl4_data_all)
+temp_ligcountsperct <- sapply(unique(lvl4_data@cdesc$cell_id),function(CT)
+  length(unique(lvl4_data@cdesc[lvl4_data@cdesc$cell_id == CT,"pert_iname"])))
+ct9 <- names(temp_ligcountsperct)[temp_ligcountsperct > 100]
+names(ct9) <- sapply(ct9,function(X) names(ct14)[ct14 == X])
+
+temp_ctcountsperlig <- sapply(unique(lvl4_data@cdesc$pert_iname),function(LIG)
+  length(unique(lvl4_data@cdesc[lvl4_data@cdesc$pert_iname == LIG &
+                                  lvl4_data@cdesc$cell_id %in% ct9,"cell_id"])))
+lig295 <- names(temp_ctcountsperlig)[temp_ctcountsperlig == 9]
+lig295 <- sort(lig295)
+
+temp_id <- rownames(lvl4_data@cdesc)[lvl4_data@cdesc$pert_iname %in% lig295 & 
+                                       lvl4_data@cdesc$cell_id %in% ct9]
+lvl4_data@mat <- lvl4_data@mat[,temp_id]
+lvl4_data@cdesc <- lvl4_data@cdesc[temp_id,]
+lvl4_data@cid <- temp_id
+rm(list=c("lig16","ct14",grep("^temp",ls(),value=T)))
+```
+
+```{r}
+GSEA <- "GOBP"
+load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/pnesGSEA_",GSEA,".RData"))
+```
+
+
+```{r fig.height=3,fig.width=9}
+FDRcut <- 0.0001
+
+tempMAT <- Pscore_CT[apply(Pscore_CT,1,function(X) any(abs(X) >= -log10(FDRcut))),]
+temp_lim <- max(abs(tempMAT))
+temp_hSample <- hclust(dist(t(tempMAT)),method="ward.D2") 
+temp_hSet <- hclust(dist(tempMAT),method="ward.D2")
+tempMAT <- tempMAT[temp_hSet$order,temp_hSample$order]
+
+par(mar=c(2,6,0.5,0.5))
+image(z=tempMAT,x=1:nrow(tempMAT),y=1:ncol(tempMAT),
+      col=diverging_hcl(1000,palette="Blue-Red3"),
+      breaks=seq(-temp_lim,temp_lim,length.out=1001),
+      xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+mtext(colnames(tempMAT),side=2,line=0.1,at=1:ncol(tempMAT),las=2,cex=0.7)
+mtext(paste(GSEA,"gene set enrichment"),side=1)
+rm(list=grep("^temp",ls(),value=T))
+```
+
+```{r fig.height=6,fig.width=9}
+tempMAT <- Pscore_Lig[,apply(Pscore_Lig,2,function(X) sum(abs(X) >= -log10(FDRcut)) >= 3)]
+tempMAT <- tempMAT[apply(tempMAT,1,function(X) any(abs(X) >= -log10(FDRcut))),]
+temp_lim <- max(abs(tempMAT))
+temp_hSample <- hclust(dist(t(tempMAT)),method="ward.D2") 
+temp_hSet <- hclust(dist(tempMAT),method="ward.D2")
+tempMAT <- tempMAT[temp_hSet$order,temp_hSample$order]
+
+par(mar=c(1.5,1.5,0.5,0.5))
+image(z=tempMAT,x=1:nrow(tempMAT),y=1:ncol(tempMAT),
+      col=diverging_hcl(1000,palette="Blue-Red3"),
+      breaks=seq(-temp_lim,temp_lim,length.out=1001),
+      xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+# mtext(colnames(tempMAT),side=2,line=0.1,at=1:ncol(tempMAT),las=2,cex=0.7)
+mtext("Ligands",side=2,line=0.1)
+mtext(paste(GSEA,"gene set enrichment"),side=1)
+rm(list=grep("^temp",ls(),value=T))
+```
+```{r fig.height=9,fig.width=9}
+tempMAT <- Pscore_LigCT[,apply(Pscore_LigCT,2,function(X) sum(abs(X) >= -log10(FDRcut)) >= 3)]
+tempMAT <- tempMAT[apply(tempMAT,1,function(X) any(abs(X) >= -log10(FDRcut))),]
+temp_lim <- max(abs(tempMAT))
+temp_hSample <- hclust(dist(t(tempMAT)),method="ward.D2") 
+temp_hSet <- hclust(dist(tempMAT),method="ward.D2")
+tempMAT <- tempMAT[temp_hSet$order,temp_hSample$order]
+
+par(mar=c(1.5,1.5,0.5,0.5))
+image(z=tempMAT,x=1:nrow(tempMAT),y=1:ncol(tempMAT),
+      col=diverging_hcl(1000,palette="Blue-Red3"),
+      breaks=seq(-temp_lim,temp_lim,length.out=1001),
+      xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+# mtext(colnames(tempMAT),side=2,line=0.1,at=1:ncol(tempMAT),las=2,cex=0.7)
+mtext("Ligands per cell line",side=2,line=0.1)
+mtext(paste(GSEA,"gene set enrichment"),side=1)
+rm(list=grep("^temp",ls(),value=T))
+```
+
+```{r fig.height=3,fig.width=9}
+par(mar=c(3,3,1,1),mgp=2:0)
+
+boxplot(abs(Pscore_CT)[,order(colMeans(abs(Pscore_CT)))],
+        pch=".",las=3,ylab="Mean NES |Significance|")
+boxplot(abs(Pscore_Lig)[,order(colMeans(abs(Pscore_Lig)))],
+        pch=".",las=3,xaxt="n",outline=F,
+        xlab="Ligands",ylab="Mean NES |Significance|")
+boxplot(abs(Pscore_LigCT)[,order(colMeans(abs(Pscore_LigCT)))],
+        pch=".",las=3,xaxt="n",outline=F,
+        xlab="Ligands per cell line",
+        ylab="Mean NES |Significance|")
+
+
+par(mfrow=c(1,2))
+boxplot(list(CT=abs(Pscore_CT),
+             Lig=abs(Pscore_Lig),
+             LigCT=abs(Pscore_LigCT)),
+        pch=".",horizontal=T,
+        xlab="Mean NES |significance| (all)")
+boxplot(list(CT=colMeans(abs(Pscore_CT)),
+             Lig=colMeans(abs(Pscore_Lig)),
+             LigCT=colMeans(abs(Pscore_LigCT))),
+        pch=".",horizontal=T,
+        xlab="Mean NES |significance| (means)")
+
+
+
 ```
 

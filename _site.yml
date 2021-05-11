@@ -41,7 +41,7 @@ navbar:
     menu:
     - text: "Z-score correlation"
       href: Zcorr.html
-    - text: "GSEA correlation"
+    - text: "GSEA results"
       href: GSEAcorr.html
     - text: "DE overlap"
       href: DEoverlap.html
@@ -53,10 +53,10 @@ navbar:
       href: NicheNet.html
   - text: "Paper Figs v3"
     menu:
-    - text: "Fig 1: Z-score correlation"
-      href: Zcorr_forPaper.html
-    - text: "Fig 2 & 3: DE overlap (FDR)"
+    - text: "Fig 1 & 2: DE overlap (FDR)"
       href: DEoverlap_FDR_forPaper.html
+    - text: "Fig 3: GSEA (& Z-score) correlation"
+      href: Zcorr_forPaper.html
     - text: "Fig 4: RF results"
       href: RFresults_forPaper.html
     - text: "Fig 5: NicheNet"
