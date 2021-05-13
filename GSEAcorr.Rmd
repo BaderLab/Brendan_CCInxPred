@@ -289,7 +289,7 @@ for (FDR in cutFDR) {
 
 # Mean NES
 
-```{r}
+```{r eval=F}
 rm(list=ls())
 source("~/Dropbox/GDB/line2user.R")
 
@@ -314,9 +314,20 @@ lvl4_data@cid <- temp_id
 rm(list=c("lig16","ct14",grep("^temp",ls(),value=T)))
 ```
 
+```{r fig.height=3,fig.width=6}
+load("~/Dropbox/GDB_archive/CMapCorr_files/GSEA_lvl4_GOBP.RData")
+
+par(mar=c(3,3,1,1),mgp=2:0)
+hist(sapply(gsea_nes_GOBP[-1],"[[","NES"),breaks=50,main=NA,xlab="GSEA NES")
+rm(gsea_nes_GOBP)
+```
+
+
 ```{r}
 GSEA <- "GOBP"
-load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/pnesGSEA_",GSEA,".RData"))
+# load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/pnesGSEA_",GSEA,".RData"))
+
+load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/pnesGSEA_GOBP_backup.RData"))
 ```
 
 
@@ -406,3 +417,138 @@ boxplot(list(CT=colMeans(abs(Pscore_CT)),
 
 ```
 
+# Mean signed FDR
+
+
+```{r}
+rm(list=ls())
+source("~/Dropbox/GDB/line2user.R")
+
+load("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs_allgenes.RData")
+lvl4_data <- lvl4_data_all; rm(lvl4_data_all)
+temp_ligcountsperct <- sapply(unique(lvl4_data@cdesc$cell_id),function(CT)
+  length(unique(lvl4_data@cdesc[lvl4_data@cdesc$cell_id == CT,"pert_iname"])))
+ct9 <- names(temp_ligcountsperct)[temp_ligcountsperct > 100]
+names(ct9) <- sapply(ct9,function(X) names(ct14)[ct14 == X])
+
+temp_ctcountsperlig <- sapply(unique(lvl4_data@cdesc$pert_iname),function(LIG)
+  length(unique(lvl4_data@cdesc[lvl4_data@cdesc$pert_iname == LIG &
+                                  lvl4_data@cdesc$cell_id %in% ct9,"cell_id"])))
+lig295 <- names(temp_ctcountsperlig)[temp_ctcountsperlig == 9]
+lig295 <- sort(lig295)
+
+temp_id <- rownames(lvl4_data@cdesc)[lvl4_data@cdesc$pert_iname %in% lig295 & 
+                                       lvl4_data@cdesc$cell_id %in% ct9]
+lvl4_data@mat <- lvl4_data@mat[,temp_id]
+lvl4_data@cdesc <- lvl4_data@cdesc[temp_id,]
+lvl4_data@cid <- temp_id
+rm(list=c("lig16","ct14",grep("^temp",ls(),value=T)))
+```
+
+Averaging "significance score" of each gene set across samples.  Score is `-log10(FDR) * sign(NES)`.  Example distribution:  
+
+```{r fig.height=3,fig.width=6}
+load("~/Dropbox/GDB_archive/CMapCorr_files/GSEA_lvl4_GOBP.RData")
+temp_score <- -log10(sapply(gsea_nes_GOBP[-1],"[[","padj")) * sign(sapply(gsea_nes_GOBP[-1],"[[","NES"))
+
+par(mar=c(4,3,1,1),mgp=2:0)
+hist(temp_score,breaks=50,main=NA,xlab=NA)
+mtext(paste("GSEA signed significance score",
+                "-log10(FDR) * sign(NES)",sep="\n"),
+      side=1,line=3)
+rm(temp_score,gsea_nes_GOBP)
+```
+
+
+
+```{r}
+GSEA <- "GOBP"
+load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/pfdrGSEA_",GSEA,".RData"))
+```
+
+
+```{r fig.height=3,fig.width=9}
+FDRcut <- 0.05
+
+tempMAT <- Pscore_CT[apply(Pscore_CT,1,function(X) any(abs(X) >= -log10(FDRcut))),]
+temp_lim <- max(abs(tempMAT))
+temp_hSample <- hclust(dist(t(tempMAT)),method="ward.D2") 
+temp_hSet <- hclust(dist(tempMAT),method="ward.D2")
+tempMAT <- tempMAT[temp_hSet$order,temp_hSample$order]
+
+par(mar=c(2,6,0.5,0.5))
+image(z=tempMAT,x=1:nrow(tempMAT),y=1:ncol(tempMAT),
+      col=diverging_hcl(1000,palette="Blue-Red3"),
+      breaks=seq(-temp_lim,temp_lim,length.out=1001),
+      xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+mtext(colnames(tempMAT),side=2,line=0.1,at=1:ncol(tempMAT),las=2,cex=0.7)
+mtext(paste(GSEA,"gene set enrichment"),side=1)
+rm(list=grep("^temp",ls(),value=T))
+```
+
+```{r fig.height=6,fig.width=9}
+tempMAT <- Pscore_Lig[,apply(Pscore_Lig,2,function(X) sum(abs(X) >= -log10(FDRcut)) >= 3)]
+tempMAT <- tempMAT[apply(tempMAT,1,function(X) any(abs(X) >= -log10(FDRcut))),]
+temp_lim <- max(abs(tempMAT))
+temp_hSample <- hclust(dist(t(tempMAT)),method="ward.D2") 
+temp_hSet <- hclust(dist(tempMAT),method="ward.D2")
+tempMAT <- tempMAT[temp_hSet$order,temp_hSample$order]
+
+par(mar=c(1.5,1.5,0.5,0.5))
+image(z=tempMAT,x=1:nrow(tempMAT),y=1:ncol(tempMAT),
+      col=diverging_hcl(1000,palette="Blue-Red3"),
+      breaks=seq(-temp_lim,temp_lim,length.out=1001),
+      xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+# mtext(colnames(tempMAT),side=2,line=0.1,at=1:ncol(tempMAT),las=2,cex=0.7)
+mtext("Ligands",side=2,line=0.1)
+mtext(paste(GSEA,"gene set enrichment"),side=1)
+rm(list=grep("^temp",ls(),value=T))
+```
+```{r fig.height=9,fig.width=9}
+tempMAT <- Pscore_LigCT[,apply(Pscore_LigCT,2,function(X) sum(abs(X) >= -log10(FDRcut)) >= 3)]
+tempMAT <- tempMAT[apply(tempMAT,1,function(X) any(abs(X) >= -log10(FDRcut))),]
+temp_lim <- max(abs(tempMAT))
+temp_hSample <- hclust(dist(t(tempMAT)),method="ward.D2") 
+temp_hSet <- hclust(dist(tempMAT),method="ward.D2")
+tempMAT <- tempMAT[temp_hSet$order,temp_hSample$order]
+
+par(mar=c(1.5,1.5,0.5,0.5))
+image(z=tempMAT,x=1:nrow(tempMAT),y=1:ncol(tempMAT),
+      col=diverging_hcl(1000,palette="Blue-Red3"),
+      breaks=seq(-temp_lim,temp_lim,length.out=1001),
+      xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+# mtext(colnames(tempMAT),side=2,line=0.1,at=1:ncol(tempMAT),las=2,cex=0.7)
+mtext("Ligands per cell line",side=2,line=0.1)
+mtext(paste(GSEA,"gene set enrichment"),side=1)
+rm(list=grep("^temp",ls(),value=T))
+```
+
+```{r fig.height=3,fig.width=9}
+par(mar=c(3,3,1,1),mgp=2:0)
+
+boxplot(abs(Pscore_CT)[,order(colMeans(abs(Pscore_CT)))],
+        pch=".",las=3,ylab="Mean FDR |Significance|")
+boxplot(abs(Pscore_Lig)[,order(colMeans(abs(Pscore_Lig)))],
+        pch=".",las=3,xaxt="n",outline=F,
+        xlab="Ligands",ylab="Mean FDR |Significance|")
+boxplot(abs(Pscore_LigCT)[,order(colMeans(abs(Pscore_LigCT)))],
+        pch=".",las=3,xaxt="n",outline=F,
+        xlab="Ligands per cell line",
+        ylab="Mean FDR |Significance|")
+
+
+par(mfrow=c(1,2))
+boxplot(list(CT=abs(Pscore_CT),
+             Lig=abs(Pscore_Lig),
+             LigCT=abs(Pscore_LigCT)),
+        pch=".",horizontal=T,
+        xlab="Mean FDR |significance| (all)")
+boxplot(list(CT=colMeans(abs(Pscore_CT)),
+             Lig=colMeans(abs(Pscore_Lig)),
+             LigCT=colMeans(abs(Pscore_LigCT))),
+        pch=".",horizontal=T,
+        xlab="Mean FDR |significance| (means)")
+
+
+
+```
