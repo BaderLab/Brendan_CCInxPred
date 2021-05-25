@@ -26,29 +26,19 @@ rm(list=c("lvl4_data","ct14","lig16",grep("^temp",ls(),value=T)))
 
 
 minP <- 1e4
+allCuts <- seq(0.1,2,by=0.1)
+names(allCuts) <- allCuts
 
-for (FN in list.files("~/Dropbox/GDB_archive/CMapCorr_files/","^GSEA_lvl4_[A-Z]")) {
+for (FN in list.files("~/Dropbox/GDB_archive/CMapCorr_files/","^pfdrGSEA_[A-Z]+\\.RData")) {
   temp <- load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/",FN))
-  GSEA <- strsplit(temp,"_")[[1]][3]
-  if (file.exists(paste0("~/Dropbox/GDB_archive/CMapCorr_files/pfdrGSEA_",GSEA,".RData"))) { 
+  GSEA <- gsub("(pfdrGSEA_)|(\\.RData)","",FN)
+  if (file.exists(paste0("~/Dropbox/GDB_archive/CMapCorr_files/phitsGSEA_",GSEA,".RData"))) { 
     rm(list=temp)
     next 
   }
 
   print(paste(GSEA,"----"))
   
-  temp_NES <- sapply(get(temp)[-1],"[[","NES")
-  rownames(temp_NES) <- as.vector(get(temp)$PATHWAYS)
-  
-  temp_padj <- sapply(get(temp)[-1],"[[","padj")
-  rownames(temp_padj) <- as.vector(get(temp)$PATHWAYS)
-  
-  GSEA_score <- -log10(temp_padj) * sign(temp_NES)
-  rownames(GSEA_score) <- as.vector(get(temp)$PATHWAYS)
-  
-  rm(list=c(temp,grep("^temp",ls(),value=T)))
-
-
   # Mean signed -log10(FDR) ----
   # ^ CT ----
   print("^ CT ----")
@@ -74,11 +64,15 @@ for (FN in list.files("~/Dropbox/GDB_archive/CMapCorr_files/","^GSEA_lvl4_[A-Z]"
   Mscore_CT <- sapply(ct9,function(CT)
     rowMeans(GSEA_score[,CID[CDESC$cell_id == CT]]))
   
-  Pscore_CT <- pbsapply(colnames(Mscore_CT),function(X) 
-    rowMeans(abs(Mscore_CT[,X]) < abs(BKGD_CT[[as.character(temp_counts[X])]])))
-  Pscore_CT[Pscore_CT <= 0] <- 1 / ncol(BKGD_CT[[1]])
-  Qscore_CT <- apply(Pscore_CT,2,p.adjust,method="fdr")
-
+  Nhits_CT <- sapply(allCuts,function(CUT) colSums(abs(Mscore_CT) >= CUT))
+  
+  Phits_CT <- pbsapply(allCuts,function(CUT) {
+    temp_hit_BKGD <- sapply(BKGD_CT,function(X) colSums(abs(X) >= CUT))
+    OUT <- sapply(names(temp_counts),function(L)
+      mean(temp_hit_BKGD[,as.character(temp_counts[L])] >= Nhits_CT[L,as.character(CUT)]))
+    OUT[OUT <= 0] <- 1 / ncol(BKGD_CT[[1]])
+    return(OUT)
+  })
   rm(list=c("BKGD_CT",grep("^temp",ls(),value=T)))  
   
   # ^ Lig ----
@@ -105,11 +99,15 @@ for (FN in list.files("~/Dropbox/GDB_archive/CMapCorr_files/","^GSEA_lvl4_[A-Z]"
   Mscore_LIG <- sapply(lig295,function(LIG)
     rowMeans(GSEA_score[,CID[CDESC$pert_iname == LIG]]))
   
-  Pscore_LIG <- pbsapply(colnames(Mscore_LIG),function(X) 
-    rowMeans(abs(Mscore_LIG[,X]) < abs(BKGD_LIG[[as.character(temp_counts[X])]])))
-  Pscore_LIG[Pscore_LIG <= 0] <- 1 / ncol(BKGD_LIG[[1]])
-  Qscore_LIG <- apply(Pscore_LIG,2,p.adjust,method="fdr")
-
+  Nhits_LIG <- sapply(allCuts,function(CUT) colSums(abs(Mscore_LIG) >= CUT))
+  
+  Phits_LIG <- pbsapply(allCuts,function(CUT) {
+    temp_hit_BKGD <- sapply(BKGD_LIG,function(X) colSums(abs(X) >= CUT))
+    OUT <- sapply(names(temp_counts),function(L)
+      mean(temp_hit_BKGD[,as.character(temp_counts[L])] >= Nhits_LIG[L,as.character(CUT)]))
+    OUT[OUT <= 0] <- 1 / ncol(BKGD_LIG[[1]])
+    return(OUT)
+  })
   rm(list=c("BKGD_LIG",grep("^temp",ls(),value=T)))  
 
   # ^ LigCT ----
@@ -147,14 +145,22 @@ for (FN in list.files("~/Dropbox/GDB_archive/CMapCorr_files/","^GSEA_lvl4_[A-Z]"
   Mscore_LIGCT <- do.call(cbind,Mscore_LIGCT)
   colnames(Mscore_LIGCT) <- names(temp_counts)
   
-  Pscore_LIGCT <- pbsapply(colnames(Mscore_LIGCT),function(X) 
-    rowMeans(abs(Mscore_LIGCT[,X]) < abs(BKGD_LIGCT[[as.character(temp_counts[X])]])))
-  Pscore_LIGCT[Pscore_LIGCT <= 0] <- 1 / ncol(BKGD_LIGCT[[1]])
-  Qscore_LIGCT <- apply(Pscore_LIGCT,2,p.adjust,method="fdr")
+  Nhits_LIGCT <- sapply(allCuts,function(CUT) colSums(abs(Mscore_LIGCT) >= CUT))
   
+  Phits_LIGCT <- pbsapply(allCuts,function(CUT) {
+    temp_hit_BKGD <- sapply(BKGD_LIGCT,function(X) colSums(abs(X) >= CUT))
+    OUT <- sapply(names(temp_counts),function(L)
+      mean(temp_hit_BKGD[,as.character(temp_counts[L])] >= Nhits_LIGCT[L,as.character(CUT)]))
+    OUT[OUT <= 0] <- 1 / ncol(BKGD_LIGCT[[1]])
+    return(OUT)
+  })
   rm(list=c("BKGD_LIGCT",grep("^temp",ls(),value=T)))
   
-  save(list=grep("score",ls(),value=T),
-       file=paste0("~/Dropbox/GDB_archive/CMapCorr_files/pfdrGSEA_",GSEA,".RData"))
-  rm(list=grep("score",ls(),value=T))
+  save(list=c(grep("^Phits",ls(),value=T),
+              grep("^Nhits",ls(),value=T),
+              grep("^Mscore",ls(),value=T)),
+       file=paste0("~/Dropbox/GDB_archive/CMapCorr_files/phitsGSEA_",GSEA,".RData"))
+  rm(list=c(grep("^Phits",ls(),value=T),
+            grep("^Nhits",ls(),value=T),
+            grep("^Mscore",ls(),value=T)))
 }

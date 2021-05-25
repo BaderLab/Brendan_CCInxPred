@@ -413,9 +413,28 @@ $(document).ready(function () {
 <h1>Mean signed FDR</h1>
 <p>Averaging “significance score” of each gene set across samples. Score is <code>-log10(FDR) * sign(NES)</code>. Example distribution:</p>
 <p><img src="GSEAcorr_files/figure-html/unnamed-chunk-14-1.png" width="576" /></p>
+<p>The following heatmaps are showing gene set enrichment per sample group (cell lines, ligands, or ligands per cell line). Values are signed FDR-corrected p-values representing the likelihood of seeing as extreme a value by chance when averaging signed GSEA FDR values across the sample group.</p>
+<div id="cell-line" class="section level2">
+<h2>Cell line</h2>
+<p><img src="GSEAcorr_files/figure-html/unnamed-chunk-15-1.png" width="864" /></p>
 <p><img src="GSEAcorr_files/figure-html/unnamed-chunk-16-1.png" width="864" /></p>
-<p><img src="GSEAcorr_files/figure-html/unnamed-chunk-17-1.png" width="864" /> <img src="GSEAcorr_files/figure-html/unnamed-chunk-18-1.png" width="864" /></p>
-<p><img src="GSEAcorr_files/figure-html/unnamed-chunk-19-1.png" width="864" /><img src="GSEAcorr_files/figure-html/unnamed-chunk-19-2.png" width="864" /><img src="GSEAcorr_files/figure-html/unnamed-chunk-19-3.png" width="864" /><img src="GSEAcorr_files/figure-html/unnamed-chunk-19-4.png" width="864" /></p>
+</div>
+<div id="ligand" class="section level2">
+<h2>Ligand</h2>
+<p><img src="GSEAcorr_files/figure-html/unnamed-chunk-17-1.png" width="864" /></p>
+<p><img src="GSEAcorr_files/figure-html/unnamed-chunk-18-1.png" width="864" /></p>
+</div>
+<div id="ligand-per-cell-line" class="section level2">
+<h2>Ligand per cell line</h2>
+<p><img src="GSEAcorr_files/figure-html/unnamed-chunk-19-1.png" width="864" /></p>
+<p><img src="GSEAcorr_files/figure-html/unnamed-chunk-20-1.png" width="864" /></p>
+<p><img src="GSEAcorr_files/figure-html/unnamed-chunk-21-1.png" width="864" /><img src="GSEAcorr_files/figure-html/unnamed-chunk-21-2.png" width="864" /><img src="GSEAcorr_files/figure-html/unnamed-chunk-21-3.png" width="864" /><img src="GSEAcorr_files/figure-html/unnamed-chunk-21-4.png" width="864" /> <img src="GSEAcorr_files/figure-html/unnamed-chunk-22-1.png" width="864" /></p>
+<p>P-value for difference in CDFs between cell line and ligand by KS-test: <code>ks.test(as.vector(Qscore_LIG),as.vector(Qscore_CT))$p.value</code></p>
+<p>P-value for difference in CDFs between ligand and ligand per cell line by KS-test: <code>ks.test(as.vector(Qscore_LIG),as.vector(Qscore_LIGCT))$p.value</code></p>
+</div>
+<div id="compare-mean-signed-fdr-values" class="section level2">
+<h2>Compare mean signed FDR values</h2>
+</div>
 </div>
 
 

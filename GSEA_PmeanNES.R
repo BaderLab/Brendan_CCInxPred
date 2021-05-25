@@ -6,21 +6,21 @@ pboptions(type="timer")
 load("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs.RData")
 rm(lvl4_data_ctl)
 
-temp_ligcountsperct <- sapply(unique(lvl4_data@cdesc$cell_id),function(CT)
-  length(unique(lvl4_data@cdesc[lvl4_data@cdesc$cell_id == CT,"pert_iname"])))
+temp_ligcountsperct <- sapply(unique(CDESC$cell_id),function(CT)
+  length(unique(CDESC[CDESC$cell_id == CT,"pert_iname"])))
 ct9 <- names(temp_ligcountsperct)[temp_ligcountsperct > 100]
 names(ct9) <- sapply(ct9,function(X) names(ct14)[ct14 == X])
 
-temp_ctcountsperlig <- sapply(unique(lvl4_data@cdesc$pert_iname),function(LIG)
-  length(unique(lvl4_data@cdesc[lvl4_data@cdesc$pert_iname == LIG &
-                                  lvl4_data@cdesc$cell_id %in% ct9,"cell_id"])))
+temp_ctcountsperlig <- sapply(unique(CDESC$pert_iname),function(LIG)
+  length(unique(CDESC[CDESC$pert_iname == LIG &
+                                  CDESC$cell_id %in% ct9,"cell_id"])))
 lig295 <- names(temp_ctcountsperlig)[temp_ctcountsperlig == 9]
 lig295 <- sort(lig295)
-temp_id <- lvl4_data@cid[lvl4_data@cdesc$cell_id %in% ct9 &
-                           lvl4_data@cdesc$pert_iname %in% lig295]
+temp_id <- CID[CDESC$cell_id %in% ct9 &
+                           CDESC$pert_iname %in% lig295]
 lvl4_data@mat <- lvl4_data@mat[,temp_id]
-lvl4_data@cdesc <- lvl4_data@cdesc[temp_id,]
-lvl4_data@cid <- temp_id
+CDESC <- CDESC[temp_id,]
+CID <- temp_id
 
 rm(list=c("ct14","lig16",grep("^temp",ls(),value=T)))
 
@@ -55,11 +55,11 @@ for (GSEA in rev(names(GSEA_nes))) {
   # MOVE THIS TO WITHIN EACH TYPE, AS IN CT BELOW #
   print("^ BKGD ----")
   COUNTS <- sort(unique(c(
-    sapply(ct9,function(CT) sum(lvl4_data@cdesc$cell_id == CT)),
-    sapply(lig295,function(LIG) sum(lvl4_data@cdesc$pert_iname == LIG)),
+    sapply(ct9,function(CT) sum(CDESC$cell_id == CT)),
+    sapply(lig295,function(LIG) sum(CDESC$pert_iname == LIG)),
     sapply(ct9,function(CT) 
       sapply(lig295,function(LIG) 
-        sum(lvl4_data@cdesc$cell_id == CT & lvl4_data@cdesc$pert_iname == LIG)))
+        sum(CDESC$cell_id == CT & CDESC$pert_iname == LIG)))
   )),decreasing=T)
   BKGD <- pbsapply(COUNTS,function(N) {
     replicate(minP,{
@@ -74,7 +74,7 @@ for (GSEA in rev(names(GSEA_nes))) {
   print("^ CT ----")
   print("^^ Generating null distribution ----")
   temp_counts_uniq <- sort(unique(
-    sapply(ct9,function(CT) sum(lvl4_data@cdesc$cell_id == CT)),
+    sapply(ct9,function(CT) sum(CDESC$cell_id == CT)),
   ),decreasing=T)
   BKGD_CT <- pbsapply(temp_counts_uniq,function(N) {
     replicate(minP,{
@@ -86,9 +86,9 @@ for (GSEA in rev(names(GSEA_nes))) {
        file=paste0("~/Dropbox/GDB_archive/CMapCorr_files/pnesGSEA_",GSEA,"_BKGD_CT.RData"))
   
   print("^^ Calculating ----")
-  temp_counts <- sapply(ct9,function(CT) sum(lvl4_data@cdesc$cell_id == CT))
+  temp_counts <- sapply(ct9,function(CT) sum(CDESC$cell_id == CT))
   temp_mNES <- sapply(ct9,function(CT)
-    rowMeans(GSEA_nes[[GSEA]][,lvl4_data@cid[lvl4_data@cdesc$cell_id == CT]]))
+    rowMeans(GSEA_nes[[GSEA]][,CID[CDESC$cell_id == CT]]))
   Pscore_CT <- pbsapply(names(temp_counts),function(I) {
     temp <- rowSums(apply(BKGD[[which(COUNTS == temp_counts[I])]],2,
                           function(X) abs(X) >= abs(temp_mNES[,I])))
@@ -101,9 +101,9 @@ for (GSEA in rev(names(GSEA_nes))) {
   
   # ^ Lig ----
   print("^ Lig ----")
-  temp_counts <- sapply(lig295,function(LIG) sum(lvl4_data@cdesc$pert_iname == LIG))
+  temp_counts <- sapply(lig295,function(LIG) sum(CDESC$pert_iname == LIG))
   temp_mNES <- sapply(lig295,function(LIG)
-    rowMeans(GSEA_nes[[GSEA]][,lvl4_data@cid[lvl4_data@cdesc$pert_iname == LIG]]))
+    rowMeans(GSEA_nes[[GSEA]][,CID[CDESC$pert_iname == LIG]]))
   Pscore_Lig <- pbsapply(names(temp_counts),function(I) {
     temp <- rowSums(apply(BKGD[[which(COUNTS == temp_counts[I])]],2,
                           function(X) abs(X) >= abs(temp_mNES[,I])))
@@ -117,13 +117,13 @@ for (GSEA in rev(names(GSEA_nes))) {
   print("^ LigCT ----")
   temp_counts <- as.vector(sapply(ct9,function(CT)
     sapply(lig295,function(LIG) 
-      sum(lvl4_data@cdesc$pert_iname == LIG & lvl4_data@cdesc$cell_id == CT))))
+      sum(CDESC$pert_iname == LIG & CDESC$cell_id == CT))))
   names(temp_counts) <- as.vector(sapply(ct9,function(X) paste(X,lig295,sep="_")))
   
   temp_mNES <- sapply(ct9,function(CT)
     sapply(lig295,function(LIG)
-      rowMeans(GSEA_nes[[GSEA]][,lvl4_data@cid[lvl4_data@cdesc$pert_iname == LIG &
-                                                 lvl4_data@cdesc$cell_id == CT]])),
+      rowMeans(GSEA_nes[[GSEA]][,CID[CDESC$pert_iname == LIG &
+                                                 CDESC$cell_id == CT]])),
     simplify=F)
   temp_mNES <- do.call(cbind,temp_mNES)
   colnames(temp_mNES) <- names(temp_counts)

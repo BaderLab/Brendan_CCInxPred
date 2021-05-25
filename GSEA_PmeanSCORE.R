@@ -50,68 +50,94 @@ for (FN in list.files("~/Dropbox/GDB_archive/CMapCorr_files/","^GSEA_lvl4_[A-Z]"
   
   rm(list=c(temp,grep("^temp",ls(),value=T)))
 
-  # Calc BKGD ----
-  print("^ BKGD ----")
-  COUNTS <- sort(unique(c(
-    sapply(ct9,function(CT) sum(CDESC$cell_id == CT)),
-    sapply(lig295,function(LIG) sum(CDESC$pert_iname == LIG)),
-    sapply(ct9,function(CT) 
-      sapply(lig295,function(LIG) 
-        sum(CDESC$cell_id == CT & CDESC$pert_iname == LIG)))
-  )),decreasing=T)
-  BKGD <- pbsapply(COUNTS,function(N) {
-    replicate(minP,{
-      rowMeans(GSEA_score[,sample(colnames(GSEA_score),N)])
-    })
-  },simplify=F)
-  save(BKGD,COUNTS,
-       file=paste0("~/Dropbox/GDB_archive/CMapCorr_files/pfdrGSEA_",GSEA,"_BKGD.RData"))
-  
-  # Overlap ----
+
+  # Mean signed -log10(FDR) ----
   # ^ CT ----
   print("^ CT ----")
-  print("^^ Generating null distribution ----")
-  temp_counts_uniq <- sort(unique(
-    sapply(ct9,function(CT) sum(CDESC$cell_id == CT)),
-  ),decreasing=T)
-  BKGD_CT <- pbsapply(temp_counts_uniq,function(N) {
-    replicate(minP,{
-      rowMeans(GSEA_nes[[GSEA]][,sample(colnames(GSEA_nes[[GSEA]]),N)])
-    })
-  },simplify=F)
-  names(BKGD_CT) <- temp_counts_uniq
-  save(BKGD_CT,
-       file=paste0("~/Dropbox/GDB_archive/CMapCorr_files/pfdrGSEA_",GSEA,"_BKGD_CT.RData"))
+  if (file.exists(paste0("~/Dropbox/GDB_archive/CMapCorr_files/pfdrGSEA_",GSEA,"_BKGD_CT.RData"))) {
+    load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/pfdrGSEA_",GSEA,"_BKGD_CT.RData"))
+  } else {
+    print("^^ Generating null distribution ----")
+    temp_counts_uniq <- sort(unique(
+      sapply(ct9,function(CT) sum(CDESC$cell_id == CT)),
+    ),decreasing=T)
+    BKGD_CT <- pbsapply(temp_counts_uniq,function(N) {
+      replicate(minP,{
+        rowMeans(GSEA_score[,sample(colnames(GSEA_score),N)])
+      })
+    },simplify=F)
+    names(BKGD_CT) <- temp_counts_uniq
+    save(BKGD_CT,
+         file=paste0("~/Dropbox/GDB_archive/CMapCorr_files/pfdrGSEA_",GSEA,"_BKGD_CT.RData"))
+  }
   
   print("^^ Calculating ----")
   temp_counts <- sapply(ct9,function(CT) sum(CDESC$cell_id == CT))
   temp_mFDR <- sapply(ct9,function(CT)
     rowMeans(GSEA_score[,CID[CDESC$cell_id == CT]]))
   Pscore_CT <- pbsapply(names(temp_counts),function(I) {
-    temp <- rowSums(apply(BKGD[[which(COUNTS == temp_counts[I])]],2,
+    temp <- rowSums(apply(BKGD_CT[[as.character(temp_counts[I])]],2,
                           function(X) abs(X) >= abs(temp_mFDR[,I])))
-    temp <- p.adjust(temp / minP,method="fdr")
-    temp[temp <= 0] <- 1 / minP
+    temp <- p.adjust(temp / ncol(BKGD_CT[[as.character(temp_counts[I])]]),method="fdr")
+    temp[temp <= 0] <- 1 / ncol(BKGD_CT[[as.character(temp_counts[I])]])
     return(-log10(temp) * sign(temp_mFDR[,I]))
   })
-  rm(list=grep("^temp",ls(),value=T))
+  rm(list=c("BKGD_CT",grep("^temp",ls(),value=T)))  
   
   # ^ Lig ----
   print("^ Lig ----")
+  if (file.exists(paste0("~/Dropbox/GDB_archive/CMapCorr_files/pfdrGSEA_",GSEA,"_BKGD_LIG.RData"))) {
+    load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/pfdrGSEA_",GSEA,"_BKGD_LIG.RData"))
+  } else {
+    print("^^ Generating null distribution ----")
+    temp_counts_uniq <- sort(unique(
+      sapply(lig295,function(LIG) sum(CDESC$pert_iname == LIG)),
+    ),decreasing=T)
+    BKGD_LIG <- pbsapply(temp_counts_uniq,function(N) {
+      replicate(minP,{
+        rowMeans(GSEA_score[,sample(colnames(GSEA_score),N)])
+      })
+    },simplify=F)
+    names(BKGD_LIG) <- temp_counts_uniq
+    save(BKGD_LIG,
+         file=paste0("~/Dropbox/GDB_archive/CMapCorr_files/pfdrGSEA_",GSEA,"_BKGD_LIG.RData"))
+  }
+  
+  print("^^ Calculating ----")
   temp_counts <- sapply(lig295,function(LIG) sum(CDESC$pert_iname == LIG))
   temp_mFDR <- sapply(lig295,function(LIG)
     rowMeans(GSEA_score[,CID[CDESC$pert_iname == LIG]]))
   Pscore_Lig <- pbsapply(names(temp_counts),function(I) {
-    temp <- rowSums(apply(BKGD[[which(COUNTS == temp_counts[I])]],2,
+    temp <- rowSums(apply(BKGD_LIG[[as.character(temp_counts[I])]],2,
                           function(X) abs(X) >= abs(temp_mFDR[,I])))
-    temp <- p.adjust(temp / minP,method="fdr")
-    temp[temp <= 0] <- 1 / minP
+    temp <- p.adjust(temp / ncol(BKGD_LIG[[as.character(temp_counts[I])]]),method="fdr")
+    temp[temp <= 0] <- 1 / ncol(BKGD_LIG[[as.character(temp_counts[I])]])
     return(-log10(temp) * sign(temp_mFDR[,I]))
   })
-  rm(list=grep("^temp",ls(),value=T))
-  
+  rm(list=c("BKGD_LIG",grep("^temp",ls(),value=T)))  
+
   # ^ LigCT ----
   print("^ LigCT ----")
+  if (file.exists(paste0("~/Dropbox/GDB_archive/CMapCorr_files/pfdrGSEA_",GSEA,"_BKGD_LIGCT.RData"))) {
+    load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/pfdrGSEA_",GSEA,"_BKGD_LIGCT.RData"))
+  } else {
+    print("^^ Generating null distribution ----")
+    temp_counts_uniq <- sort(unique(as.vector(
+      sapply(ct9,function(CT)
+        sapply(lig295,function(LIG) 
+          sum(CDESC$pert_iname == LIG & CDESC$cell_id == CT))),
+    )),decreasing=T)
+    BKGD_LIGCT <- pbsapply(temp_counts_uniq,function(N) {
+      replicate(minP,{
+        rowMeans(GSEA_score[,sample(colnames(GSEA_score),N)])
+      })
+    },simplify=F)
+    names(BKGD_LIGCT) <- temp_counts_uniq
+    save(BKGD_LIGCT,
+         file=paste0("~/Dropbox/GDB_archive/CMapCorr_files/pfdrGSEA_",GSEA,"_BKGD_LIGCT.RData"))
+  }
+  
+  print("^^ Calculating ----")
   temp_counts <- as.vector(sapply(ct9,function(CT)
     sapply(lig295,function(LIG) 
       sum(CDESC$pert_iname == LIG & CDESC$cell_id == CT))))
@@ -126,16 +152,14 @@ for (FN in list.files("~/Dropbox/GDB_archive/CMapCorr_files/","^GSEA_lvl4_[A-Z]"
   colnames(temp_mFDR) <- names(temp_counts)
   
   Pscore_LigCT <- pbsapply(names(temp_counts),function(I) {
-    temp <- rowSums(apply(BKGD[[which(COUNTS == temp_counts[I])]],2,
+    temp <- rowSums(apply(BKGD_LIGCT[[as.character(temp_counts[I])]],2,
                           function(X) abs(X) >= abs(temp_mFDR[,I])))
-    temp <- p.adjust(temp / minP,method="fdr")
-    temp[temp <= 0] <- 1 / minP
+    temp <- p.adjust(temp / ncol(BKGD_LIGCT[[as.character(temp_counts[I])]]),method="fdr")
+    temp[temp <= 0] <- 1 / ncol(BKGD_LIGCT[[as.character(temp_counts[I])]])
     return(-log10(temp) * sign(temp_mFDR[,I]))
   })
-  rm(list=grep("^temp",ls(),value=T))
-  
-  
+  rm(list=c("BKGD_LIGCT",grep("^temp",ls(),value=T)))
   save(list=grep("^Pscore",ls(),value=T),
        file=paste0("~/Dropbox/GDB_archive/CMapCorr_files/pfdrGSEA_",GSEA,".RData"))
-  rm(list=c("GSEA_score",grep("^Pscore",ls(),value=T)))
+  rm(list=grep("^Pscore",ls(),value=T))
 }
