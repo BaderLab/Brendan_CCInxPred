@@ -626,7 +626,7 @@ image(z=tempMAT,x=1:nrow(tempMAT),y=1:ncol(tempMAT),
       xaxt="n",yaxt="n",xlab=NA,ylab=NA)
 # mtext(colnames(tempMAT),side=2,line=0.1,at=1:ncol(tempMAT),las=2,cex=0.7)
 mtext(paste0("Ligands per cell line (",
-             length(unique(sapply(strsplit(colnames(tempMAT),"_"),"[[",2))),
+             length(unique(sub("^.+_","",colnames(tempMAT)))),
              "/295 unique ligands"),
       side=2,line=0.1)
 mtext(paste(GSEA,"gene set enrichment"),side=1)
@@ -635,133 +635,292 @@ mtext(paste0("|signed FDR| \u2264 ",FDRcut * 100,"%"),side=1,line=1)
 rm(list=grep("^temp",ls(),value=T))
 ```
 
-```{r fig.height=3,fig.width=9}
-par(mar=c(3,3,1,1),mgp=2:0)
+## Compare  
 
-boxplot(-log10(Qscore_CT)[,order(colMeans(-log10(Qscore_CT)))],
-        pch=".",las=3,ylab="Mean FDR |Significance|")
-boxplot(-log10(Qscore_LIG)[,order(colMeans(-log10(Qscore_LIG)))],
-        pch=".",las=3,xaxt="n",outline=F,
-        xlab="Ligands",ylab="Mean FDR |Significance|")
-boxplot(-log10(Qscore_LIGCT)[,order(colMeans(-log10(Qscore_LIGCT)))],
-        pch=".",las=3,xaxt="n",outline=F,
-        xlab="Ligands per cell line",
-        ylab="Mean FDR |Significance|")
+Rather than comparing number of significant gene sets at a handful of FDR thresholds, we're using the KS-test to compare empirical cumulative distribution functions.  On the left are the ECDFs for the FDR-corrected p-values testing the null hypothesis that the signed "significance score" for each gene set averaged over the sample set (cell line, ligand, or ligand per cell line) could occur by chance, given the signed significance scores for each sample (tested by permuting sample labels).  On the right are ECDFs for the signed "significance score" for each gene set averaged over the sample set.  
 
-
-par(mfrow=c(1,2))
-boxplot(list(CT=-log10(Qscore_CT),
-             Lig=-log10(Qscore_LIG),
-             LigCT=-log10(Qscore_LIGCT)),
-        pch=".",horizontal=T,
-        xlab="Mean FDR |significance| (all)")
-boxplot(list(CT=colMeans(-log10(Qscore_CT)),
-             Lig=colMeans(-log10(Qscore_LIG)),
-             LigCT=colMeans(-log10(Qscore_LIGCT))),
-        pch=".",horizontal=T,
-        xlab="Mean FDR |significance| (means)")
-
-
-
-```
-```{r fig.height=5,fig.width=9}
+```{r fig.height=4.5, fig.width=9, warning=FALSE}
 allCuts <- seq(4,0,by=-0.01)
+# layout(matrix(1:6,byrow=2,nrow=3),widths=c(3,2))
+layout(rbind(1:2),widths=c(3,2))
+par(mar=c(3,3,2,1),mgp=2:0)
+# for (FN in list.files("~/Dropbox/GDB_archive/CMapCorr_files","^phits")) {
+    # temp_gsea <- gsub("(phitsGSEA_)|(\\.RData)","",FN)
+    # temp <- load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/",FN))
+temp_gsea <- GSEA
+temp <- load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/phitsGSEA_",GSEA,".RData"))    
 
-# By sample ----
+    temp_max <- allCuts[min(sapply(list(NQhits_CT,NQhits_LIG,NQhits_LIGCT),
+                                   function(X) which(colMeans(X) > 0)[1] - 1))]
+    plot(allCuts,colMeans(NQhits_CT),xlim=c(0,temp_max),xaxt="n",
+         type="l",lwd=2,col=qualitative_hcl(3,palette="dark3")[1],
+         main=temp_gsea,xlab="Threshold of FDR-corrected P(mean signed GSEA FDR) by chance",
+         ylab="Mean proportion of FDR \u2264 x for sample set averages")
+    axis(side=1,labels=c(.0001,.001,.01,.05,.1,.5,1),
+         at=-log10(c(.0001,.001,.01,.05,.1,.5,1)))
+    lines(allCuts,colMeans(NQhits_LIG),lwd=2,col=qualitative_hcl(3,palette="dark3")[2])
+    lines(allCuts,colMeans(NQhits_LIGCT),lwd=2,col=qualitative_hcl(3,palette="dark3")[3])
+    temp_c2l <- ks.test(colMeans(NQhits_CT),colMeans(NQhits_LIG))$p.value
+    temp_l2lc <- ks.test(colMeans(NQhits_LIG),colMeans(NQhits_LIGCT))$p.value
+    legend("topright",bty="n",lwd=rep(c(2,NA),3)[1:5],
+           col=as.vector(sapply(qualitative_hcl(3,palette="dark3"),c,NA))[1:5],
+           legend=c("CT",
+                    switch(as.character(temp_c2l),
+                           "0"="KS p \u003c 2.2e-16",
+                           paste("KS p =",signif(temp_c2l,2))),
+                    "LIG",
+                    switch(as.character(temp_l2lc),
+                           "0"="KS p \u003c 2.2e-16",
+                           paste("KS p =",signif(temp_l2lc,2))),
+                    "LIGCT"))
+    
+    temp_max <- allCuts[min(sapply(list(Nhits_CT,Nhits_LIG,Nhits_LIGCT),
+                                   function(X) which(colMeans(X) > 0)[1] - 1))]
+    plot(allCuts,colMeans(Nhits_CT),xlim=c(0,temp_max),xaxt="n",
+         type="l",lwd=2,col=qualitative_hcl(3,palette="dark3")[1],
+         main=temp_gsea,xlab="|Mean signed GSEA FDR| threshold",
+         ylab="Mean proportion of sample set |mean signed FDR| \u2264 x")
+    axis(side=1,labels=c(.0001,.001,.01,.05,.1,.5,1),
+         at=-log10(c(.0001,.001,.01,.05,.1,.5,1)))
+    lines(allCuts,colMeans(Nhits_LIG),lwd=2,col=qualitative_hcl(3,palette="dark3")[2])
+    lines(allCuts,colMeans(Nhits_LIGCT),lwd=2,col=qualitative_hcl(3,palette="dark3")[3])
+    temp_c2l <- ks.test(colMeans(Nhits_CT),colMeans(Nhits_LIG))$p.value
+    temp_l2lc <- ks.test(colMeans(Nhits_LIG),colMeans(Nhits_LIGCT))$p.value
+    legend("topright",bty="n",lwd=rep(c(2,NA),3)[1:5],
+           col=as.vector(sapply(qualitative_hcl(3,palette="dark3"),c,NA))[1:5],
+           legend=c("CT",
+                    switch(as.character(temp_c2l),
+                           "0"="KS p \u003c 2.2e-16",
+                           paste("KS p =",signif(temp_c2l,2))),
+                    "LIG",
+                    switch(as.character(temp_l2lc),
+                           "0"="KS p \u003c 2.2e-16",
+                           paste("KS p =",signif(temp_l2lc,2))),
+                    "LIGCT"))
 
-Nhits_CT <- sapply(allCuts,function(CUT) colMeans(-log10(Qscore_CT) >= CUT))
-Nhits_Lig <- sapply(allCuts,function(CUT) colMeans(-log10(Qscore_LIG) >= CUT))
-Nhits_LigCT <- sapply(allCuts,function(CUT) colMeans(-log10(Qscore_LIGCT) >= CUT))
-
-# par(mfrow=c(3,1),mar=c(3,3,1,1),mgp=2:0)
-# boxplot(Nhits_CT,pch=".")
-# boxplot(Nhits_Lig,pch=".")
-# boxplot(Nhits_LigCT,pch=".")
-
-
-par(mfrow=c(1,2),mar=c(3,3,1,1),mgp=2:0)
-plot(NA,NA,xlim=c(4,0),ylim=c(0,1),xaxt="n",
-     ylab="Proportion of sample set |mean signed FDR| \u2264 x",xlab=NA)
-axis(side=1,labels=c(.0001,.001,.01,.05,.1,.5,1),
-     at=-log10(c(.0001,.001,.01,.05,.1,.5,1)))
-mtext("Gene set |mean signed FDR| threshold",side=1,line=2)
-
-# CT ----
-lines(allCuts,colMeans(Nhits_CT),lty=1,lwd=2,
-      col=qualitative_hcl(3,palette="dark3")[1])
-temp <- apply(apply(Nhits_CT,2,fivenum)[c(2,4),],1,function(X)
-  lines(allCuts,X,lty=3,lwd=2,col=qualitative_hcl(3,palette="dark3")[1]))
-
-# Lig ----
-lines(allCuts,colMeans(Nhits_Lig),lty=1,lwd=2,
-      col=qualitative_hcl(3,palette="dark3")[2])
-temp <- apply(apply(Nhits_Lig,2,fivenum)[c(2,4),],1,function(X)
-  lines(allCuts,X,lty=3,lwd=2,col=qualitative_hcl(3,palette="dark3")[2]))
-
-# LigCT ----
-lines(allCuts,colMeans(Nhits_LigCT),lty=1,lwd=2,
-      col=qualitative_hcl(3,palette="dark3")[3])
-temp <- apply(apply(Nhits_LigCT,2,fivenum)[c(2,4),],1,function(X)
-  lines(allCuts,X,lty=3,lwd=2,col=qualitative_hcl(3,palette="dark3")[3]))
-
-legend("topleft",legend=c("Cell line","Ligand","Ligand per cell line","Mean","Quartiles"),
-       bty="n",col=c(qualitative_hcl(3,palette="dark3"),1,1),lty=c(rep(1,4),3),lwd=2)
-
-
-
-# All ----
-
-Nhits_CT <- sapply(allCuts,function(CUT) mean(-log10(Qscore_CT) >= CUT))
-Nhits_Lig <- sapply(allCuts,function(CUT) mean(-log10(Qscore_LIG) >= CUT))
-Nhits_LigCT <- sapply(allCuts,function(CUT) mean(-log10(Qscore_LIGCT) >= CUT))
-
-plot(NA,NA,xlim=c(4,0),ylim=c(0,1),xaxt="n",
-     ylab="Proportion of all |mean signed FDR| \u2264 x",xlab=NA)
-axis(side=1,labels=c(.0001,.001,.01,.05,.1,.5,1),
-     at=-log10(c(.0001,.001,.01,.05,.1,.5,1)))
-mtext("Gene set |mean signed FDR| threshold",side=1,line=2)
-lines(allCuts,Nhits_CT,lty=1,lwd=2,
-      col=qualitative_hcl(3,palette="dark3")[1])
-lines(allCuts,Nhits_Lig,lty=1,lwd=2,
-      col=qualitative_hcl(3,palette="dark3")[2])
-lines(allCuts,Nhits_LigCT,lty=1,lwd=2,
-      col=qualitative_hcl(3,palette="dark3")[3])
-legend("topleft",legend=c("Cell line","Ligand","Ligand per cell line"),
-       bty="n",col=qualitative_hcl(3,palette="dark3"),lty=1,lwd=2)
-
-
+    rm(list=c(temp,grep("^temp",ls(),value=T)))
+# }   
+# rm(FN)
 ```
 
-P-value for difference in CDFs between cell line and ligand by KS-test: `ks.test(as.vector(Qscore_LIG),as.vector(Qscore_CT))$p.value`  
+```{r eval=F}
+temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/phitsGSEA_GOBP.RData")
 
-P-value for difference in CDFs between ligand and ligand per cell line by KS-test: `ks.test(as.vector(Qscore_LIG),as.vector(Qscore_LIGCT))$p.value`  
-
-
-```{r}
-rm(list=c("FDRcut",grep("^Pscore",ls(),value=T)))
-```
-
-## Compare mean signed FDR values  
-```{r, eval=F}
-load("~/Dropbox/GDB_archive/CMapCorr_files/phitsGSEA_GOBP.RData")
-```
-
-```{r, eval=F}
-plot(Nhits_LIGCT,-log10(Phits_LIGCT),pch=".",cex=2,
-     col=sapply(sequential_hcl(nrow(Nhits_LIGCT),palette="Batlow",alpha=0.5),
-                rep,times=ncol(Nhits_LIGCT)))
-```
-
-```{r eval=F, fig.width=9,fig.height=4}
 par(mfrow=c(3,1),mar=c(3,3,1,1),mgp=2:0)
-hist(-log10(Phits_CT),breaks=50)
+hist(-log10(Phits_CT),breaks=50,xlim=c(0,4))
 abline(v=mean(-log10(Phits_CT)),col="dodgerblue")
-hist(-log10(Phits_LIG),breaks=50)
+hist(-log10(Phits_LIG),breaks=50,xlim=c(0,4))
 abline(v=mean(-log10(Phits_LIG)),col="dodgerblue")
-hist(-log10(Phits_LIGCT),breaks=50)
+hist(-log10(Phits_LIGCT),breaks=50,xlim=c(0,4))
 abline(v=mean(-log10(Phits_LIGCT)),col="dodgerblue")
 
+rm(list=c(temp,grep("^temp",ls(),value=T)))
 ```
 
+As one might expect, averaging across fewer samples yields higher magnitude values.  
+
+```{r fig.width=9,fig.height=4.5}
+countsCT <- sapply(ct9,function(CT) sum(CDESC$cell_id == CT))
+countsLIG <- sapply(lig295,function(LIG) sum(CDESC$pert_iname == LIG))
+countsLIGCT <- as.vector(sapply(ct9,function(CT)
+  sapply(lig295,function(LIG) 
+    sum(CDESC$pert_iname == LIG & CDESC$cell_id == CT))))
+names(countsLIGCT) <- as.vector(sapply(ct9,function(X) paste(X,lig295,sep="_")))
+
+
+par(mfrow=c(1,2),mar=c(3,3,1.5,1),mgp=2:0)
+plot(c(colMeans(abs(Mscore_CT)),colMeans(abs(Mscore_LIG)),colMeans(abs(Mscore_LIGCT))),
+     c(countsCT,countsLIG,countsLIGCT),pch=".",cex=3,log="y",
+     col=unlist(mapply(
+       rep,
+       x=qualitative_hcl(3,palette="dark3",alpha=0.8),
+       times=sapply(list(countsCT,countsLIG,countsLIGCT),length)
+     )),
+     xlab="Gene set average |mean signed GSEA FDR|",
+     ylab="Number of samples averaged (log scale)")
+legend("topright",pch=20,bty="n",
+       col=qualitative_hcl(3,palette="dark3",alpha=0.8),
+       legend=c("CT","LIG","LIGCT"))
+mtext(paste("Spearman correlation coefficient:",
+            signif(
+              cor(c(colMeans(abs(Mscore_CT)),colMeans(abs(Mscore_LIG)),colMeans(abs(Mscore_LIGCT))),
+                  c(countsCT,countsLIG,countsLIGCT),method="spearman"),3
+            )))
+
+plot(c(colMeans(-log10(Qscore_CT)),colMeans(-log10(Qscore_LIG)),colMeans(-log10(Qscore_LIGCT))),
+     c(countsCT,countsLIG,countsLIGCT),pch=".",cex=3,log="y",xaxt="n",
+     col=unlist(mapply(
+       rep,
+       x=qualitative_hcl(3,palette="dark3",alpha=0.8),
+       times=sapply(list(countsCT,countsLIG,countsLIGCT),length)
+     )),
+     xlab="Gene set average FDR(|mean signed GSEA FDR|)",
+     ylab="Number of samples averaged (log scale)")
+axis(side=1,labels=c(.0001,.001,.01,.05,.1,.5,1),
+     at=-log10(c(.0001,.001,.01,.05,.1,.5,1)))
+legend("topright",pch=20,bty="n",
+       col=qualitative_hcl(3,palette="dark3",alpha=0.8),
+       legend=c("CT","LIG","LIGCT"))
+mtext(paste("Spearman correlation coefficient:",
+            signif(
+              cor(c(colMeans(-log10(Qscore_CT)),colMeans(-log10(Qscore_LIG)),colMeans(-log10(Qscore_LIGCT))),
+                  c(countsCT,countsLIG,countsLIGCT),method="spearman"),3
+            )))
+```
+
+
+# MeanZ GSEA
+
+```{r}
+rm(list=ls())
+source("~/Dropbox/GDB/line2user.R")
+
+load("~/Dropbox/GDB_archive/CMapCorr_files/lvl4_inputs_allgenes.RData")
+lvl4_data <- lvl4_data_all; rm(lvl4_data_all)
+temp_ligcountsperct <- sapply(unique(lvl4_data@cdesc$cell_id),function(CT)
+  length(unique(lvl4_data@cdesc[lvl4_data@cdesc$cell_id == CT,"pert_iname"])))
+ct9 <- names(temp_ligcountsperct)[temp_ligcountsperct > 100]
+names(ct9) <- sapply(ct9,function(X) names(ct14)[ct14 == X])
+
+temp_ctcountsperlig <- sapply(unique(lvl4_data@cdesc$pert_iname),function(LIG)
+  length(unique(lvl4_data@cdesc[lvl4_data@cdesc$pert_iname == LIG &
+                                  lvl4_data@cdesc$cell_id %in% ct9,"cell_id"])))
+lig295 <- names(temp_ctcountsperlig)[temp_ctcountsperlig == 9]
+lig295 <- sort(lig295)
+
+CID <- rownames(lvl4_data@cdesc)[lvl4_data@cdesc$pert_iname %in% lig295 & 
+                                       lvl4_data@cdesc$cell_id %in% ct9]
+CDESC <- lvl4_data@cdesc[CID,]
+
+rm(list=c("lvl4_data","lig16","ct14",grep("^temp",ls(),value=T)))
+
+
+GSEA <- "GOBP"
+load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/GSEA_meanZ_",GSEA,".RData"))
+SCORE <- sapply(GSEA_MZ,function(X) -log10(sapply(X,"[[","padj")) * sign(sapply(X,"[[","NES")))
+
+```
+
+## Cell line
+
+```{r fig.height=3,fig.width=9}
+FDRcut <- 0.05
+
+tempMAT <- SCORE[["ct"]]
+tempMAT <- tempMAT[apply(tempMAT,1,function(X) any(abs(X) >= -log10(FDRcut))),]
+temp_lim <- max(abs(tempMAT))
+temp_hSample <- hclust(dist(t(tempMAT)),method="ward.D2") 
+temp_hSet <- hclust(dist(tempMAT),method="ward.D2")
+tempMAT <- tempMAT[temp_hSet$order,temp_hSample$order]
+
+par(mar=c(2,6,0.5,0.5))
+image(z=tempMAT,x=1:nrow(tempMAT),y=1:ncol(tempMAT),
+      col=diverging_hcl(1000,palette="Blue-Red3"),
+      breaks=seq(-temp_lim,temp_lim,length.out=1001),
+      xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+mtext(colnames(tempMAT),side=2,line=0.1,at=1:ncol(tempMAT),las=2,cex=0.7)
+mtext(paste(GSEA,"gene set enrichment"),side=1)
+mtext(paste0("|signed FDR| \u2264 ",FDRcut * 100,"%"),side=1,line=1)
+
+rm(list=grep("^temp",ls(),value=T))
+```
+
+## Ligand
+
+```{r fig.height=6,fig.width=9}
+tempMAT <- SCORE[["lig"]]
+tempMAT <- tempMAT[,apply(tempMAT,2,function(X) any(abs(X) >= -log10(FDRcut)))]
+tempMAT <- tempMAT[apply(tempMAT,1,function(X) any(abs(X) >= -log10(FDRcut))),]
+temp_lim <- max(abs(tempMAT))
+temp_hSample <- hclust(dist(t(tempMAT)),method="ward.D2") 
+temp_hSet <- hclust(dist(tempMAT),method="ward.D2")
+tempMAT <- tempMAT[temp_hSet$order,temp_hSample$order]
+
+par(mar=c(2,1.5,0.5,0.5))
+image(z=tempMAT,x=1:nrow(tempMAT),y=1:ncol(tempMAT),
+      col=diverging_hcl(1000,palette="Blue-Red3"),
+      breaks=seq(-temp_lim,temp_lim,length.out=1001),
+      xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+# mtext(colnames(tempMAT),side=2,line=0.1,at=1:ncol(tempMAT),las=2,cex=0.7)
+mtext(paste0("Ligands (",ncol(tempMAT),"/",ncol(SCORE[["lig"]]),")"),side=2,line=0.1)
+mtext(paste(GSEA,"gene set enrichment"),side=1)
+mtext(paste0("|signed FDR| \u2264 ",FDRcut * 100,"%"),side=1,line=1)
+
+rm(list=grep("^temp",ls(),value=T))
+```
+
+## Ligand per cell line
+
+```{r fig.height=6,fig.width=9}
+tempMAT <- SCORE[["ligct"]]
+tempMAT <- tempMAT[,apply(tempMAT,2,function(X) any(abs(X) >= -log10(FDRcut)))]
+tempMAT <- tempMAT[apply(tempMAT,1,function(X) any(abs(X) >= -log10(FDRcut))),]
+temp_lim <- max(abs(tempMAT))
+temp_hSample <- hclust(dist(t(tempMAT)),method="ward.D2") 
+temp_hSet <- hclust(dist(tempMAT),method="ward.D2")
+tempMAT <- tempMAT[temp_hSet$order,temp_hSample$order]
+
+par(mar=c(2,1.5,0.5,0.5))
+image(z=tempMAT,x=1:nrow(tempMAT),y=1:ncol(tempMAT),
+      col=diverging_hcl(1000,palette="Blue-Red3"),
+      breaks=seq(-temp_lim,temp_lim,length.out=1001),
+      xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+# mtext(colnames(tempMAT),side=2,line=0.1,at=1:ncol(tempMAT),las=2,cex=0.7)
+mtext(paste0("Ligands per cell line (",
+             length(unique(sub("^.+_","",colnames(tempMAT)))),
+             "/295 ligands represented at least once)"),
+      side=2,line=0.1)
+mtext(paste(GSEA,"gene set enrichment"),side=1)
+mtext(paste0("|signed FDR| \u2264 ",FDRcut * 100,"%"),side=1,line=1)
+
+rm(list=grep("^temp",ls(),value=T))
+```
+
+## Replicate
+
+```{r fig.height=6,fig.width=9}
+tempMAT <- SCORE[["rep"]]
+tempMAT <- tempMAT[,apply(tempMAT,2,function(X) any(abs(X) >= -log10(FDRcut)))]
+tempMAT <- tempMAT[apply(tempMAT,1,function(X) any(abs(X) >= -log10(FDRcut))),]
+temp_lim <- max(abs(tempMAT))
+temp_hSample <- hclust(dist(t(tempMAT)),method="ward.D2") 
+temp_hSet <- hclust(dist(tempMAT),method="ward.D2")
+tempMAT <- tempMAT[temp_hSet$order,temp_hSample$order]
+
+par(mar=c(2,1.5,0.5,0.5))
+image(z=tempMAT,x=1:nrow(tempMAT),y=1:ncol(tempMAT),
+      col=diverging_hcl(1000,palette="Blue-Red3"),
+      breaks=seq(-temp_lim,temp_lim,length.out=1001),
+      xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+# mtext(colnames(tempMAT),side=2,line=0.1,at=1:ncol(tempMAT),las=2,cex=0.7)
+mtext(paste0("Replicates (",
+             length(unique(sapply(strsplit(colnames(tempMAT),"_"),"[[",1))),
+             "/295 ligands represented at least once)"),
+      side=2,line=0.1)
+mtext(paste(GSEA,"gene set enrichment"),side=1)
+mtext(paste0("|signed FDR| \u2264 ",FDRcut * 100,"%"),side=1,line=1)
+
+rm(list=grep("^temp",ls(),value=T))
+```
+
+## Compare 
+
+```{r fig.height=4.5,fig.width=8}
+allCuts <- seq(3,0,by=-0.01)
+NHITS <- sapply(SCORE,function(Z)
+  sapply(allCuts,function(X) mean(abs(Z) >= X)))
+
+par(mar=c(3,3,1,1),mgp=2:0)
+plot(NA,NA,xlim=c(0,3),ylim=c(0,1),xaxt="n",
+     xlab="FDR threshold for mean Z-score GSEA results",
+         ylab="Mean proportion of FDR \u2264 x")
+temp <- sapply(1:ncol(NHITS),function(X)
+  lines(allCuts,NHITS[,X],lwd=2,
+        col=qualitative_hcl(ncol(NHITS),palette="dark3")[X]))
+legend("topright",legend=colnames(NHITS),bty="n",lwd=2,
+       col=qualitative_hcl(ncol(NHITS),palette="dark3"))
+axis(side=1,labels=c(.0001,.001,.01,.05,.1,.5,1),
+     at=-log10(c(.0001,.001,.01,.05,.1,.5,1)))
+```
 
 

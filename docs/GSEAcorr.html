@@ -428,12 +428,36 @@ $(document).ready(function () {
 <h2>Ligand per cell line</h2>
 <p><img src="GSEAcorr_files/figure-html/unnamed-chunk-19-1.png" width="864" /></p>
 <p><img src="GSEAcorr_files/figure-html/unnamed-chunk-20-1.png" width="864" /></p>
-<p><img src="GSEAcorr_files/figure-html/unnamed-chunk-21-1.png" width="864" /><img src="GSEAcorr_files/figure-html/unnamed-chunk-21-2.png" width="864" /><img src="GSEAcorr_files/figure-html/unnamed-chunk-21-3.png" width="864" /><img src="GSEAcorr_files/figure-html/unnamed-chunk-21-4.png" width="864" /> <img src="GSEAcorr_files/figure-html/unnamed-chunk-22-1.png" width="864" /></p>
-<p>P-value for difference in CDFs between cell line and ligand by KS-test: <code>ks.test(as.vector(Qscore_LIG),as.vector(Qscore_CT))$p.value</code></p>
-<p>P-value for difference in CDFs between ligand and ligand per cell line by KS-test: <code>ks.test(as.vector(Qscore_LIG),as.vector(Qscore_LIGCT))$p.value</code></p>
 </div>
-<div id="compare-mean-signed-fdr-values" class="section level2">
-<h2>Compare mean signed FDR values</h2>
+<div id="compare" class="section level2">
+<h2>Compare</h2>
+<p>Rather than comparing number of significant gene sets at a handful of FDR thresholds, we’re using the KS-test to compare empirical cumulative distribution functions. On the left are the ECDFs for the FDR-corrected p-values testing the null hypothesis that the signed “significance score” for each gene set averaged over the sample set (cell line, ligand, or ligand per cell line) could occur by chance, given the signed significance scores for each sample (tested by permuting sample labels). On the right are ECDFs for the signed “significance score” for each gene set averaged over the sample set.</p>
+<p><img src="GSEAcorr_files/figure-html/unnamed-chunk-21-1.png" width="864" /></p>
+<p>As one might expect, averaging across fewer samples yields higher magnitude values.</p>
+<p><img src="GSEAcorr_files/figure-html/unnamed-chunk-23-1.png" width="864" /></p>
+</div>
+</div>
+<div id="meanz-gsea" class="section level1">
+<h1>MeanZ GSEA</h1>
+<div id="cell-line-1" class="section level2">
+<h2>Cell line</h2>
+<p><img src="GSEAcorr_files/figure-html/unnamed-chunk-25-1.png" width="864" /></p>
+</div>
+<div id="ligand-1" class="section level2">
+<h2>Ligand</h2>
+<p><img src="GSEAcorr_files/figure-html/unnamed-chunk-26-1.png" width="864" /></p>
+</div>
+<div id="ligand-per-cell-line-1" class="section level2">
+<h2>Ligand per cell line</h2>
+<p><img src="GSEAcorr_files/figure-html/unnamed-chunk-27-1.png" width="864" /></p>
+</div>
+<div id="replicate" class="section level2">
+<h2>Replicate</h2>
+<p><img src="GSEAcorr_files/figure-html/unnamed-chunk-28-1.png" width="864" /></p>
+</div>
+<div id="compare-1" class="section level2">
+<h2>Compare</h2>
+<p><img src="GSEAcorr_files/figure-html/unnamed-chunk-29-1.png" width="768" /></p>
 </div>
 </div>
 

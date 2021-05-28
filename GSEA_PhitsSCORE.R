@@ -25,142 +25,104 @@ CID <- temp_id
 rm(list=c("lvl4_data","ct14","lig16",grep("^temp",ls(),value=T)))
 
 
-minP <- 1e4
-allCuts <- seq(0.1,2,by=0.1)
-names(allCuts) <- allCuts
+allCuts <- seq(4,0,by=-0.01)
+
+# par(mfrow=c(1,3),mar=c(3,3,2,1),mgp=2:0)
+# require(colorspace)
+# 
+# for (FN in list.files("~/Dropbox/GDB_archive/CMapCorr_files/","^pfdrGSEA_[A-Z]+\\.RData")) {
+#   temp <- load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/",FN))
+#   GSEA <- gsub("(pfdrGSEA_)|(\\.RData)","",FN)
+#   
+#   Nhits_CT <- pbsapply(allCuts,function(CUT) mean(-log10(Qscore_CT) >= CUT))
+#   Nhits_Lig <- pbsapply(allCuts,function(CUT) mean(-log10(Qscore_LIG) >= CUT))
+#   Nhits_LigCT <- pbsapply(allCuts,function(CUT) mean(-log10(Qscore_LIGCT) >= CUT))
+#   
+#   plot(NA,NA,xlim=c(4,0),ylim=c(0,1),xaxt="n",main=GSEA,
+#        ylab="Proportion of all |mean signed FDR| \u2264 x",xlab=NA)
+#   axis(side=1,labels=c(.0001,.001,.01,.05,.1,.5,1),
+#        at=-log10(c(.0001,.001,.01,.05,.1,.5,1)))
+#   mtext("Gene set |mean signed FDR| threshold",side=1,line=2)
+#   lines(allCuts,Nhits_CT,lty=1,lwd=2,
+#         col=qualitative_hcl(3,palette="dark3")[1])
+#   lines(allCuts,Nhits_Lig,lty=1,lwd=2,
+#         col=qualitative_hcl(3,palette="dark3")[2])
+#   lines(allCuts,Nhits_LigCT,lty=1,lwd=2,
+#         col=qualitative_hcl(3,palette="dark3")[3])
+#   legend("topleft",legend=c("Cell line","Ligand","Ligand per cell line"),
+#          bty="n",col=qualitative_hcl(3,palette="dark3"),lty=1,lwd=2)
+#   
+#   save(list=grep("^Nhits",ls(),value=T),
+#        file=paste0("~/Dropbox/GDB_archive/CMapCorr_files/nhitsGSEA_",GSEA,".RData"))
+# }  
+
+
+
+
+# Old and sketchy? ----
+# The sketchy part is Nhits / Phits - we should be making ECDFs from the Q values (NQhits),
+# not the averages scores (Nhits).  Taking probabilities of Nhits <= chance isn't terribly meaningful.
 
 for (FN in list.files("~/Dropbox/GDB_archive/CMapCorr_files/","^pfdrGSEA_[A-Z]+\\.RData")) {
   temp <- load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/",FN))
   GSEA <- gsub("(pfdrGSEA_)|(\\.RData)","",FN)
-  if (file.exists(paste0("~/Dropbox/GDB_archive/CMapCorr_files/phitsGSEA_",GSEA,".RData"))) { 
+  if (file.exists(paste0("~/Dropbox/GDB_archive/CMapCorr_files/phitsGSEA_",GSEA,".RData"))) {
     rm(list=temp)
     next 
   }
-
+  
   print(paste(GSEA,"----"))
   
   # Mean signed -log10(FDR) ----
   # ^ CT ----
   print("^ CT ----")
-  if (file.exists(paste0("~/Dropbox/GDB_archive/CMapCorr_files/pfdrGSEA_",GSEA,"_BKGD_CT.RData"))) {
-    load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/pfdrGSEA_",GSEA,"_BKGD_CT.RData"))
-  } else {
-    print("^^ Generating null distribution ----")
-    temp_counts_uniq <- sort(unique(
-      sapply(ct9,function(CT) sum(CDESC$cell_id == CT)),
-    ),decreasing=T)
-    BKGD_CT <- pbsapply(temp_counts_uniq,function(N) {
-      replicate(minP,{
-        rowMeans(GSEA_score[,sample(colnames(GSEA_score),N)])
-      })
-    },simplify=F)
-    names(BKGD_CT) <- temp_counts_uniq
-    save(BKGD_CT,
-         file=paste0("~/Dropbox/GDB_archive/CMapCorr_files/pfdrGSEA_",GSEA,"_BKGD_CT.RData"))
-  }
-  
-  print("^^ Calculating ----")
+  load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/pfdrGSEA_",GSEA,"_BKGD_CT.RData"))
   temp_counts <- sapply(ct9,function(CT) sum(CDESC$cell_id == CT))
-  Mscore_CT <- sapply(ct9,function(CT)
-    rowMeans(GSEA_score[,CID[CDESC$cell_id == CT]]))
-  
-  Nhits_CT <- sapply(allCuts,function(CUT) colSums(abs(Mscore_CT) >= CUT))
-  
-  Phits_CT <- pbsapply(allCuts,function(CUT) {
-    temp_hit_BKGD <- sapply(BKGD_CT,function(X) colSums(abs(X) >= CUT))
+  Nhits_CT <- pbsapply(allCuts,function(CUT) colMeans(abs(Mscore_CT) >= CUT))
+  Phits_CT <- pbsapply(seq_along(allCuts),function(Z) {
+    temp_hit_BKGD <- sapply(BKGD_CT,function(X) colMeans(abs(X) >= allCuts[Z]))
     OUT <- sapply(names(temp_counts),function(L)
-      mean(temp_hit_BKGD[,as.character(temp_counts[L])] >= Nhits_CT[L,as.character(CUT)]))
+      mean(temp_hit_BKGD[,as.character(temp_counts[L])] >= Nhits_CT[L,Z]))
     OUT[OUT <= 0] <- 1 / ncol(BKGD_CT[[1]])
     return(OUT)
   })
+  NQhits_CT <- pbsapply(allCuts,function(CUT) colMeans(-log10(Qscore_CT) >= CUT))
   rm(list=c("BKGD_CT",grep("^temp",ls(),value=T)))  
   
   # ^ Lig ----
   print("^ Lig ----")
-  if (file.exists(paste0("~/Dropbox/GDB_archive/CMapCorr_files/pfdrGSEA_",GSEA,"_BKGD_LIG.RData"))) {
-    load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/pfdrGSEA_",GSEA,"_BKGD_LIG.RData"))
-  } else {
-    print("^^ Generating null distribution ----")
-    temp_counts_uniq <- sort(unique(
-      sapply(lig295,function(LIG) sum(CDESC$pert_iname == LIG)),
-    ),decreasing=T)
-    BKGD_LIG <- pbsapply(temp_counts_uniq,function(N) {
-      replicate(minP,{
-        rowMeans(GSEA_score[,sample(colnames(GSEA_score),N)])
-      })
-    },simplify=F)
-    names(BKGD_LIG) <- temp_counts_uniq
-    save(BKGD_LIG,
-         file=paste0("~/Dropbox/GDB_archive/CMapCorr_files/pfdrGSEA_",GSEA,"_BKGD_LIG.RData"))
-  }
-  
-  print("^^ Calculating ----")
+  load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/pfdrGSEA_",GSEA,"_BKGD_LIG.RData"))
   temp_counts <- sapply(lig295,function(LIG) sum(CDESC$pert_iname == LIG))
-  Mscore_LIG <- sapply(lig295,function(LIG)
-    rowMeans(GSEA_score[,CID[CDESC$pert_iname == LIG]]))
-  
-  Nhits_LIG <- sapply(allCuts,function(CUT) colSums(abs(Mscore_LIG) >= CUT))
-  
-  Phits_LIG <- pbsapply(allCuts,function(CUT) {
-    temp_hit_BKGD <- sapply(BKGD_LIG,function(X) colSums(abs(X) >= CUT))
+  Nhits_LIG <- pbsapply(allCuts,function(CUT) colMeans(abs(Mscore_LIG) >= CUT))
+  Phits_LIG <- pbsapply(seq_along(allCuts),function(Z) {
+    temp_hit_BKGD <- sapply(BKGD_LIG,function(X) colMeans(abs(X) >= allCuts[Z]))
     OUT <- sapply(names(temp_counts),function(L)
-      mean(temp_hit_BKGD[,as.character(temp_counts[L])] >= Nhits_LIG[L,as.character(CUT)]))
+      mean(temp_hit_BKGD[,as.character(temp_counts[L])] >= Nhits_LIG[L,Z]))
     OUT[OUT <= 0] <- 1 / ncol(BKGD_LIG[[1]])
     return(OUT)
   })
+  NQhits_LIG <- pbsapply(allCuts,function(CUT) colMeans(-log10(Qscore_LIG) >= CUT))
   rm(list=c("BKGD_LIG",grep("^temp",ls(),value=T)))  
-
+  
   # ^ LigCT ----
   print("^ LigCT ----")
-  if (file.exists(paste0("~/Dropbox/GDB_archive/CMapCorr_files/pfdrGSEA_",GSEA,"_BKGD_LIGCT.RData"))) {
-    load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/pfdrGSEA_",GSEA,"_BKGD_LIGCT.RData"))
-  } else {
-    print("^^ Generating null distribution ----")
-    temp_counts_uniq <- sort(unique(as.vector(
-      sapply(ct9,function(CT)
-        sapply(lig295,function(LIG) 
-          sum(CDESC$pert_iname == LIG & CDESC$cell_id == CT))),
-    )),decreasing=T)
-    BKGD_LIGCT <- pbsapply(temp_counts_uniq,function(N) {
-      replicate(minP,{
-        rowMeans(GSEA_score[,sample(colnames(GSEA_score),N)])
-      })
-    },simplify=F)
-    names(BKGD_LIGCT) <- temp_counts_uniq
-    save(BKGD_LIGCT,
-         file=paste0("~/Dropbox/GDB_archive/CMapCorr_files/pfdrGSEA_",GSEA,"_BKGD_LIGCT.RData"))
-  }
-  
-  print("^^ Calculating ----")
+  load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/pfdrGSEA_",GSEA,"_BKGD_LIGCT.RData"))
   temp_counts <- as.vector(sapply(ct9,function(CT)
     sapply(lig295,function(LIG) 
       sum(CDESC$pert_iname == LIG & CDESC$cell_id == CT))))
   names(temp_counts) <- as.vector(sapply(ct9,function(X) paste(X,lig295,sep="_")))
-  
-  Mscore_LIGCT <- sapply(ct9,function(CT)
-    sapply(lig295,function(LIG)
-      rowMeans(GSEA_score[,CID[CDESC$pert_iname == LIG &
-                                                 CDESC$cell_id == CT]])),
-    simplify=F)
-  Mscore_LIGCT <- do.call(cbind,Mscore_LIGCT)
-  colnames(Mscore_LIGCT) <- names(temp_counts)
-  
-  Nhits_LIGCT <- sapply(allCuts,function(CUT) colSums(abs(Mscore_LIGCT) >= CUT))
-  
-  Phits_LIGCT <- pbsapply(allCuts,function(CUT) {
-    temp_hit_BKGD <- sapply(BKGD_LIGCT,function(X) colSums(abs(X) >= CUT))
+  Nhits_LIGCT <- pbsapply(allCuts,function(CUT) colMeans(abs(Mscore_LIGCT) >= CUT))
+  Phits_LIGCT <- pbsapply(seq_along(allCuts),function(Z) {
+    temp_hit_BKGD <- sapply(BKGD_LIGCT,function(X) colMeans(abs(X) >= allCuts[Z]))
     OUT <- sapply(names(temp_counts),function(L)
-      mean(temp_hit_BKGD[,as.character(temp_counts[L])] >= Nhits_LIGCT[L,as.character(CUT)]))
+      mean(temp_hit_BKGD[,as.character(temp_counts[L])] >= Nhits_LIGCT[L,Z]))
     OUT[OUT <= 0] <- 1 / ncol(BKGD_LIGCT[[1]])
     return(OUT)
   })
+  NQhits_LIGCT <- pbsapply(allCuts,function(CUT) colMeans(-log10(Qscore_LIGCT) >= CUT))
   rm(list=c("BKGD_LIGCT",grep("^temp",ls(),value=T)))
   
-  save(list=c(grep("^Phits",ls(),value=T),
-              grep("^Nhits",ls(),value=T),
-              grep("^Mscore",ls(),value=T)),
+  save(list=grep("hits_",ls(),value=T),
        file=paste0("~/Dropbox/GDB_archive/CMapCorr_files/phitsGSEA_",GSEA,".RData"))
-  rm(list=c(grep("^Phits",ls(),value=T),
-            grep("^Nhits",ls(),value=T),
-            grep("^Mscore",ls(),value=T)))
+  rm(list=grep("hits_",ls(),value=T))
 }
