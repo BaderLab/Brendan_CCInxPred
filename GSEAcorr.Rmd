@@ -768,6 +768,162 @@ mtext(paste("Spearman correlation coefficient:",
             )))
 ```
 
+# Mean signed FDR (downsampled)  
+Since number of samples being averaged was causing artifacts, downsampled to averaging 5 randomly selected samples from each sample set.  Repeated enough times to cover the largest set once.
+
+```{r}
+rm(list=ls())
+source("~/Dropbox/GDB/line2user.R")
+```
+
+## Overall and within-set comparisons
+
+Left: FDR-correction for all sample sets (ie. cell types / ligands) together, per downsample.  
+Right: FDR-correction per sample set, per downsample.  
+
+```{r fig.height=9,fig.width=9,warning=FALSE}
+allCuts <- seq(4,0,by=-0.01)
+
+par(mfrow=c(2,2),mar=c(3,3,2,1),mgp=2:0)
+for (GSEA in c("REACT","GOBP")) {
+  load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/pfdrGSEA_",GSEA,"_DS.RData"))
+  
+  temp_max <- allCuts[min(sapply(list(NQall_CT,NQall_LIG,NQall_LIGCT),
+                                 function(X) which(colMeans(X) > 0)[1] - 1))]
+  plot(NA,NA,xlim=c(0,temp_max),xaxt="n",ylim=c(0,1),main=GSEA,cex.lab=0.9,
+       xlab="Threshold of FDR-corrected P(mean signed GSEA FDR) by chance",
+       ylab="Mean proportion of FDR \u2264 x for sample set averages")
+  axis(side=1,labels=c(.0001,.001,.01,.05,.1,.5,1),
+       at=-log10(c(.0001,.001,.01,.05,.1,.5,1)))
+  temp <- apply(NQall_CT,1,function(X)
+    lines(allCuts,X,lwd=2,col=qualitative_hcl(3,palette="dark3",alpha=0.5)[1]))
+  temp <- apply(NQall_LIG,1,function(X)
+    lines(allCuts,X,lwd=2,col=qualitative_hcl(3,palette="dark3",alpha=0.5)[2]))
+  temp <- apply(NQall_LIGCT,1,function(X)
+    lines(allCuts,X,lwd=2,col=qualitative_hcl(3,palette="dark3",alpha=0.5)[3]))
+  
+  plot(NA,NA,xlim=c(0,temp_max),xaxt="n",ylim=c(0,1),main=GSEA,cex.lab=0.9,
+       xlab="Threshold of FDR-corrected P(mean signed GSEA FDR) by chance",
+       ylab="Mean proportion of FDR \u2264 x for sample set averages")
+  axis(side=1,labels=c(.0001,.001,.01,.05,.1,.5,1),
+       at=-log10(c(.0001,.001,.01,.05,.1,.5,1)))
+  temp <- apply(NQper_CT,1,function(X)
+    lines(allCuts,X,lwd=2,col=qualitative_hcl(3,palette="dark3",alpha=0.5)[1]))
+  temp <- apply(NQper_LIG,1,function(X)
+    lines(allCuts,X,lwd=2,col=qualitative_hcl(3,palette="dark3",alpha=0.5)[2]))
+  temp <- apply(NQper_LIGCT,1,function(X)
+    lines(allCuts,X,lwd=2,col=qualitative_hcl(3,palette="dark3",alpha=0.5)[3]))
+}
+rm(list=grep("^temp",ls(),value=T))
+```
+
+
+```{r eval=F}
+newCut <- seq(0.1,0.3,0.1)
+CUT <- 0.1
+
+# sapply(Qscore_LIG,function(X) rowMeans(X <= CUT))
+
+temp_bxp <- list(CT=NQhits_CT[,which(allCuts == -log10(CUT))],
+                 LIG=NQhits_LIG[,which(allCuts == -log10(CUT))],
+                 LIGCT=NQhits_LIGCT[,which(allCuts == -log10(CUT))])
+boxplot(temp_bxp,pch=20)
+points(1:3,sapply(temp_bxp,mean),pch=19,col=alpha("red",0.5))
+
+wilcox.test(temp_bxp$LIG,temp_bxp$LIGCT)
+
+```
+
+
+## Cell line  
+
+```{r fig.height=3,fig.width=9}
+FDRcut <- 0.9
+
+tempMAT <- apply(
+  sapply(seq_along(Qper_CT),function(X) 
+    -log10(Qper_CT[[X]]) * sign(Mscore_CT[[X]]),
+    simplify="array"),
+  MARGIN=c(1,2),mean)
+tempMAT <- tempMAT[apply(tempMAT,1,function(X) any(abs(X) >= -log10(FDRcut))),]
+temp_lim <- max(abs(tempMAT))
+temp_hSample <- hclust(dist(t(tempMAT)),method="ward.D2") 
+temp_hSet <- hclust(dist(tempMAT),method="ward.D2")
+tempMAT <- tempMAT[temp_hSet$order,temp_hSample$order]
+
+par(mar=c(2,6,0.5,0.5))
+image(z=tempMAT,x=1:nrow(tempMAT),y=1:ncol(tempMAT),
+      col=diverging_hcl(1000,palette="Blue-Red3"),
+      breaks=seq(-temp_lim,temp_lim,length.out=1001),
+      xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+mtext(colnames(tempMAT),side=2,line=0.1,at=1:ncol(tempMAT),las=2,cex=0.7)
+mtext(paste(GSEA,"gene set enrichment"),side=1)
+mtext(paste0("|signed FDR| \u2264 ",FDRcut * 100,"%"),side=1,line=1)
+
+rm(list=grep("^temp",ls(),value=T))
+```
+
+## Ligand  
+
+```{r fig.height=3,fig.width=9}
+FDRcut <- 0.1
+
+tempMAT <- apply(
+  sapply(seq_along(Qper_LIG),function(X) 
+    -log10(Qper_LIG[[X]]) * sign(Mscore_LIG[[X]]),
+    simplify="array"),
+  MARGIN=c(1,2),mean)
+tempMAT <- tempMAT[,apply(tempMAT,2,function(X) any(abs(X) >= -log10(FDRcut)))]
+tempMAT <- tempMAT[apply(tempMAT,1,function(X) any(abs(X) >= -log10(FDRcut))),]
+temp_lim <- max(abs(tempMAT))
+temp_hSample <- hclust(dist(t(tempMAT)),method="ward.D2") 
+temp_hSet <- hclust(dist(tempMAT),method="ward.D2")
+tempMAT <- tempMAT[temp_hSet$order,temp_hSample$order]
+
+par(mar=c(2,4,0.5,0.5))
+image(z=tempMAT,x=1:nrow(tempMAT),y=1:ncol(tempMAT),
+      col=diverging_hcl(1000,palette="Blue-Red3"),
+      breaks=seq(-temp_lim,temp_lim,length.out=1001),
+      xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+mtext(colnames(tempMAT),side=2,line=0.1,at=1:ncol(tempMAT),las=2,cex=0.7)
+mtext(paste0("Ligands (",ncol(tempMAT),"/",length(Mscore_LIG),")"),side=2,line=3)
+mtext(paste(GSEA,"gene set enrichment"),side=1)
+mtext(paste0("|signed FDR| \u2264 ",FDRcut * 100,"%"),side=1,line=1)
+
+rm(list=grep("^temp",ls(),value=T))
+```
+
+## Ligand per cell line  
+
+```{r fig.height=6,fig.width=9}
+tempMAT <- apply(
+  sapply(seq_along(Qper_LIGCT),function(X) 
+    -log10(Qper_LIGCT[[X]]) * sign(Mscore_LIGCT[[X]]),
+    simplify="array"),
+  MARGIN=c(1,2),mean)
+tempMAT <- tempMAT[,apply(tempMAT,2,function(X) any(abs(X) >= -log10(FDRcut)))]
+tempMAT <- tempMAT[apply(tempMAT,1,function(X) any(abs(X) >= -log10(FDRcut))),]
+temp_lim <- max(abs(tempMAT))
+temp_hSample <- hclust(dist(t(tempMAT)),method="ward.D2") 
+temp_hSet <- hclust(dist(tempMAT),method="ward.D2")
+tempMAT <- tempMAT[temp_hSet$order,temp_hSample$order]
+
+par(mar=c(2,1.5,0.5,0.5))
+image(z=tempMAT,x=1:nrow(tempMAT),y=1:ncol(tempMAT),
+      col=diverging_hcl(1000,palette="Blue-Red3"),
+      breaks=seq(-temp_lim,temp_lim,length.out=1001),
+      xaxt="n",yaxt="n",xlab=NA,ylab=NA)
+# mtext(colnames(tempMAT),side=2,line=0.1,at=1:ncol(tempMAT),las=2,cex=0.7)
+mtext(paste0("Ligands per cell line (",
+             length(unique(sub("^.+_","",colnames(tempMAT)))),
+             "/295 unique ligands)"),
+      side=2,line=0.1)
+mtext(paste(GSEA,"gene set enrichment"),side=1)
+mtext(paste0("|signed FDR| \u2264 ",FDRcut * 100,"%"),side=1,line=1)
+
+rm(list=grep("^temp",ls(),value=T))
+```
+
 
 # MeanZ GSEA
 
