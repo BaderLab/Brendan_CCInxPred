@@ -87,6 +87,50 @@ for (GSEA in c("REACT","GOBP")) {
 rm(list=grep("^temp",ls(),value=T))
 ```
 
+Plotting averages only.  
+Left: all non-zero values.  
+Right: zoomed in.  
+
+```{r overall_avg, fig.height=9,fig.width=9,warning=FALSE}
+allCuts <- seq(4,0,by=-0.01)
+
+par(mfrow=c(2,2),mar=c(3,3,2,1),mgp=2:0)
+for (GSEA in c("REACT","GOBP")) {
+  load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/pfdrGSEA_",GSEA,"_DS.RData"))
+  
+  temp_max <- allCuts[min(sapply(list(NQall_CT,NQall_LIG,NQall_LIGCT),
+                                 function(X) which(colMeans(X) > 0)[1]))]
+  plot(NA,NA,xlim=c(0,temp_max),xaxt="n",ylim=c(0,1),main=GSEA,cex.lab=0.9,
+       xlab="Threshold of FDR-corrected P(mean signed GSEA FDR) by chance",
+       ylab="Mean proportion of FDR \u2264 x for sample set averages")
+  axis(side=1,labels=c(.0001,.001,.01,.05,.1,.5,1),
+       at=-log10(c(.0001,.001,.01,.05,.1,.5,1)))
+  lines(allCuts,colMeans(NQall_CT),lwd=1,col=qualitative_hcl(3,palette="dark3")[1])
+  lines(allCuts,colMeans(NQall_LIG),lwd=1,col=qualitative_hcl(3,palette="dark3")[2])
+  lines(allCuts,colMeans(NQall_LIGCT),lwd=1,col=qualitative_hcl(3,palette="dark3")[3])
+  
+  temp_c2l <- ks.test(colMeans(NQall_CT),colMeans(NQall_LIG))$p.value
+  temp_l2lc <- ks.test(colMeans(NQall_LIG),colMeans(NQall_LIGCT))$p.value
+  legend("topright",bty="n",lwd=c(1,NA,1,NA,1),
+         col=as.vector(sapply(qualitative_hcl(3,palette="dark3"),function(X) c(X,NA)))[1:5],
+         legend=c("Cell type",
+                  paste("KS p =",signif(temp_c2l,2)),
+                  "Ligand",
+                  paste("KS p =",signif(temp_l2lc,2)),
+                  "Lig / CT"))
+  
+  temp_max <- -log10(0.5)
+  plot(NA,NA,xlim=c(0,temp_max),xaxt="n",ylim=c(0,1),main=GSEA,cex.lab=0.9,
+       xlab="Threshold of FDR-corrected P(mean signed GSEA FDR) by chance",
+       ylab="Mean proportion of FDR \u2264 x for sample set averages")
+  axis(side=1,labels=c(.0001,.001,.01,.05,.1,.5,1),
+       at=-log10(c(.0001,.001,.01,.05,.1,.5,1)))
+  lines(allCuts,colMeans(NQall_CT),lwd=1,col=qualitative_hcl(3,palette="dark3")[1])
+  lines(allCuts,colMeans(NQall_LIG),lwd=1,col=qualitative_hcl(3,palette="dark3")[2])
+  lines(allCuts,colMeans(NQall_LIGCT),lwd=1,col=qualitative_hcl(3,palette="dark3")[3])
+}
+
+```
 
 
 ## Cell line  
