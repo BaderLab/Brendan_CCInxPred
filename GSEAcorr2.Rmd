@@ -39,30 +39,54 @@ for (GSEA in c("REACT","GOBP")) {
   axis(side=1,labels=c(.0001,.001,.01,.05,.1,.5,1),
        at=-log10(c(.0001,.001,.01,.05,.1,.5,1)))
   temp <- apply(NQall_CT[sample(nrow(NQall_CT),nrow(NQall_LIGCT)),],1,function(X)
-    lines(allCuts,X,lwd=2,col=qualitative_hcl(3,palette="dark3",alpha=0.5)[1]))
+    lines(allCuts,X,lwd=1,col=qualitative_hcl(3,palette="set2",alpha=0.5)[1]))
   temp <- apply(NQall_LIG[sample(nrow(NQall_LIG),nrow(NQall_LIGCT)),],1,function(X)
-    lines(allCuts,X,lwd=2,col=qualitative_hcl(3,palette="dark3",alpha=0.5)[2]))
+    lines(allCuts,X,lwd=1,col=qualitative_hcl(3,palette="set2",alpha=0.5)[2]))
   temp <- apply(NQall_LIGCT,1,function(X)
-    lines(allCuts,X,lwd=2,col=qualitative_hcl(3,palette="dark3",alpha=0.5)[3]))
-  legend("topright",bty="n",lwd=2,col=qualitative_hcl(3,palette="dark3"),
-         legend=c("Cell type","Ligand","Lig / CT"))
+    lines(allCuts,X,lwd=1,col=qualitative_hcl(3,palette="set2",alpha=0.5)[3]))
+  lines(allCuts,colMeans(NQall_CT),lwd=2,lty=3,col=qualitative_hcl(3,palette="dark3")[1])
+  lines(allCuts,colMeans(NQall_LIG),lwd=2,lty=3,col=qualitative_hcl(3,palette="dark3")[2])
+  lines(allCuts,colMeans(NQall_LIGCT),lwd=2,lty=3,col=qualitative_hcl(3,palette="dark3")[3])
   
+  temp_c2l <- ks.test(colMeans(NQall_CT),colMeans(NQall_LIG))$p.value
+  temp_l2lc <- ks.test(colMeans(NQall_LIG),colMeans(NQall_LIGCT))$p.value
+  legend("topright",bty="n",lwd=c(1,NA,1,NA,1),
+         col=as.vector(sapply(qualitative_hcl(3,palette="dark3"),function(X) c(X,NA)))[1:5],
+         legend=c("Cell type",
+                  paste("KS p =",signif(temp_c2l,2)),
+                  "Ligand",
+                  paste("KS p =",signif(temp_l2lc,2)),
+                  "Lig / CT"))
+  
+
   plot(NA,NA,xlim=c(0,temp_max),xaxt="n",ylim=c(0,1),main=GSEA,cex.lab=0.9,
        xlab="Threshold of FDR-corrected P(mean signed GSEA FDR) by chance",
        ylab="Mean proportion of FDR \u2264 x for sample set averages")
   axis(side=1,labels=c(.0001,.001,.01,.05,.1,.5,1),
        at=-log10(c(.0001,.001,.01,.05,.1,.5,1)))
   temp <- apply(NQper_CT[sample(nrow(NQper_CT),nrow(NQper_LIGCT)),],1,function(X)
-    lines(allCuts,X,lwd=2,col=qualitative_hcl(3,palette="dark3",alpha=0.5)[1]))
+    lines(allCuts,X,lwd=1,col=qualitative_hcl(3,palette="set2",alpha=0.5)[1]))
   temp <- apply(NQper_LIG[sample(nrow(NQper_LIG),nrow(NQper_LIGCT)),],1,function(X)
-    lines(allCuts,X,lwd=2,col=qualitative_hcl(3,palette="dark3",alpha=0.5)[2]))
+    lines(allCuts,X,lwd=1,col=qualitative_hcl(3,palette="set2",alpha=0.5)[2]))
   temp <- apply(NQper_LIGCT,1,function(X)
-    lines(allCuts,X,lwd=2,col=qualitative_hcl(3,palette="dark3",alpha=0.5)[3]))
-  legend("topright",bty="n",lwd=2,col=qualitative_hcl(3,palette="dark3"),
-         legend=c("Cell type","Ligand","Lig / CT"))
+    lines(allCuts,X,lwd=1,col=qualitative_hcl(3,palette="set2",alpha=0.5)[3]))
+  lines(allCuts,colMeans(NQper_CT),lwd=2,lty=3,col=qualitative_hcl(3,palette="dark3")[1])
+  lines(allCuts,colMeans(NQper_LIG),lwd=2,lty=3,col=qualitative_hcl(3,palette="dark3")[2])
+  lines(allCuts,colMeans(NQper_LIGCT),lwd=2,lty=3,col=qualitative_hcl(3,palette="dark3")[3])
+  
+  temp_c2l <- ks.test(colMeans(NQper_CT),colMeans(NQper_LIG))$p.value
+  temp_l2lc <- ks.test(colMeans(NQper_LIG),colMeans(NQper_LIGCT))$p.value
+  legend("topright",bty="n",lwd=c(1,NA,1,NA,1),
+         col=as.vector(sapply(qualitative_hcl(3,palette="dark3"),function(X) c(X,NA)))[1:5],
+         legend=c("Cell type",
+                  paste("KS p =",signif(temp_c2l,2)),
+                  "Ligand",
+                  paste("KS p =",signif(temp_l2lc,2)),
+                  "Lig / CT"))
 }
 rm(list=grep("^temp",ls(),value=T))
 ```
+
 
 
 ## Cell line  

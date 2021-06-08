@@ -29,7 +29,8 @@ minP <- 1e4
 DS <- 5
 allCuts <- seq(log10(minP),0,by=-0.01)
 
-for (FN in rev(list.files("~/Dropbox/GDB_archive/CMapCorr_files/","^GSEA_lvl4_[A-Z]"))) {
+# for (FN in rev(list.files("~/Dropbox/GDB_archive/CMapCorr_files/","^GSEA_lvl4_[A-Z]"))) {
+for (FN in rev(list.files("~/Dropbox/GDB_archive/CMapCorr_files/","^GSEA_lvl4_[A-Z]"))[2]) {
   temp <- load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/",FN))
   GSEA <- strsplit(temp,"_")[[1]][3]
   if (file.exists(paste0("~/Dropbox/GDB_archive/CMapCorr_files/pfdrGSEA_",GSEA,"_DS.RData"))) { 
