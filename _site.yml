@@ -61,6 +61,9 @@ navbar:
       href: RFresults_forPaper.html
     - text: "Fig 5: NicheNet"
       href: NicheNet_forPaper.html
+    - text: "Final GSEA stuff"
+      href: GSEAcorr2.html
+
 
 
 output:
