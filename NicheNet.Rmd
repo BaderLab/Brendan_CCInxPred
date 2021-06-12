@@ -990,6 +990,10 @@ cat('<p><img src="output_figs/NN_TNF_noTS.png"/></p>')
 ### Comparing NicheNet & CMap expression changes per ligand
 
 ```{r CMap_NN_compare}
+for (X in names(DSinfo)) {
+  DSinfo[[X]]$CtAcc <- paste(DSinfo[[X]]$cell_type,DSinfo[[X]]$accession)
+}
+
 for (LIG in sort(nn_ligands)) {
   if (all(DSinfo[[LIG]]$time_series)) { next }
   if (!LIG %in% lvl4_data@cdesc$pert_iname) { next }
@@ -1000,9 +1004,8 @@ for (LIG in sort(nn_ligands)) {
   CM_ogFDR <- apply(CM_ogZS,2,function(Z) p.adjust(pnorm(-abs(Z))))
   colnames(CM_ogFDR) <- colnames(CM_ogZS) <- sapply(colnames(CM_ogZS),function(X) names(ct14)[ct14 == X])
   
-  CM_GENES <- unique(c(
-    rownames(CM_ogFDR)[apply(CM_ogFDR,1,function(X) sum(X <= 0.1) >= 2)]
-  ))
+  CM_GENES <- rownames(CM_ogFDR)[apply(CM_ogFDR,1,function(X) sum(X <= 0.5) >= 2)]
+  # CM_GENES <- rownames(CM_ogFDR)[apply(CM_ogFDR,1,function(X) any(X <= 0.1))]
   
   
   # NN genes ----
@@ -1013,25 +1016,26 @@ for (LIG in sort(nn_ligands)) {
   temp_ts <- DSinfo[[LIG]][colnames(NN_ogZS),"time_series"]
   colnames(NN_ogFDR) <- colnames(NN_ogZS) <- paste(DSinfo[[LIG]][colnames(NN_ogZS),"CtAcc"],"*")
   colnames(NN_ogFDR)[temp_ts] <- colnames(NN_ogZS)[temp_ts] <- paste0(colnames(NN_ogZS)[temp_ts],"*")
-  if (LIG == "VEGFA") {
-    NN_GENES <- character()
-  } else {  
-    temp_samples <- ncol(NN_ogFDR) + 1
-    NN_GENES <- character()
-    while (length(NN_GENES) < 1) {
-      temp_samples <- temp_samples - 1
-      if (temp_samples <= 1) { break }
-      NN_GENES <- rownames(NN_ogZS)[apply(sapply(colnames(NN_ogZS),function(X)
-        abs(NN_ogZS[,X]) >= 1 & NN_ogFDR[,X] <= 0.1),
-        1,function(Y) sum(Y) >= temp_samples)]  
-      print(length(NN_GENES))
-      print(temp_samples)
-    }
-  }
-  if (any(any(!NN_GENES %in% lvl4_data@rdesc$pr_gene_symbol))) {
-    # print(NN_GENES[!NN_GENES %in% lvl4_data@rdesc$pr_gene_symbol])
-  }
-  
+  # if (LIG == "VEGFA") {
+  #   NN_GENES <- character()
+  # } else {  
+  #   temp_samples <- ncol(NN_ogFDR) + 1
+  #   NN_GENES <- character()
+  #   while (length(NN_GENES) < 3) {
+  #     temp_samples <- temp_samples - 1
+  #     if (temp_samples <= 1) { break }
+  #     NN_GENES <- rownames(NN_ogZS)[apply(sapply(colnames(NN_ogZS),function(X)
+  #       abs(NN_ogZS[,X]) >= 1 & NN_ogFDR[,X] <= 0.01),
+  #       1,function(Y) sum(Y) >= temp_samples)]  
+  #     print(length(NN_GENES))
+  #     # print(temp_samples)
+  #   }
+  # }
+  # if (any(any(!NN_GENES %in% lvl4_data@rdesc$pr_gene_symbol))) {
+  #   # print(NN_GENES[!NN_GENES %in% lvl4_data@rdesc$pr_gene_symbol])
+  # }
+  NN_GENES <- lvl4_data@rdesc[CM_GENES,"pr_gene_symbol"]
+  NN_GENES <- NN_GENES[NN_GENES %in% rownames(NN_ogFDR)]
   
   # Merge genes & fix gene names ----
   temp_CMgenes <- GENES <- unique(c(NN_GENES,lvl4_data@rdesc[CM_GENES,"pr_gene_symbol"]))
@@ -1107,16 +1111,16 @@ for (LIG in sort(nn_ligands)) {
   
   
   # Merge plotting data ----
-  ZS <- cbind(CM_ZS,NN_ZS)[rownames(ogZS),colnames(ogZS)]
-  FDR <- cbind(CM_FDR,NN_FDR)[rownames(ogFDR),colnames(ogFDR)]
+  ZS <- t(cbind(CM_ZS,NN_ZS)[rownames(ogZS),colnames(ogZS)])
+  FDR <- t(cbind(CM_FDR,NN_FDR)[rownames(ogFDR),colnames(ogFDR)])
   
-  
+
   # PLOT ----
   png(paste0("docs/output_figs/CMapNN_",LIG,".png"),
-      width=nrow(FDR) * 0.2 + 2.4,height=ncol(FDR) * 0.2 + 1.3,
+      width=nrow(FDR) * 0.2 + 2,height=ncol(FDR) * 0.2 + 1.6,
       units="in",res=120)
   
-  par(mar=c(5.5,11,1,1),mgp=2:0)
+  par(mar=c(7,9,1,1),mgp=2:0)
   plot(x=NULL,y=NULL,xlim=c(0.5,nrow(FDR) + .5),ylim=c(0.5,ncol(FDR) + .5),
        xaxs="i",yaxs="i",xaxt="n",yaxt="n",xlab=NA,ylab=NA,bty="n",asp=1)
   # abline(h=1:ncol(FDR),col="grey90")
@@ -1127,21 +1131,21 @@ for (LIG in sort(nn_ligands)) {
           circles=as.vector(FDR)/2,inches=F,add=T,xpd=NA,
           fg=diverging_hcl(1000,palette="Blue-Red3")[as.vector(ZS)],
           bg=diverging_hcl(1000,palette="Blue-Red3")[as.vector(ZS)])
-  mtext("Genes",side=1,line=3,font=2)
-  text(1:nrow(FDR),rep(line2user(0.3,1),nrow(FDR)),
-       ifelse(as.logical(as.integer(lvl4_data@rdesc[temp_CMgenes[rownames(FDR)],"pr_is_lm"])),
-              yes=rownames(FDR),paste0(rownames(FDR),"^")),
+  mtext("Genes",side=2,line=0.3,at=line2user(0.1,3),las=2,font=2)
+  text(rep(line2user(0.3,1),ncol(FDR)),1:ncol(FDR),
+       ifelse(as.logical(as.integer(lvl4_data@rdesc[temp_CMgenes[colnames(FDR)],"pr_is_lm"])),
+              yes=colnames(FDR),paste0(colnames(FDR),"^")),
        xpd=NA,adj=1,srt=45,cex=0.8)
-  mtext("Cell lines",side=2,line=0.3,at=line2user(0.1,3),las=2,font=2)
-  text(x=rep(line2user(0.3,2),ncol(FDR)),y=1:ncol(FDR),
-       labels=colnames(FDR),xpd=NA,adj=1,srt=45,cex=0.8)
+  text(line2user(0,4),line2user(1.3,2),"Cell lines",xpd=NA,adj=1,srt=45,font=2)
+  text(1:nrow(FDR),rep(line2user(0.3,2),nrow(FDR)),
+       labels=rownames(FDR),xpd=NA,adj=1,srt=45,cex=0.8)
   
-  mtext(LIG,side=3,line=0,at=line2user(8.4,2),font=2,cex=1.2)
+  mtext(LIG,side=3,line=0,at=line2user(5.4,2),font=2,cex=1.2)
   
   temp_yh <- par("usr")[4] - par("usr")[3]
-  mtext("Z-score /",side=2,line=9.9,at=0.75 * temp_yh + par("usr")[3])
-  mtext("LogFC *",side=2,line=9.1,at=0.75 * temp_yh + par("usr")[3])
-  segments(x0=rep(line2user(9,2),1000),x1=rep(line2user(7.8,2),1000),
+  mtext("Z-score /",side=2,line=6.9,at=0.75 * temp_yh + par("usr")[3])
+  mtext("LogFC *",side=2,line=6.1,at=0.75 * temp_yh + par("usr")[3])
+  segments(x0=rep(line2user(6,2),1000),x1=rep(line2user(4.8,2),1000),
            y0=seq(0.5 * temp_yh + par("usr")[3],
                   temp_yh + par("usr")[3],
                   length.out=1000),
@@ -1149,29 +1153,29 @@ for (LIG in sort(nn_ligands)) {
                   temp_yh + par("usr")[3],
                   length.out=1000),
            xpd=NA,col=diverging_hcl(1000,palette="Blue-Red3"))
-  text(rep(line2user(8.4,2),2),c(1,0.5) * temp_yh + par("usr")[3],
+  text(rep(line2user(5.4,2),2),c(1,0.5) * temp_yh + par("usr")[3],
        labels=c(paste0("\u2265",CM_cut),paste0("\u2264",-CM_cut)),
        col="grey80",pos=c(1,3),offset=0.1,xpd=NA)
   
-  mtext("FDR",side=2,line=9,las=2,
-        at=1 + 0.35 * temp_yh + par("usr")[3])
+  mtext("FDR",side=2,line=6,las=2,
+        at=1 + 0.25 * temp_yh + par("usr")[3])
   temp_q <- rev(c(0.2,0.1,0.05,0.01,0.001))
-  symbols(x=rep(line2user(8.4,2),length(temp_q)),
-          y=seq(0.35 * temp_yh + par("usr")[3],
+  symbols(x=rep(line2user(5.4,2),length(temp_q)),
+          y=seq(0.25 * temp_yh + par("usr")[3],
                 by=-1,length.out=length(temp_q)),
           circles=-log10(temp_q) / (max(-log10(temp_q)) *2),
           inches=F,add=T,xpd=NA,fg="black")
   mtext(c(paste0("\u2264",temp_q[1] * 100,"%"),
           paste0(temp_q[2:5] * 100,"%")),
-        side=2,line=9,cex=0.8,las=2,
-        at=seq(0.35 * temp_yh + par("usr")[3],
+        side=2,line=6,cex=0.8,las=2,
+        at=seq(0.25 * temp_yh + par("usr")[3],
                by=-1,length.out=length(temp_q)))
   
   mtext(paste("* microarray data",
               "** timeseries data",
               "^ inferred in CMap",
               sep="; "),
-        side=1,line=4.5,cex=0.8,at=line2user(0.5,4),adj=1)
+        side=3,line=0.1,cex=0.6,at=line2user(0,4),adj=1)
   
   dev.off()
 }
