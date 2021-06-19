@@ -14,8 +14,189 @@ knitr::opts_chunk$set(
 )
 ```
 
+# Supplemental Figure
 
-# Figure 1a
+```{r}
+temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/corr_lvl3_lig295.RData") 
+corr_lvl3 <- list(CT=unlist(lvl3_ct_corr,use.names=F),
+                  LIG=unlist(lvl3_lig_corr,use.names=F),
+                  LIGCT=unlist(lvl3_lig_corr_ct,use.names=F),
+                  REP=unlist(lvl3_lig_corr_tx,use.names=F))
+rm(list=c(temp,"temp"))
+
+corr_lvl4 <- sapply(list.files("~/Dropbox/GDB_archive/CMapCorr_files","^lig295_corr_[^a]",full.names=T),
+                    function(X) {
+                      temp <- load(X)
+                      return(unlist(get(temp),use.names=F))
+                    },simplify=F)
+names(corr_lvl4) <- names(corr_lvl3)
+
+```
+
+```{r suppfigAB, fig.height=4,fig.width=8}
+par(mfrow=c(1,2),mar=c(4.5,1.5,1,0.5),mgp=2:0)
+
+temp_dens <- sapply(corr_lvl3,density,simplify=F)
+# temp_dens <- rev(sapply(corr_lvl3,density,simplify=F))
+temp_zero <- max(sapply(temp_dens,"[[","y")) * seq(0,0.5,length.out=length(temp_dens))
+
+
+plot(NA,NA,xlim=range(sapply(temp_dens,"[[","x")),
+     ylim=c(0,max(sapply(temp_dens,"[[","y")) + max(temp_zero)),
+     xlab=NA,ylab=NA,yaxt="n",main=NA)
+abline(h=temp_zero)
+mtext("Density",side=2,line=0.1)
+mtext(paste("Pairwise Spearman correlation between",
+            "quantile-normalized transcript abundances",sep="\n"),
+      side=1,line=3.1)
+temp <- sapply(rev(seq_along(temp_dens)),function(X)
+  polygon(temp_dens[[X]]$x,temp_dens[[X]]$y + temp_zero[X],lwd=2,
+          border=qualitative_hcl(length(temp_dens),palette="dark3")[X],
+          col=qualitative_hcl(length(temp_dens),palette="dark3",alpha=0.7)[X]))
+text(line2user(-0.1,2),temp_zero,adj=c(0,-0.3),
+     labels=c(CT="Cell line",LIG="Ligand",
+              LIGCT="Ligand per cell line",REP="Replicate")[names(temp_dens)],
+     col=qualitative_hcl(length(temp_dens),palette="dark3"))  
+mtext("A",side=3,line=-0.5,at=line2user(0.75,2),font=2,cex=1.5)
+
+
+temp_dens <- sapply(corr_lvl4,density,simplify=F)
+# temp_dens <- rev(sapply(corr_lvl4,density,simplify=F))
+temp_zero <- max(sapply(temp_dens,"[[","y")) * seq(0,0.5,length.out=length(temp_dens))
+
+plot(NA,NA,xlim=range(sapply(temp_dens,"[[","x")),
+     ylim=c(0,max(sapply(temp_dens,"[[","y")) + max(temp_zero)),
+     xlab=NA,ylab=NA,yaxt="n",main=NA)
+abline(h=temp_zero)
+mtext("Density",side=2,line=0.1)
+mtext(paste("Pairwise Spearman correlation between",
+            "ligand response Z-scores",sep="\n"),
+      side=1,line=3.1)
+temp <- sapply(rev(seq_along(temp_dens)),function(X)
+  polygon(temp_dens[[X]]$x,temp_dens[[X]]$y + temp_zero[X],lwd=2,
+          border=qualitative_hcl(length(temp_dens),palette="dark3")[X],
+          col=qualitative_hcl(length(temp_dens),palette="dark3",alpha=0.7)[X]))
+# text(line2user(-0.1,2),temp_zero,adj=c(0,-0.3),
+#      labels=c(CT="Cell line",LIG="Ligand",
+#               LIGCT="Ligand per cell line",REP="Replicate")[names(temp_dens)],
+#      col=qualitative_hcl(length(temp_dens),palette="dark3"))  
+mtext("B",side=3,line=-0.5,at=line2user(0.75,2),font=2,cex=1.5)
+```
+
+```{r}
+rm(list=ls())
+source("~/Dropbox/GDB/line2user.R")
+temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/lig295_corr_lig.RData")
+cor_lig <- get(temp)
+temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/lig295_corr_ligct.RData")
+cor_ligct <- get(temp)
+temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/lig295_corr_rep.RData")
+cor_rep <- get(temp)
+rm(list=c(temp,"temp"))
+```
+
+```{r}
+cor_ligct_lig <- sapply(strsplit(names(cor_ligct),"_"),"[[",1)
+cor_rep_lig <- sapply(strsplit(names(cor_rep),"_"),"[[",1)
+
+# boxplot(list(LIG=cor_lig[["AGT"]],
+#              LIGCT=unlist(cor_ligct[cor_ligct_lig == "AGT"]),
+#              REP=unlist(cor_rep[cor_rep_lig == "AGT"])))
+
+diff_ligct <- sapply(names(cor_lig),function(LIG) 
+  mean(unlist(cor_ligct[cor_ligct_lig == LIG])) - mean(cor_lig[[LIG]]))
+mean_ligct <- sapply(names(cor_lig),function(LIG) 
+  mean(c(unlist(cor_ligct[cor_ligct_lig == LIG]),cor_lig[[LIG]])))
+
+diff_rep <- sapply(names(cor_lig),function(LIG) 
+  mean(unlist(cor_rep[cor_rep_lig == LIG])) - mean(cor_lig[[LIG]]))
+mean_rep <- sapply(names(cor_lig),function(LIG) 
+  mean(c(unlist(cor_rep[cor_rep_lig == LIG]),cor_lig[[LIG]])))
+
+temp_all <- sapply(names(cor_lig),function(X)
+  list(Lig=cor_lig[[X]],
+       LigCT=unlist(cor_ligct[cor_ligct_lig == X]),
+       Rep=unlist(cor_rep[cor_rep_lig == X])),
+  simplify=F)
+temp_all_stat <- sapply(temp_all,function(X) 
+  c(LigCT=wilcox.test(X$LigCT,X$Lig)$p.value,
+       Rep=wilcox.test(X$Rep,X$Lig)$p.value))
+
+
+# par(mar=c(5.5,6,2.5,1),mgp=2:0)
+# plot(NA,NA,xlim=c(0,length(temp_labels) * 4),ylim=c(-1,1),
+#      xlab=NA,ylab=NA,xaxt="n",yaxs="i")
+# abline(h=0,lty=2,col="red")
+# 
+# boxplot(unlist(temp_bxp,recursive=F),xaxt="n",
+#   col=as.vector(sapply(qualitative_hcl(length(temp_labels),palette="dark3"),rep,3)),
+#   pch=20,add=T,at=seq(length(temp_labels) * 4)[-seq(4,by=4,length.out=length(temp_labels))])
+# mtext(temp_labels,side=3,line=0.1,
+#       col=qualitative_hcl(length(temp_labels),palette="dark3"),
+#       at=seq(2,by=4,length.out=length(temp_labels)))
+# 
+# mtext("Pairwise Spearman correlation of Z-scores",side=2,line=2.2)
+# text(seq(length(temp_labels) * 4)[-seq(4,by=4,length.out=length(temp_labels))],
+#      line2user(0.5,1),
+#      rep(c("By ligand","By ligand / cell line","By replicate"),length(temp_labels)),
+#      xpd=NA,srt=40,adj=1)
+# mtext("B",font=2,cex=1.5,line=0.5,side=3,at=line2user(4.5,2))
+# mtext("*",side=3,line=-1.5,at=c(2,3,6,7,10,11)[as.vector(temp_stat) <= 0.05])
+```
+
+```{r suppfigC, fig.height=5,fig.width=8}
+layout(rbind(1:2),widths=c(1,2))
+par(mar=c(5,3.5,1,0),mgp=2:0)
+boxplot(list(diff_ligct,diff_rep),col=c("red","dodgerblue"),xaxt="n",pch=".",cex=2)
+abline(h=0,lty=2)
+mtext("Difference in mean correlation vs. by ligand",side=2,line=2.2)
+text(c(1,2),rep(line2user(0.5,1),2),
+       c("By ligand / cell line","By replicate"),
+       adj=1,srt=35,xpd=NA,cex=0.9)
+if (wilcox.test(diff_ligct)$p.value < 2.2e-16) {
+  mtext("*",side=3,at=1,font=2,line=-0.3)
+}
+if (wilcox.test(diff_rep)$p.value < 2.2e-16) {
+  mtext("*",side=3,at=2,font=2,line=-0.3)
+}
+mtext("C",font=2,cex=1.5,line=-0.5,side=3,at=line2user(2.75,2))
+
+par(mar=c(5,0,1,4))
+plot(NA,NA,xlab=NA,ylab=NA,yaxt="n",
+     xlim=range(c(mean_ligct,mean_rep)),ylim=range(diff_ligct,diff_rep))
+mtext("Mean pairwise Spearman correlation of Z-scores",side=1,line=2.2)
+axis(4)
+mtext("Difference in mean correlation vs. by ligand",side=4,line=2.2)
+abline(h=0,lty=2)
+points(mean_rep[temp_all_stat["Rep",names(mean_rep)] > 0.05],
+       diff_rep[temp_all_stat["Rep",names(mean_rep)] > 0.05],
+       pch=20,col=alpha("dodgerblue",0.2))
+points(mean_ligct[temp_all_stat["LigCT",names(mean_ligct)] > 0.05],
+       diff_ligct[temp_all_stat["LigCT",names(mean_ligct)] > 0.05],
+       pch=20,col=alpha("red",0.2))
+points(mean_rep[temp_all_stat["Rep",names(mean_rep)] <= 0.05],
+       diff_rep[temp_all_stat["Rep",names(mean_rep)] <= 0.05],
+       pch=19,col=alpha("dodgerblue",0.5))
+points(mean_ligct[temp_all_stat["LigCT",names(mean_ligct)] <= 0.05],
+       diff_ligct[temp_all_stat["LigCT",names(mean_ligct)] <= 0.05],
+       pch=19,col=alpha("red",0.5))
+legend("bottomright",bty="n",
+       c("By ligand / cell line","By replicate","\u0394 ligand p \u2264 0.05"),
+       pch=c(20,20,19),col=c(alpha(c("red","dodgerblue","black"),0.5)))
+
+
+
+```
+
+"*" p < 2.2e-16 by Wilcoxon signed-rank test.  
+
+
+****
+
+# OLD
+
+
+## Figure 1a
 
 ```{r fig1a, fig.height=4,fig.width=9}
 Z <- "lig"
@@ -90,7 +271,7 @@ mtext("A",font=2,cex=1.5,line=0.5,side=3,at=line2user(4,2))
 Mean of median pairwise Spearman correlation of Z-scores per ligand is `r mean(sapply(CORS,median))`.
 
 
-# Figure 1b/c
+## Figure 1b/c
 
 ```{r load_all_cors}
 rm(list=ls())
@@ -184,7 +365,7 @@ Mean improvement by ligand / cell line: `r mean(diff_ligct)`
 Mean improvement by replicate: `r mean(diff_rep)`  
 
 
-# New version?
+## New version?
 
 ```{r load_all_cors2}
 rm(list=ls())
