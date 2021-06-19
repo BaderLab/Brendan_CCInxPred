@@ -33,6 +33,14 @@ names(corr_lvl4) <- names(corr_lvl3)
 
 ```
 
+```{r echo=TRUE}
+signif(sapply(corr_lvl3,mean),3)
+signif(sapply(corr_lvl3,median),3)
+signif(sapply(corr_lvl4,mean),3)
+signif(sapply(corr_lvl4,median),3)
+```
+
+
 ```{r suppfigAB, fig.height=4,fig.width=8}
 par(mfrow=c(1,2),mar=c(4.5,1.5,1,0.5),mgp=2:0)
 
@@ -82,6 +90,8 @@ temp <- sapply(rev(seq_along(temp_dens)),function(X)
 #      col=qualitative_hcl(length(temp_dens),palette="dark3"))  
 mtext("B",side=3,line=-0.5,at=line2user(0.75,2),font=2,cex=1.5)
 ```
+
+
 
 ```{r}
 rm(list=ls())
@@ -189,6 +199,10 @@ legend("bottomright",bty="n",
 ```
 
 "*" p < 2.2e-16 by Wilcoxon signed-rank test.  
+Mean improvement (LIGCT): `r mean(diff_ligct)`  
+Mean improvement (REP): `r mean(diff_rep)`  
+
+
 
 
 ****

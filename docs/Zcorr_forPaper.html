@@ -383,9 +383,23 @@ $(document).ready(function () {
 
 <div id="supplemental-figure" class="section level1">
 <h1>Supplemental Figure</h1>
+<pre class="r"><code>signif(sapply(corr_lvl3,mean),3)</code></pre>
+<pre><code>##    CT   LIG LIGCT   REP 
+## 0.845 0.715 0.864 0.878</code></pre>
+<pre class="r"><code>signif(sapply(corr_lvl3,median),3)</code></pre>
+<pre><code>##    CT   LIG LIGCT   REP 
+## 0.860 0.707 0.880 0.890</code></pre>
+<pre class="r"><code>signif(sapply(corr_lvl4,mean),3)</code></pre>
+<pre><code>##      CT     LIG   LIGCT     REP 
+## 0.00354 0.03130 0.04420 0.08230</code></pre>
+<pre class="r"><code>signif(sapply(corr_lvl4,median),3)</code></pre>
+<pre><code>##      CT     LIG   LIGCT     REP 
+## 0.00121 0.02760 0.03850 0.07200</code></pre>
 <p><img src="Zcorr_forPaper_files/figure-html/suppfigAB-1.png" width="768" /></p>
 <p><img src="Zcorr_forPaper_files/figure-html/suppfigC-1.png" width="768" /></p>
-<p>"*" p &lt; 2.2e-16 by Wilcoxon signed-rank test.</p>
+<p>"*" p &lt; 2.2e-16 by Wilcoxon signed-rank test.<br />
+Mean improvement (LIGCT): 0.0120171<br />
+Mean improvement (REP): 0.0401395</p>
 <hr />
 </div>
 <div id="old" class="section level1">
