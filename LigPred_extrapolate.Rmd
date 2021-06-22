@@ -337,6 +337,8 @@ segments(x0=seq(2,9,length.out=1000),
          xpd=NA,col=sequential_hcl(1000,palette="inferno",rev=T))
 mtext(c("0%","100%"),las=0,side=1,at=c(2,9),adj=c(1.1,-0.1))
 mtext("Accuracy",las=0,side=1,line=0.9,at=5.5,adj=0.5)
+
+mtext("A",side=3,at=line2user(13,2),line=3.5,font=2,cex=1.5,las=0)
 ```
 
 ```{r ALL_lvl4_volcplot, echo=F,message=F,warning=F,fig.height=4,fig.width=8,fig.show='hold'}
@@ -360,6 +362,8 @@ legend(x=line2user(0,4),
        legend=paste0(names(temp_lig)[order(temp_stat)],
          " (",round(colMeans(acc_leave1out_ct) * 100)[order(temp_stat)],"%)"))
 mtext("Ligand (Mean ctrl Acc%)",side=3,line=-0.1,at=line2user(0.1,4),adj=0)
+
+mtext("B",side=3,at=line2user(2,2),line=-0.5,font=2,cex=1.5,las=0)
 ```
 ```{r diff_stat, echo=F}
 temp <- wilcox.test(as.vector(lvl4_acc_ct),as.vector(acc_leave1out_ct),paired=T,conf.int=T)
