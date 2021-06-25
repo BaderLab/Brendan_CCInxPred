@@ -35,9 +35,9 @@ for (LIG in nn_ligands) {
   rownames(DSinfo[[LIG]]) <- names(temp_DSname)
   rm(list=grep("^temp",ls(),value=T))
 }
-DSinfo$WNT1$cell_type <- paste(DSinfo$WNT1$cell_type,
-                               sapply(strsplit(rownames(DSinfo$WNT1),"_"),"[[",3),
-                               sep="_")
+# DSinfo$WNT1$cell_type <- paste(DSinfo$WNT1$cell_type,
+#                                sapply(strsplit(rownames(DSinfo$WNT1),"_"),"[[",3),
+#                                sep="_")
 for (LIG in names(DSinfo)) {
   DSinfo[[LIG]]$CtAcc <- paste(DSinfo[[LIG]]$accession,DSinfo[[LIG]]$cell_type)
 }
@@ -237,35 +237,35 @@ save(nn_DE,de_all,de_ct,de_ds,P_all,P_ct,P_ds,
      file="~/Dropbox/GDB_archive/CMapCorr_files/NN_noTS_DEovlp.RData")
 
 
-# DE by mean LFC background ----
-temp_nts <- unlist(sapply(DSinfo,rownames))
-temp_nts_genes <- Reduce(intersect,sapply(nn_db[temp_nts],function(X) X$diffexp$gene))
-mean_lfc_nts_bkgd <- pbsapply(
-  2:max(sapply(DSinfo,function(X) sum(!X$time_series))),
-  function(X)
-    sapply(1:1e2,function(Y)
-      rowMeans(sapply(nn_db[sample(temp_nts,X)],
-                      function(X) {
-                        temp <- X$diffexp$lfc
-                        names(temp) <- X$diffexp$gene
-                        return(temp[temp_nts_genes])
-                      }))
-    ),cl=3)
-colnames(mean_lfc_nts_bkgd) <- 2:max(sapply(DSinfo,function(X) sum(!X$time_series)))
-
-
-# DE by mean LFC ----
-mean_lfc <- list()
-for (LIG in nn_ligands) {
-  print(paste(which(nn_ligands == LIG),"/",length(nn_ligands)))
-  
-  mean_lfc[[LIG]] <- data.frame(nts_lfc=rowMeans(nn_lig_rep[[LIG]]$lfc))
-  mean_lfc[[LIG]]$nts_pval <- pbsapply(mean_lfc[[LIG]]$nts_lfc,function(X) 
-    sum(mean_lfc_nts_bkgd[,as.character(nrow(DSinfo[[LIG]]))] >= X) / nrow(mean_lfc_nts_bkgd),
-    cl=12)
-  mean_lfc[[LIG]]$nts_fdr <- p.adjust(mean_lfc[[LIG]]$nts_pval,"fdr")
-}
-
-
-save(mean_lfc,
-     file="~/Dropbox/GDB_archive/CMapCorr_files/NN_noTS_DEmeanlfc.RData")
+# # DE by mean LFC background ----
+# temp_nts <- unlist(sapply(DSinfo,rownames))
+# temp_nts_genes <- Reduce(intersect,sapply(nn_db[temp_nts],function(X) X$diffexp$gene))
+# mean_lfc_nts_bkgd <- pbsapply(
+#   2:max(sapply(DSinfo,function(X) sum(!X$time_series))),
+#   function(X)
+#     sapply(1:1e2,function(Y)
+#       rowMeans(sapply(nn_db[sample(temp_nts,X)],
+#                       function(X) {
+#                         temp <- X$diffexp$lfc
+#                         names(temp) <- X$diffexp$gene
+#                         return(temp[temp_nts_genes])
+#                       }))
+#     ),cl=3)
+# colnames(mean_lfc_nts_bkgd) <- 2:max(sapply(DSinfo,function(X) sum(!X$time_series)))
+# 
+# 
+# # DE by mean LFC ----
+# mean_lfc <- list()
+# for (LIG in nn_ligands) {
+#   print(paste(which(nn_ligands == LIG),"/",length(nn_ligands)))
+#   
+#   mean_lfc[[LIG]] <- data.frame(nts_lfc=rowMeans(nn_lig_rep[[LIG]]$lfc))
+#   mean_lfc[[LIG]]$nts_pval <- pbsapply(mean_lfc[[LIG]]$nts_lfc,function(X) 
+#     sum(mean_lfc_nts_bkgd[,as.character(nrow(DSinfo[[LIG]]))] >= X) / nrow(mean_lfc_nts_bkgd),
+#     cl=12)
+#   mean_lfc[[LIG]]$nts_fdr <- p.adjust(mean_lfc[[LIG]]$nts_pval,"fdr")
+# }
+# 
+# 
+# save(mean_lfc,
+#      file="~/Dropbox/GDB_archive/CMapCorr_files/NN_noTS_DEmeanlfc.RData")

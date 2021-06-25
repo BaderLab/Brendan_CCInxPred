@@ -13,8 +13,11 @@ load("~/Dropbox/GDB_archive/CMapCorr_files/NN_ALLvCT_dat.RData")
 
 
 
-cut_lfc <- log2(c(1.5,2,3,4))
-cut_fdr <- c(0.1,0.05,0.01,0.001)
+# cut_lfc <- log2(c(1.5,2,3,4))
+# cut_fdr <- c(0.1,0.05,0.01,0.001)
+cut_lfc <- log2(c(2,4))
+cut_fdr <- c(0.1,0.01)
+
 
 CUTOFFS <- t(do.call(cbind,lapply(cut_lfc,function(LFC) sapply(cut_fdr,function(FDR) c(LFC=LFC,FDR=FDR)))))
 

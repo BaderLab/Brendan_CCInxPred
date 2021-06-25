@@ -34,9 +34,12 @@ for (LIG in nn_ligands) {
   rownames(DSinfo[[LIG]]) <- names(temp_DSname)
   rm(list=grep("^temp",ls(),value=T))
 }
-DSinfo$WNT1$cell_type <- paste(DSinfo$WNT1$cell_type,
-                               sapply(strsplit(rownames(DSinfo$WNT1),"_"),"[[",3),
-                               sep="_")
+# DSinfo$WNT1$cell_type <- paste(DSinfo$WNT1$cell_type,
+#                                sapply(strsplit(rownames(DSinfo$WNT1),"_"),"[[",3),
+#                                sep="_")
+for (LIG in names(DSinfo)) {
+  DSinfo[[LIG]]$CtAcc <- paste(DSinfo[[LIG]]$accession,DSinfo[[LIG]]$cell_type)
+}
 
 
 # collate replicate data ----

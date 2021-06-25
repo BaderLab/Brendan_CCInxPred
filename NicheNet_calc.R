@@ -6,6 +6,10 @@ nn_db <- readRDS(url("https://zenodo.org/record/3260758/files/expression_setting
 
 nn_db <- nn_db[sapply(sapply(nn_db,"[[","from"),length) == 1]
 
+for (X in seq_along(nn_db)) {
+  nn_db[[X]]$diffexp <- as.data.frame(nn_db[[X]]$diffexp)
+}
+
 nn_ligands <- unique(sapply(nn_db,"[[","from"))
 nn_lig_dsNames <- sapply(nn_ligands,function(LIG) names(nn_db)[sapply(nn_db,function(X) LIG %in% X$from)])
 nn_ligands <- nn_ligands[sapply(nn_lig_dsNames,length) > 1]
@@ -21,7 +25,7 @@ nn_DEinfo <- nn_DEinfo[,-which(colnames(nn_DEinfo) == "setting_id")]
 DSinfo <- list()
 for (LIG in nn_ligands) {
   temp_DE <- sapply(nn_lig_dsNames[[LIG]],function(X) 
-    nn_db[[X]]$diffexp[nn_db[[X]]$diffexp$lfc >= 1 & nn_db[[X]]$diffexp$qval <= 0.1,"gene"])
+    nn_db[[X]]$diffexp[nn_db[[X]]$diffexp$lfc >= 1 & nn_db[[X]]$diffexp$qval <= 0.1,"gene",drop=T])
   temp_DSname <- sapply(sapply(temp_DE,length),function(N) {
     temp <- rownames(nn_DEinfo)[nn_DEinfo$ligand == LIG][nn_DEinfo[nn_DEinfo$ligand == LIG,"nr_upgenes"] %in% N]
     if (length(temp) == 0) {
@@ -35,9 +39,9 @@ for (LIG in nn_ligands) {
   rownames(DSinfo[[LIG]]) <- names(temp_DSname)
   rm(list=grep("^temp",ls(),value=T))
 }
-DSinfo$WNT1$cell_type <- paste(DSinfo$WNT1$cell_type,
-                               sapply(strsplit(rownames(DSinfo$WNT1),"_"),"[[",3),
-                               sep="_")
+# DSinfo$WNT1$cell_type <- paste(DSinfo$WNT1$cell_type,
+#                                sapply(strsplit(rownames(DSinfo$WNT1),"_"),"[[",3),
+#                                sep="_")
 for (LIG in names(DSinfo)) {
   DSinfo[[LIG]]$CtAcc <- paste(DSinfo[[LIG]]$accession,DSinfo[[LIG]]$cell_type)
 }
