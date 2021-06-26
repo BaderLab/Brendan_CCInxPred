@@ -74,6 +74,14 @@ mtext(paste0("p=",signif(wilcox.test(unlist(corr_all),unlist(corr_ct))$p.value,2
 rm(list=grep("^temp",ls(),value=T))
 ```
 
+```{r echo=TRUE}
+mean(unlist(corr_all))
+median(unlist(corr_all))
+mean(unlist(corr_ct))
+median(unlist(corr_ct))
+```
+
+
 # Figure 5b  
 
 ```{r AvC_diffexp_boxplot_v3, fig.height=4,fig.width=8}
