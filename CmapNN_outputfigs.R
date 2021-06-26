@@ -10,11 +10,19 @@ rm(lvl4_data_all)
 
 
 # Load NN ----
+load("~/Dropbox/GDB_archive/CMapCorr_files/NN_all_dat.RData")
+temp_ts <- unlist(sapply(DSinfo,"[[","time_series"),use.names=F)
+names(temp_ts) <- unlist(sapply(DSinfo,rownames),use.names=F)
+
 nn_db <- readRDS(url("https://zenodo.org/record/3260758/files/expression_settings.rds"))
-nn_db <- nn_db[sapply(sapply(nn_db,"[[","from"),length) == 1]
+nn_db <- nn_db[names(temp_ts)]
 nn_db <- sapply(nn_db,"[[","diffexp",simplify=F)
 for (X in names(nn_db)) {
   nn_db[[X]] <- as.data.frame(nn_db[[X]])
+  if (!temp_ts[X]) {
+    ## BECAUSE NN FLIPPED logFC ##
+    nn_db[[X]]$lfc <- nn_db[[X]]$lfc * -1
+  }
   if (!any(duplicated(nn_db[[X]]$gene))) {
     rownames(nn_db[[X]]) <- nn_db[[X]]$gene
     nn_db[[X]] <- nn_db[[X]][,colnames(nn_db[[X]]) != "gene"]
@@ -29,7 +37,6 @@ for (X in names(nn_db)) {
   }
 }
 
-load("~/Dropbox/GDB_archive/CMapCorr_files/NN_all_dat.RData")
 rm(list=c("X","GENE",grep("^temp",ls(),value=T)))
 
 
