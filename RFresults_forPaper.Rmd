@@ -223,8 +223,10 @@ Fig4b could be simply boxplots showing withheld - control AUPR sorted by mean AU
 temp_stat2 <- cut(temp_stat,c(1,0.05,0.01,0.001,0.0001))
 levels(temp_stat2) <- c("***","**","*"," ")
 
-temp_stat3 <- as.character(signif(temp_stat,2))
-temp_stat3[grep("\\.[0-9]$",temp_stat3)] <- stringr::str_c(temp_stat3[grep("\\.[0-9]$",temp_stat3)],"0")
+options(scipen=999)
+temp_stat3 <- as.character(signif(temp_stat,1))
+# temp_stat3[grep("\\.[0-9]$",temp_stat3)] <- stringr::str_c(temp_stat3[grep("\\.[0-9]$",temp_stat3)],"0")
+options(scipen=0)
 
 par(mar=c(3,5,1,4),mgp=2:0)
 plot(x=NA,y=NA,yaxt="n",xlab="Withheld - Control AUPR",ylab=NA,
@@ -234,9 +236,9 @@ boxplot(temp_x[,ncol(temp_x):1],horizontal=T,pch=20,add=T,xaxt="n",yaxt="n",
         border=rev(temp_lig),col=alpha(rev(temp_lig),0.5))
 mtext(rev(colnames(temp_x)),at=1:ncol(temp_x),las=2,side=4,line=0.1,col=temp_lig)
 # mtext(rev(temp_stat2),at=1:ncol(temp_x),las=2,side=2,line=0.1)
-mtext(rev(temp_stat3),at=1:ncol(temp_x),las=2,side=2,line=0.1,family="mono")
-mtext("Wilcoxon signed-rank test p-value",side=2,line=4)
-mtext("B",font=2,cex=1.5,line=-0.5,side=3,las=0,at=line2user(4,2))
+mtext(rev(temp_stat3),at=1:ncol(temp_x),las=2,side=2,line=3.3,adj=0,family="mono")
+mtext("Wilcoxon signed-rank test p-value",side=2,line=3.7)
+mtext("B",font=2,cex=1.5,line=-0.5,side=3,las=0,at=line2user(4.1,2))
 ```
 
 
