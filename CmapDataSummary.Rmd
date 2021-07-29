@@ -23,7 +23,7 @@ if (exists("lvl3_data")) {
 
 ## Ligands / cell lines assayed
 
-```{r lvl3_data_summary, echo=F,message=F,warning=F,fig.height=4,fig.width=6,fig.show='hold'}
+```{r lvl3_data_summary, echo=F,message=F,warning=F,fig.height=4.5,fig.width=6.5,fig.show='hold'}
 temp_ct <- sapply(ct14,function(X) 
   unique(lvl3_data@cdesc$pert_iname[lvl3_data@cdesc$cell_id == X]),
   simplify=F)
