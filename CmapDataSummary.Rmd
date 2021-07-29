@@ -23,7 +23,7 @@ if (exists("lvl3_data")) {
 
 ## Ligands / cell lines assayed
 
-```{r lvl3_data_summary, echo=F,message=F,warning=F,fig.height=5,fig.width=8,fig.show='hold'}
+```{r lvl3_data_summary, echo=F,message=F,warning=F,fig.height=4,fig.width=6,fig.show='hold'}
 temp_ct <- sapply(ct14,function(X) 
   unique(lvl3_data@cdesc$pert_iname[lvl3_data@cdesc$cell_id == X]),
   simplify=F)
@@ -45,13 +45,14 @@ upset(fromList(temp_ct),
                         plots=list(
                           list(type="text",
                                column="source.tissue",
-                               assign=15,
+                               assign=20,
                                colors=temp_col),
                           list(type="matrix_rows",
                                column="source.tissue",
                                colors=temp_col,
                                alpha=0.7))
-      ))
+      ),
+      mb.ratio=c(0.6,0.4))
 
 rm(list=grep("^temp",ls(),value=T))
 ```

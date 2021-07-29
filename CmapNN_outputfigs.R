@@ -173,7 +173,7 @@ for (LIG in sort(nn_ligands)) {
           circles=as.vector(FDR)/2,inches=F,add=T,xpd=NA,
           fg=diverging_hcl(1000,palette="Blue-Red3")[as.vector(ZS)],
           bg=diverging_hcl(1000,palette="Blue-Red3")[as.vector(ZS)])
-  points(which(is.na(ZS),arr.ind=T),pch=4,col="red",cex=0.5)
+  points(which(is.na(ZS),arr.ind=T),pch=4,col="red",cex=1)
   mtext("Genes",side=2,line=0.3,at=line2user(0.1,3),las=2,font=2)
   text(rep(line2user(0.3,1),ncol(FDR)),1:ncol(FDR),GENES,xpd=NA,adj=1,srt=45,cex=0.8)
   text(line2user(0,4),line2user(1.3,2),"Cell lines",xpd=NA,adj=1,srt=45,font=2)
@@ -214,7 +214,7 @@ for (LIG in sort(nn_ligands)) {
   
   legend(x=line2user(-0.05,4) - strwidth("missing data",cex=0.6),
          y=line2user(1,3),xpd=NA,bty="n",
-         cex=0.6,pt.cex=0.5,pch=4,col="red",legend="missing data")
+         cex=0.6,pt.cex=1,pch=4,col="red",legend="missing data")
   mtext(paste("^ inferred in CMap",
               "* microarray data",
               "** timeseries data",

@@ -156,27 +156,37 @@ temp_all_stat <- sapply(temp_all,function(X)
 
 ```{r suppfigC, fig.height=5,fig.width=8}
 layout(rbind(1:2),widths=c(1,2))
-par(mar=c(5,3.5,1,0),mgp=2:0)
+par(mar=c(5,4.5,1,0),mgp=2:0)
 boxplot(list(diff_ligct,diff_rep),col=c("red","dodgerblue"),xaxt="n",pch=".",cex=2)
 abline(h=0,lty=2)
-mtext("Difference in mean correlation vs. by ligand",side=2,line=2.2)
+mtext(paste("Difference in means between correlations",
+            "across all contexts per ligand vs considering context",
+            sep="\n"),
+      side=2,line=2.2)
 text(c(1,2),rep(line2user(0.5,1),2),
-       c("By ligand / cell line","By replicate"),
-       adj=1,srt=35,xpd=NA,cex=0.9)
+       c("Cell line","Replicate"),
+       adj=1,srt=35,xpd=NA)
+mtext("Context:",side=1,line=1.5,at=line2user(0.5,2),adj=1)
 if (wilcox.test(diff_ligct)$p.value < 2.2e-16) {
   mtext("*",side=3,at=1,font=2,line=-0.3)
 }
 if (wilcox.test(diff_rep)$p.value < 2.2e-16) {
   mtext("*",side=3,at=2,font=2,line=-0.3)
 }
-mtext("C",font=2,cex=1.5,line=-0.5,side=3,at=line2user(2.75,2))
+mtext("C",font=2,cex=1.5,line=-0.5,side=3,at=line2user(3.75,2))
 
-par(mar=c(5,0,1,4))
+par(mar=c(5,0,1,4.5))
 plot(NA,NA,xlab=NA,ylab=NA,yaxt="n",
      xlim=range(c(mean_ligct,mean_rep)),ylim=range(diff_ligct,diff_rep))
-mtext("Mean pairwise Spearman correlation of Z-scores",side=1,line=2.2)
+mtext(paste("Average of means between pairwise Spearman correlations of",
+            "Z-scores across all contexts per ligand vs considering context",
+            sep="\n"),
+      side=1,line=3.2)
 axis(4)
-mtext("Difference in mean correlation vs. by ligand",side=4,line=2.2)
+mtext(paste("Difference in means between correlations",
+            "across all contexts per ligand vs considering context",
+            sep="\n"),
+      side=4,line=3.2)
 abline(h=0,lty=2)
 points(mean_rep[temp_all_stat["Rep",names(mean_rep)] > 0.05],
        diff_rep[temp_all_stat["Rep",names(mean_rep)] > 0.05],
@@ -190,9 +200,12 @@ points(mean_rep[temp_all_stat["Rep",names(mean_rep)] <= 0.05],
 points(mean_ligct[temp_all_stat["LigCT",names(mean_ligct)] <= 0.05],
        diff_ligct[temp_all_stat["LigCT",names(mean_ligct)] <= 0.05],
        pch=19,col=alpha("red",0.5))
-legend("bottomright",bty="n",
-       c("By ligand / cell line","By replicate","\u0394 ligand p \u2264 0.05"),
-       pch=c(20,20,19),col=c(alpha(c("red","dodgerblue","black"),0.5)))
+# legend("bottomright",bty="n",
+#        c("By ligand / cell line","By replicate","\u0394 ligand p \u2264 0.05"),
+#        pch=c(20,20,19),col=c(alpha(c("red","dodgerblue","black"),0.5)))
+legend("bottomright",bty="n",title="Context:",
+       legend=c("Cell line","Replicate"),
+       pch=20,col=c(alpha(c("red","dodgerblue"),0.5)))
 
 
 
