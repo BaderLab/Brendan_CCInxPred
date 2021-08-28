@@ -414,3 +414,43 @@ mtext("B",font=2,cex=1.5,line=-1,side=3,at=line2user(6,2))
 ```
 
 The * denotes p < 2.2e-16 from Wilcoxon rank-sum test vs. "Ligand".  
+
+### Comparing prob to num
+```{r fig.width=8,fig.height=6}
+temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/lig295_DE_lig_FDR.RData")
+temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/lig295_DE_ligct_FDR.RData")
+
+temp_FDRcut <- 0.05
+
+nDE_lig <- apply(FDR_lig,2,function(X) sum(X <= temp_FDRcut))
+nDE_ligct <- apply(FDR_ligct,2,function(X) sum(X <= temp_FDRcut))
+
+pDE_ligct <- pDE_ligct[,as.character(temp_FDRcut * 100)]
+pDE_ligct <- pDE_ligct + 1e-4
+pDE_ligct[pDE_ligct > 1] <- 1
+pDE_ligct <- -log10(pDE_ligct)
+pDE_lig <- pDE_lig[,as.character(temp_FDRcut * 100)]
+pDE_lig <- pDE_lig + 1e-4
+pDE_lig[pDE_lig > 1] <- 1
+pDE_lig <- -log10(pDE_lig)
+
+
+layout(matrix(c(2,1,0,3),2),widths=c(3,1),heights=c(1,3))
+par(mar=c(3,3,0,0),mgp=2:0)
+plot(nDE_ligct,pDE_ligct,
+     pch=".",cex=2,col=alpha("red",0.5),yaxt="n",
+     xlim=range(c(nDE_lig,nDE_ligct)),ylim=range(c(pDE_lig,pDE_ligct)),
+     xlab="Number of DE genes at FDR < 0.05 for each ligand",
+     ylab="Probability of seeing at least that number of DE genes by chance")
+axis(2,at=-log10(c(1,0.1,0.05,0.01,0.001,0.0001)),
+     labels=c("100%","10%","5%","1%","0.1%","0.01%"))
+
+points(nDE_lig,pDE_lig,pch=".",cex=3,col=alpha("dodgerblue",0.5))
+par(mar=c(0,3,1,0))
+boxplot(list(LIG=nDE_lig,LIGCT=nDE_ligct),horizontal=T,xaxt="n",
+        col=alpha(c("dodgerblue","red"),0.5),border=c("dodgerblue","red"),pch=20)
+par(mar=c(3,0,0,1))
+boxplot(list(LIG=pDE_lig,LIGCT=pDE_ligct),horizontal=F,yaxt="n",
+        col=alpha(c("dodgerblue","red"),0.5),border=c("dodgerblue","red"),pch=20)
+```
+
