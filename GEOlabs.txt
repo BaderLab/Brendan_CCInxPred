@@ -1,0 +1,43 @@
+GSE18648	Sohn P, Cox M, Chen D, Serra R
+GSE6653	Huaxia Qin 1, Michael W Y Chan, Sandya Liyanarachchi, Curtis Balch, Dustin Potter, Irene J Souriraj, Alfred S L Cheng, Francisco J Agosto-Perez, Elena V Nikonova, Pearlly S Yan, Huey-Jen Lin, Kenneth P Nephew, Joel H Saltz, Louise C Showe, Tim H M Huang, Ramana V Davuluri
+GSE28569	A Deshiere 1, E Duchemin-Pelletier, E Spreux, D Ciais, F Combes, Y Vandenbrouck, Y Couté, I Mikaelian, S Giusiano, C Charpin, C Cochet, O Filhol
+GSE23952	Kevin A Maupin 1, Arkadeep Sinha, Emily Eugster, Jeremy Miller, Julianna Ross, Vincent Paulino, Venkateshwar G Keshamouni, Nhan Tran, Michael Berens, Craig Webb, Brian B Haab
+GSE68164	Valentina Doldi 1, Maurizio Callari 1, Elisa Giannoni 2, Francesca D'Aiuto 1, Massimo Maffezzini 3, Riccardo Valdagni 4 5, Paola Chiarugi 2, Paolo Gandellini 1, Nadia Zaffaroni 
+GSE17708	Maureen A Sartor 1, Vasudeva Mahavisno, Venkateshwar G Keshamouni, James Cavalcoli, Zachary Wright, Alla Karnovsky, Rork Kuick, H V Jagadish, Barbara Mirel, Terry Weymouth, Brian Athey, Gilbert S Omenn
+GSE16416	Mott GA, Costales JA, Burleigh BA.
+GSE60880	Bradley G, Barrett SJ
+GSE46903	Jia Xue 1, Susanne V Schmidt 1, Jil Sander 1, Astrid Draffehn 1, Wolfgang Krebs 1, Inga Quester 1, Dominic De Nardo 2, Trupti D Gohel 1, Martina Emde 1, Lisa Schmidleithner 1, Hariharasudan Ganesan 1, Andrea Nino-Castro 1, Michael R Mallmann 1, Larisa Labzin 2, Heidi Theis 1, Michael Kraut 1, Marc Beyer 1, Eicke Latz 3, Tom C Freeman 4, Thomas Ulas 1, Joachim L Schultze 5
+GSE47542	Sanjay Chandriani 1, Daryle J DePianto 1, Elsa N N'Diaye 1, Alexander R Abbas 1, Janet Jackman 1, Jack Bevers 3rd 1, Vladimir Ramirez-Carrozzi 1, Rajita Pappu 1, Steven E Kauder 1, Karen Toy 1, Connie Ha 1, Zora Modrusan 1, Lawren C Wu 1, Harold R Collard 2, Paul J Wolters 2, Jackson G Egen 1, Joseph R Arron 3
+E-MTAB-2091	C. Poussin, C. Mathis, L.G. Alexopoulos, D.E. Messinis, R.H.J. Dulize, V. Belcastro, I. N. Melas, T. Sakellaropoulos, K. Rhrissorrakrai, E. Bilal, P. Meyer, M. Talikka, S. Boué, R. Norel, J.J. Rice, G. Stolovitzky, N. V. Ivanov, M. C. Peitsch and J. Hoeng
+GSE36287	William R Swindell 1, Xianying Xing, Philip E Stuart, Cynthia S Chen, Abhishek Aphale, Rajan P Nair, John J Voorhees, James T Elder, Andrew Johnston, Johann E Gudjonsson
+GSE59184	Dennis Montoya 1, Megan S Inkeles 2, Phillip T Liu 3, Susan Realegeno 4, Rosane M B Teles 1, Poorva Vaidya 1, Marcos A Munoz 1, Mirjam Schenk 1, William R Swindell 5, Rene Chun 6, Kathryn Zavala 6, Martin Hewison 6, John S Adams 6, Steve Horvath 7, Matteo Pellegrini 2, Barry R Bloom 8, Robert L Modlin 9
+GSE32423	Erwan Ventre 1, Lilia Brinza, Stephane Schicklin, Julien Mafille, Charles-Antoine Coupet, Antoine Marçais, Sophia Djebali, Virginie Jubin, Thierry Walzer, Jacqueline Marvel
+GSE15062	Katharina Lötzer 1, Sandra Döpping, Sabine Connert, Rolf Gräbner, Rainer Spanbroek, Birgit Lemser, Michael Beer, Markus Hildner, Thomas Hehlgans, Michael van der Wall, Reina E Mebius, Agnes Lovas, Gwendalyn J Randolph, Falk Weih, Andreas J R Habenicht
+GSE69639	Zeinab Chitforoushzadeh 1, Zi Ye 2, Ziran Sheng 2, Silvia LaRue 2, Rebecca C Fry 3, Douglas A Lauffenburger 4, Kevin A Janes 5
+GSE32975	Elana J Fertig 1, Qing Ren, Haixia Cheng, Hiromitsu Hatakeyama, Adam P Dicker, Ulrich Rodeck, Michael Considine, Michael F Ochs, Christine H Chung
+GSE5542	Corneliu Sanda 1, Patrick Weitzel, Takuma Tsukahara, Joel Schaley, Howard J Edenberg, Matthew A Stephens, Jeanette N McClintick, Lawrence M Blatt, Lang Li, Leonid Brodsky, Milton W Taylor
+GSE9977	Lars Dölken 1, Zsolt Ruzsics, Bernd Rädle, Caroline C Friedel, Ralf Zimmer, Jörg Mages, Reinhard Hoffmann, Paul Dickinson, Thorsten Forster, Peter Ghazal, Ulrich H Koszinowski
+GSE7216	Susan M Sa 1, Patricia A Valdez, Jianfeng Wu, Kenneth Jung, Fiona Zhong, Linda Hall, Ian Kasman, Jane Winer, Zora Modrusan, Dimitry M Danilenko, Wenjun Ouyang
+GSE71404	Fabiola Cecchi 1, Chih-Jian Lih 2, Young H Lee 1, William Walsh 2, Daniel C Rabe 1, Paul M Williams 2, Donald P Bottaro 
+GSE31193	Emmanuel Thomas 1, Veronica D Gonzalez, Qisheng Li, Ankit A Modi, Weiping Chen, Mazen Noureddin, Yaron Rotman, T Jake Liang
+GSE84500	van Zoelen EJ, Duarte I, Hendriks JM, van der Woning SP
+GSE32199	Agnieszka Paca 1, Cheryle A Séguin, Melanie Clements, Michael Ryczko, Janet Rossant, Tristan A Rodriguez, Tilo Kunath
+GSE10315	Dominique Mrugala 1, Nadège Dossat, Jochen Ringe, Bruno Delorme, Amandine Coffy, Claire Bony, Pierre Charbord, Thomas Häupl, Jean-Pierre Daures, Danièle Noël, Christian Jorgensen
+GSE10311	Elin Grundberg 1, Helena Brändström, Kevin C L Lam, Scott Gurd, Bing Ge, Eef Harmsen, Andreas Kindmark, Osten Ljunggren, Hans Mallmin, Olle Nilsson, Tomi Pastinen
+GSE6789	Magdalena Koziczak-Holbro 1, Claire Joyce, Anton Glück, Bernd Kinzel, Matthias Müller, Claude Tschopp, John C Mathison, Christopher N Davis, Hermann Gram
+GSE58203	Peter Kupfer 1, René Huber, Michael Weber, Sebastian Vlaic, Thomas Häupl, Dirk Koczan, Reinhard Guthke, Raimund W Kinne
+GSE46564	Kayoko Hosaka 1, Yunlong Yang, Takahiro Seki, Masaki Nakamura, Patrik Andersson, Pegah Rouhi, Xiaojuan Yang, Lasse Jensen, Sharon Lim, Ninghan Feng, Yuan Xue, Xuri Li, Ola Larsson, Toshio Ohhashi, Yihai Cao
+GSE14256	Ahmed Essaghir 1, Nicolas Dif, Catherine Y Marbehant, Paul J Coffer, Jean-Baptiste Demoulin
+GSE40017	Doreen Heckmann 1, Patrick Maier, Stephanie Laufs, Li Li, Jonathan P Sleeman, Marcus J Trunk, Jörg H Leupold, Frederik Wenz, W Jens Zeller, Stefan Fruehauf, Heike Allgayer
+GSE17782	Gruber HE, Deepe R, Hoelscher GL, Ingram JA, Norton HJ, Scannell B, Loeffler B, Zinchenko N, Hanley EN Jr, Tapp H
+GSE20854	Lina Albitar 1, Gavin Pickett, Marilee Morgan, Jason A Wilken, Nita J Maihle, Kimberly K Leslie
+GSE19098	Colette J Shen 1, Srivatsan Raghavan, Zhe Xu, Jan D Baranski, Xiang Yu, Michele A Wozniak, Jordan S Miller, Mudit Gupta, Leonard Buckbinder, Christopher S Chen
+GSE26834	Angelo J Casa 1, Adam S Potter, Simeen Malik, ZaWaunyka Lazard, Isere Kuiatse, Hee-Tae Kim, Anna Tsimelzon, Chad J Creighton, Susan G Hilsenbeck, Powell H Brown, Steffi Oesterreich, Adrian V Lee
+GSE7561	Chad J Creighton 1, Angelo Casa, ZaWaunyka Lazard, Shixia Huang, Anna Tsimelzon, Susan G Hilsenbeck, Charles Kent Osborne, Adrian V Lee
+GSE2059	Zeng R, Spolski R, Finkelstein SE, Oh S, Kovanen PE, Hinrichs CS, Pise-Masison CA, Radonovich MF, Brady JN, Restifo NP, Berzofsky JA, Leonard WJ
+GSE43700	Rosane M B Teles 1, Thomas G Graeber, Stephan R Krutzik, Dennis Montoya, Mirjam Schenk, Delphine J Lee, Evangelia Komisopoulou, Kindra Kelly-Scumpia, Rene Chun, Shankar S Iyer, Euzenir N Sarno, Thomas H Rea, Martin Hewison, John S Adams, Stephen J Popper, David A Relman, Steffen Stenger, Barry R Bloom, Genhong Cheng, Robert L Modlin
+GSE26656	Heide Niederleithner 1, Magdalena Heinz, Stefanie Tauber, Martin Bilban, Hubert Pehamberger, Stefan Sonderegger, Martin Knöfler, Andreas Bracher, Walter Berger, Robert Loewe, Peter Petzelbauer
+GSE29316	Weiwei Chen 1, Tracy Tang, Jeff Eastham-Anderson, Debra Dunlap, Bruno Alicke, Michelle Nannini, Stephen Gould, Robert Yauch, Zora Modrusan, Kelly J DuPree, Walter C Darbonne, Greg Plowman, Frederic J de Sauvage, Christopher A Callahan
+GSE42565	Kevin A Peterson 1, Yuichi Nishi, Wenxiu Ma, Anastasia Vedenko, Leila Shokri, Xiaoxiao Zhang, Matthew McFarlane, José-Manuel Baizabal, Jan Philipp Junker, Alexander van Oudenaarden, Tarjei Mikkelsen, Bradley E Bernstein, Timothy L Bailey, Martha L Bulyk, Wing H Wong, Andrew P McMahon
+GSE4936	Steven A Vokes 1, Hongkai Ji, Scott McCuine, Toyoaki Tenzen, Shane Giles, Sheng Zhong, William J R Longabaugh, Eric H Davidson, Wing H Wong, Andrew P McMahon
+GSE9169	Yuichiro Nishida 1, Naoki Adati, Ritsuko Ozawa, Aasami Maeda, Yoshiyuki Sakaki, Tadayuki Takeda

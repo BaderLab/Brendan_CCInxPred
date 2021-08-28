@@ -109,6 +109,10 @@ load("~/Dropbox/GDB_archive/CMapCorr_files/NN_ALLvCT_corr.RData")
 
 
 ```{r DSsummary,fig.height=6,fig.width=7}
+# remove data from same lab in same cell type:
+DSinfo <- DSinfo[!names(DSinfo) %in% c("IL10","IGF1")] 
+
+
 temp_DScount <- table(do.call(rbind,DSinfo)[,c("cell_type","ligand")])
 temp_DScount <- temp_DScount[,rev(colnames(temp_DScount))]
 

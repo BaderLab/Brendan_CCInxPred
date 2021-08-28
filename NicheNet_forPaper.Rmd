@@ -19,6 +19,9 @@ knitr::opts_chunk$set(
 load("~/Dropbox/GDB_archive/CMapCorr_files/NN_ALLvCT_dat.RData")
 load("~/Dropbox/GDB_archive/CMapCorr_files/NN_ALLvCT_corr.RData")
 source("~/Dropbox/GDB/line2user.R")
+
+# remove data from same lab in same cell type:
+corr_ct <- corr_ct[!names(corr_ct) %in% c("IL10","IGF1")] 
 ```
 
 ```{r AvC_corr_plot,fig.height=4,fig.width=8}
@@ -86,8 +89,13 @@ median(unlist(corr_ct))
 
 ```{r AvC_diffexp_boxplot_v3, fig.height=4,fig.width=8}
 charLFC <- "4"; charFDR <- "01"
-load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/NN_ALLvCT_DEovlp_",
-            "LFC",charLFC,"FDR",charFDR,".RData"))
+temp_ds <- load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/NN_ALLvCT_DEovlp_",
+                       "LFC",charLFC,"FDR",charFDR,".RData"))
+# remove data from same lab in same cell type:
+for (X in temp_ds) {
+  assign(X,get(X)[!names(get(X)) %in% c("IL10","IGF1")])
+}
+
 temp_y <- lapply(c(ALL="P_all",CT="P_ct"),function(X) -log10(unlist(get(X))))
 temp_x <- list(ALL=sapply(de_all,length),
                CT=sapply(unlist(de_ct,F,T),length))
@@ -102,6 +110,11 @@ for (charLFC in c("2","4")) {
   for (charFDR in c("1","01")) {
     temp_ds <- load(paste0("~/Dropbox/GDB_archive/CMapCorr_files/NN_ALLvCT_DEovlp_",
                         "LFC",charLFC,"FDR",charFDR,".RData"))
+    # remove data from same lab in same cell type:
+    for (X in temp_ds) {
+      assign(X,get(X)[!names(get(X)) %in% c("IL10","IGF1")])
+    }
+    
     Plist[[length(Plist) + 1]] <- lapply(c(ALL="P_all",CT="P_ct"),function(X) -log10(unlist(get(X))))
     Pstat[[length(Pstat) + 1]] <- wilcox.test(unlist(P_all),unlist(P_ct))$p.value
     names(Plist)[length(Plist)] <- paste("|Log2FC| \u2265",
@@ -135,8 +148,11 @@ plot(NA,NA,xlim=range(unlist(temp_x)),ylim=range(unlist(Plist)),
 axis(4,at=-log10(c(1,0.1,0.05,1e-2,1e-3,1e-4,1e-5)),
      labels=c("100%","10%","5%","1%","0.1%","0.01%","0.001%"))
 mtext("P # DE shared by chance",side=4,line=2)
-points(jitter(temp_x$ALL,2),jitter(temp_y$ALL,2),pch=20,col=alpha("red",0.5))
-points(jitter(temp_x$CT,2),jitter(temp_y$CT,2),pch=20,col=alpha("dodgerblue",0.5))
+# points(jitter(temp_x$ALL,2),jitter(temp_y$ALL,2),pch=20,col=alpha("red",0.5))
+# points(jitter(temp_x$CT,2),jitter(temp_y$CT,2),pch=20,col=alpha("dodgerblue",0.5))
+points(temp_x$ALL,temp_y$ALL,pch=20,col=alpha("red",0.5))
+points(temp_x$CT,temp_y$CT,pch=20,col=alpha("dodgerblue",0.5))
+
 text(temp_x$ALL[temp_y$ALL > -log10(0.05)],temp_y$ALL[temp_y$ALL > -log10(0.05)],
      names(temp_y$ALL)[temp_y$ALL > -log10(0.05)],col="red",cex=0.6,pos=3,offset=0.2)
 temp_lab1 <- data.frame(x=temp_x$CT[temp_y$CT > -log10(0.05)],
