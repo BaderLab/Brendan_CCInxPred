@@ -488,7 +488,7 @@ consistentLIG <- names(which(sapply(pDE_ligBYct,max) <= pDE_lig))
 
 ```
 
-There were `r length(consistentLIG)` ligands out of 295 (`r round(100 * length(consistentLIG) / 295)`%) that **did not** show improvement in consistency of transcriptional response when considering cell line context.  The following figures show the responsive genes in each case:  
+There were `r length(consistentLIG)` ligands out of 295 (`r round(100 * length(consistentLIG) / 295)`%) that **did not** show improvement in consistency of transcriptional response *in at least one cell line* when considering cell line context.  The following figures show the responsive genes in each case:  
 
 
 ```{r consistentLIG, fig.height=3,fig.width=8.5}
