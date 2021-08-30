@@ -464,6 +464,21 @@ boxplot(list(LIG=pDE_lig,LIGCT=pDE_ligct),horizontal=F,yaxt="n",
 
 # Ligands with consistent DE
 
+```{r byCTdiff,fig.height=4,fig.width=8.5}
+byCTdiff <- sapply(names(pDE_lig),function(LIG) pDE_ligBYct[[LIG]] - pDE_lig[[LIG]],simplify=F)
+byCTdiff <- byCTdiff[order(sapply(byCTdiff,median))]
+
+par(mar=c(2,4,1,1),mgp=2:0)
+boxplot(byCTdiff,pch=".",cex=2,xaxt="n")
+abline(h=0)
+mtext("Ligands",side=1,line=0.1)
+mtext(paste("Change in probability of # DE",
+            "when cell line context is considered",
+            sep="\n"),
+      side=2,line=2)
+```
+
+
 ```{r include=FALSE}
 plot(sapply(pDE_ligBYct,max),pDE_lig,pch=20)
 abline(0,1)
