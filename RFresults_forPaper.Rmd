@@ -1,5 +1,5 @@
 ---
-title: 'Fig4'
+title: 'Fig3'
 ---
 
 ```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
@@ -61,7 +61,7 @@ ALL_aupr_new <- ALL_aupr_new[,names(temp_stat)]
 ```
 
 
-```{r fig4a, fig.height=8,fig.width=8}
+```{r fig3a, fig.height=8,fig.width=8}
 temp_ct <- as.vector(sapply(qualitative_hcl(length(ct14),palette="dark3"),rep,2))
 temp_lig <- qualitative_hcl(length(lig16),palette="dark3")[as.vector(sapply(1:8,function(X) c(X,X + 8)))]
 names(temp_lig) <- colnames(ALL_aupr_all)
@@ -104,7 +104,7 @@ mtext("AUPR",las=0,side=1,line=0.9,at=5.5,adj=0.5)
 mtext("A",font=2,cex=1.5,line=3.5,side=3,las=0,at=line2user(13,2))
 ```
 
-```{r fig4b,fig.height=4,fig.width=8}
+```{r fig3b,fig.height=4,fig.width=8}
 par(mar=c(3,4,1,10),mgp=2:0)
 plot(NA,NA,xlim=range(temp_x),ylim=range(-log10(temp_stat)),yaxt="n",
      xlab="Withheld - Control AUPR",ylab="Wilcoxon signed-rank test p-value")
@@ -174,7 +174,7 @@ temp_stat <- apply(temp_x,2,function(X) wilcox.test(X)$p.value)
 ```
 
 
-```{r fig4a_v2, fig.height=8,fig.width=8}
+```{r fig3a_v2, fig.height=8,fig.width=8}
 temp_ct <- as.vector(sapply(qualitative_hcl(length(ct14),palette="dark3"),rep,2))
 temp_lig <- qualitative_hcl(length(lig16),palette="dark3")[as.vector(sapply(1:8,function(X) c(X,X + 8)))]
 names(temp_lig) <- colnames(ALL_aupr_all)
@@ -217,9 +217,9 @@ mtext("AUPR",las=0,side=1,line=0.9,at=5.5,adj=0.5)
 mtext("A",font=2,cex=1.5,line=3.5,side=3,las=0,at=line2user(13,2))
 ```
 
-Fig4b could be simply boxplots showing withheld - control AUPR sorted by mean AUPR (and columns of A sorted the same to improve pattern recognition), with *** indicating p-values?  
+Fig3b could be simply boxplots showing withheld - control AUPR sorted by mean AUPR (and columns of A sorted the same to improve pattern recognition), with *** indicating p-values?  
 
-```{r fig4b_v2,fig.height=4,fig.width=8}
+```{r fig3b_v2,fig.height=4,fig.width=8}
 temp_stat2 <- cut(temp_stat,c(1,0.05,0.01,0.001,0.0001))
 levels(temp_stat2) <- c("***","**","*"," ")
 

@@ -34,9 +34,9 @@ rm(list=grep("^temp",ls(),value=T))
 KEEP <- c("KEEP",ls())
 ```
 
-# Figure 2
+# Figure 1
 
-```{r fig2, fig.height=10,fig.width=9}
+```{r fig1, fig.height=10,fig.width=9}
 temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/lig295_DE_lig_FDR.RData")
 Z_all <- meanZ_lig
 FDR_all <- FDR_lig
@@ -185,9 +185,9 @@ rm(list=ls()[!ls() %in% KEEP])
 ```
 
 
-# Figure 3
+# Figure 2
 
-```{r Fig3a, fig.height=4,fig.width=9}
+```{r Fig2a, fig.height=4,fig.width=9}
 temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/lig295_DE_ligct_FDR.RData")
 temp_FDRcut <- 0.05
 
@@ -259,7 +259,7 @@ rm(list=ls()[!ls() %in% KEEP])
 
 Version 2, ligands with > 1 signif DE incl, # DE added.
 
-```{r Fig3a_v2, fig.height=4,fig.width=9}
+```{r Fig2a_v2, fig.height=4,fig.width=9}
 temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/lig295_DE_ligct_FDR.RData")
 temp_FDRcut <- 0.05
 
@@ -415,6 +415,36 @@ mtext("B",font=2,cex=1.5,line=-1,side=3,at=line2user(6,2))
 
 The * denotes p < 2.2e-16 from Wilcoxon rank-sum test vs. "Ligand".  
 
+# Supp Fig 2
+Example plot to clarify what "averaging per ligand" means:  
+
+```{r demo_meanZ, fig.width=6,fig.height=4}
+LIG <- "TNF"
+temp_gene <- rev(rownames(FDR_lig)[order(FDR_lig[,LIG])[seq(1,sum(FDR_lig[,LIG] < 1))]])
+temp_Z <- sapply(temp_gene,function(X) 
+  lvl4_data@mat[X,lvl4_data@cdesc$pert_iname == LIG],
+  simplify=F)
+
+par(mar=c(3,4,1,4),mgp=2:0)
+plot(NA,NA,xlim=range(unlist(temp_Z)),ylim=c(0.5,length(temp_Z) + 0.5),
+     yaxs="i",yaxt="n",ylab=NA,
+     xlab=paste("Z-scores from all samples treated with",LIG))
+abline(v=0,lty=2,col="red")
+boxplot(temp_Z,horizontal=T,pch=".",cex=2,add=T,yaxt="n")
+points(meanZ_lig[temp_gene,LIG],seq_along(temp_gene),
+       pch=20,col=alpha("dodgerblue",0.8))
+legend("topleft",bty="n",pch=20,col=alpha("dodgerblue",0.8),
+       legend="Mean Z-score")
+mtext(lvl4_data@rdesc[temp_gene,"pr_gene_symbol"],
+      side=2,at=seq_along(temp_gene),line=0.1,las=2)
+mtext(signif(FDR_lig[temp_gene,LIG],2),
+      side=4,at=seq_along(temp_gene),line=0.1,las=2)
+mtext("FDR",side=4,at=length(temp_gene) + 0.7,line=0.5,las=2,font=2)
+
+rm(LIG)
+rm(list=grep("^temp",ls(),value=T))
+```
+
 # Comparing prob to num
 ```{r fig.width=8,fig.height=6}
 load("~/Dropbox/GDB_archive/CMapCorr_files/lig295_DE_lig_FDR.RData")
@@ -470,26 +500,28 @@ nDE_ligBYct <- nDE_ligBYct[names(nDE_lig)]
 byCTdiff <- sapply(names(nDE_lig),function(LIG) nDE_ligBYct[[LIG]] - nDE_lig[[LIG]],simplify=F)
 byCTdiff <- byCTdiff[order(sapply(byCTdiff,median))]
 
-par(mar=c(2,4,1,1),mgp=2:0)
+par(mar=c(1.5,4,1,1),mgp=2:0)
 boxplot(byCTdiff,pch=".",cex=2,xaxt="n")
 abline(h=0)
 mtext("Ligands",side=1,line=0.1)
-mtext("Change in # DE with cell line context",side=2,line=2)
+mtext("Change in # DE at 5% FDR with cell line context",side=2,line=2)
 
 ```
+
+# Supp Fig 3
 
 ```{r byCTdiff,fig.height=4,fig.width=8.5}
 byCTdiff <- sapply(names(pDE_lig),function(LIG) pDE_ligBYct[[LIG]] - pDE_lig[[LIG]],simplify=F)
 byCTdiff <- byCTdiff[order(sapply(byCTdiff,median))]
 
-par(mar=c(2,4,1,1),mgp=2:0)
+par(mar=c(1.5,4.5,1,1),mgp=2:0)
 boxplot(byCTdiff,pch=".",cex=2,xaxt="n")
 abline(h=0)
-mtext("Ligands",side=1,line=0.1)
-mtext(paste("Change in probability of # DE",
-            "with cell line context",
+mtext("Ligands (ordered by median change in p-value)",side=1,line=0.1)
+mtext(paste("Change in -log10 probability of # DE at 5% FDR ",
+            "with cell line context vs. all ligand-treated samples",
             sep="\n"),
-      side=2,line=2)
+      side=2,line=2.5)
 ```
 
 

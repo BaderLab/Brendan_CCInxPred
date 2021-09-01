@@ -14,7 +14,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# Supplemental Figure
+# Supplemental Figure 4
 
 ```{r}
 temp <- load("~/Dropbox/GDB_archive/CMapCorr_files/corr_lvl3_lig295.RData") 
@@ -215,8 +215,101 @@ legend("bottomright",bty="n",title="Context:",
 Mean improvement (LIGCT): `r mean(diff_ligct)`  
 Mean improvement (REP): `r mean(diff_rep)`  
 
+```{r}
+mean_lig <- sapply(cor_lig,mean)
+mean_ligct <- tapply(sapply(cor_ligct,mean),cor_ligct_lig,c,simplify=F)
+diff_ligct <- sapply(names(cor_lig),
+                     function(X) 
+                       mean_ligct[[X]] - mean_lig[X],
+                     simplify=F)
+p_ligct<- pbapply::pbsapply(names(cor_lig),function(LIG)
+  sapply(cor_ligct[cor_ligct_lig == LIG],function(X) 
+    wilcox.test(X,cor_lig[[LIG]],alternative="greater")$p.value),simplify=F)
 
 
+mean_rep <- tapply(sapply(cor_rep,mean),cor_rep_lig,c,simplify=F)
+diff_rep <- sapply(names(cor_lig),
+                     function(X) 
+                       mean_rep[[X]] - mean_lig[X],
+                     simplify=F)
+p_rep<- pbapply::pbsapply(names(cor_lig),function(LIG)
+  sapply(cor_rep[cor_rep_lig == LIG],function(X) 
+    wilcox.test(X,cor_lig[[LIG]],alternative="greater")$p.value),simplify=F)
+
+diff_ligct_overall <- sapply(names(cor_lig),function(LIG) 
+  mean(unlist(cor_ligct[cor_ligct_lig == LIG])) - mean(cor_lig[[LIG]]))
+diff_rep_overall <- sapply(names(cor_lig),function(LIG) 
+  mean(unlist(cor_rep[cor_rep_lig == LIG])) - mean(cor_lig[[LIG]]))
+
+```
+
+
+```{r fig.height=6,fig.width=8.5}
+diff_ligct <- diff_ligct[order(sapply(diff_ligct,median))]
+any_p_ligct <- sapply(p_ligct[names(diff_ligct)],function(X) any(X <= 0.01))
+diff_rep <- diff_rep[order(sapply(diff_rep,median))]
+any_p_rep <- sapply(p_rep[names(diff_rep)],function(X) any(X <= 0.01))
+
+layout(matrix(c(1,2,3,3),2),widths=c(7,2))
+par(mar=c(1.5,5.5,0.5,1),mgp=2:0)
+boxplot(diff_ligct,col=alpha("red",0.1),border=alpha("red",0.8),pch=".",xaxt="n")
+# points(sort(sapply(diff_ligct,median)),pch=".",cex=2,col="red")
+abline(h=0,lty=2)
+mtext("Ligands (ordered by median change in mean inter-experiment correlation)",
+      side=1,line=0.1,cex=0.9)
+mtext(paste("Change in mean",
+            "inter-experiment correlation",
+            "per ligand per cell line vs. per ligand",
+            sep="\n"),
+      side=2,line=2.1,cex=0.9)
+mtext("*",cex=0.7,line=-0.5,col=alpha("red",0.8),at=which(any_p_ligct))
+
+mtext("C",font=2,cex=1.5,line=-1,side=3,at=line2user(4.9,2))
+
+
+boxplot(diff_rep,col=alpha("dodgerblue",0.1),border=alpha("dodgerblue",0.8),pch=".",xaxt="n")
+points(sort(sapply(diff_rep,median)),pch=".",cex=2,col="dodgerblue")
+abline(h=0,lty=2)
+mtext("Ligands (ordered by median change in mean inter-experiment correlation)",
+      side=1,line=0.1,cex=0.9)
+mtext(paste("Change in mean",
+            "inter-experiment correlation",
+            "per replicate vs. per ligand",
+            sep="\n"),
+      side=2,line=2.1,cex=0.9)
+mtext("*",cex=0.7,line=-0.5,col=alpha("dodgerblue",0.8),at=which(any_p_rep))
+
+
+par(mar=c(5,1.5,1,5.5))
+boxplot(list(diff_ligct_overall,diff_rep_overall),
+        col=alpha(c("red","dodgerblue"),0.5),border=c("red","dodgerblue"),
+        xaxt="n",yaxt="n",pch=".",cex=2)
+abline(h=0,lty=2)
+axis(side=4)
+mtext(paste("Change in mean inter-experiment correlation",
+            "within each cell line or replicate for a given ligand",
+            "vs. all samples treated with that ligand",
+            sep="\n"),
+      side=4,line=4.5)
+text(c(1,2),rep(line2user(0.5,1),2),
+       c("Ligand per Cell line","Replicate"),
+       adj=0,srt=-35,xpd=NA)
+if (wilcox.test(diff_ligct_overall)$p.value < 2.2e-16) {
+  mtext("*",side=3,at=1,font=2,line=-0.3)
+}
+if (wilcox.test(diff_rep_overall)$p.value < 2.2e-16) {
+  mtext("*",side=3,at=2,font=2,line=-0.3)
+}
+
+mtext("D",font=2,cex=1.5,line=-0.5,side=3,at=line2user(0.8,2))
+```
+
+Inter-experiment correlation was *significantly* improved when considering cell line context in *at least one cell line* for `r sum(any_p_ligct)` / 295 (`r round(100 * sum(any_p_ligct) / 295)`%) ligands (p <= 0.01 by Wilcoxon rank-sum test).  
+Inter-experiment correlation within replicates was *significantly* better than correlations between all samples treated with the same ligand in *at least one replicate* for `r sum(any_p_rep)` / 295 (`r round(100 * sum(any_p_rep) / 295)`%) ligands (p <= 0.01 by Wilcoxon rank-sum test).  
+
+"*" p < 2.2e-16 by Wilcoxon signed-rank test.  
+Mean improvement (LIGCT): `r mean(diff_ligct_overall)`  
+Mean improvement (REP): `r mean(diff_rep_overall)`  
 
 ****
 

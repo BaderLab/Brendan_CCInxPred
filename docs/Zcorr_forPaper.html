@@ -275,7 +275,7 @@ $(document).ready(function () {
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    Figures For Paper
+    Old figures
      
     <span class="caret"></span>
   </a>
@@ -305,7 +305,7 @@ $(document).ready(function () {
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    Paper Figs v2
+    More old figures
      
     <span class="caret"></span>
   </a>
@@ -328,29 +328,32 @@ $(document).ready(function () {
     <li>
       <a href="NicheNet.html">NicheNet</a>
     </li>
+    <li>
+      <a href="GSEAcorr2.html">Final GSEA stuff</a>
+    </li>
   </ul>
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    Paper Figs v3
+    Current figures for paper
      
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="DEoverlap_FDR_forPaper.html">Fig 1 &amp; 2: DE overlap (FDR)</a>
+      <a href="DEoverlap_FDR_forPaper.html">Fig 1, 2, S2 &amp; S3: DE overlap (FDR)</a>
     </li>
     <li>
-      <a href="Zcorr_forPaper.html">Fig 3: GSEA (&amp; Z-score) correlation</a>
+      <a href="RFresults_forPaper.html">Fig 3: RF results</a>
     </li>
     <li>
-      <a href="RFresults_forPaper.html">Fig 4: RF results</a>
+      <a href="NicheNet_forPaper.html">Fig 4 &amp; 5: NicheNet</a>
     </li>
     <li>
-      <a href="NicheNet_forPaper.html">Fig 5: NicheNet</a>
+      <a href="SFig1.html">Supp Fig 1: CMap summary</a>
     </li>
     <li>
-      <a href="GSEAcorr2.html">Final GSEA stuff</a>
+      <a href="Zcorr_forPaper.html">Supp Fig 4: Z-score correlation</a>
     </li>
   </ul>
 </li>
@@ -372,7 +375,7 @@ $(document).ready(function () {
 
 <div id="TOC">
 <ul>
-<li><a href="#supplemental-figure">Supplemental Figure</a></li>
+<li><a href="#supplemental-figure-4">Supplemental Figure 4</a></li>
 <li><a href="#old">OLD</a><ul>
 <li><a href="#figure-1a">Figure 1a</a></li>
 <li><a href="#figure-1bc">Figure 1b/c</a></li>
@@ -381,8 +384,8 @@ $(document).ready(function () {
 </ul>
 </div>
 
-<div id="supplemental-figure" class="section level1">
-<h1>Supplemental Figure</h1>
+<div id="supplemental-figure-4" class="section level1">
+<h1>Supplemental Figure 4</h1>
 <pre class="r"><code>signif(sapply(corr_lvl3,mean),3)</code></pre>
 <pre><code>##    CT   LIG LIGCT   REP 
 ## 0.845 0.715 0.864 0.878</code></pre>
@@ -397,6 +400,12 @@ $(document).ready(function () {
 ## 0.00121 0.02760 0.03850 0.07200</code></pre>
 <p><img src="Zcorr_forPaper_files/figure-html/suppfigAB-1.png" width="768" /></p>
 <p><img src="Zcorr_forPaper_files/figure-html/suppfigC-1.png" width="768" /></p>
+<p>"*" p &lt; 2.2e-16 by Wilcoxon signed-rank test.<br />
+Mean improvement (LIGCT): 0.0120171<br />
+Mean improvement (REP): 0.0401395</p>
+<p><img src="Zcorr_forPaper_files/figure-html/unnamed-chunk-6-1.png" width="816" /></p>
+<p>Inter-experiment correlation was <em>significantly</em> improved when considering cell line context in <em>at least one cell line</em> for 144 / 295 (49%) ligands (p &lt;= 0.01 by Wilcoxon rank-sum test).<br />
+Inter-experiment correlation within replicates was <em>significantly</em> better than correlations between all samples treated with the same ligand in <em>at least one replicate</em> for 206 / 295 (70%) ligands (p &lt;= 0.01 by Wilcoxon rank-sum test).</p>
 <p>"*" p &lt; 2.2e-16 by Wilcoxon signed-rank test.<br />
 Mean improvement (LIGCT): 0.0120171<br />
 Mean improvement (REP): 0.0401395</p>

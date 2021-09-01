@@ -1,0 +1,74 @@
+---
+title: "Supp Fig 1: Connectivity Map ligand assay data summary"
+---
+
+
+```{r setup, echo=F,message=F,warning=F}
+library(cmapR)
+library(UpSetR)
+library(colorspace)
+library(kableExtra)
+```
+
+
+```{r load_data_lvl3, message=F,warning=F,include=F}
+# lvl3_inputs.R to generate this input data
+load("~/Dropbox/GDB_archive/CMapCorr_files/lvl3_inputs.RData") 
+```
+
+
+## Ligands / cell lines assayed
+
+```{r lvl3_data_summary, echo=F,message=F,warning=F,fig.height=4.5,fig.width=6.5,fig.show='hold'}
+temp_ct <- sapply(ct14,function(X) 
+  unique(lvl3_data@cdesc$pert_iname[lvl3_data@cdesc$cell_id == X]),
+  simplify=F)
+temp_ctype <- mapply(function(X,Y) sub(paste0("_",Y),"",X),
+                     X=names(temp_ct),Y=ct14)
+names(temp_ct) <- names(temp_ctype) <- ct14
+
+temp_md <- data.frame(sets=ct14,
+                      source.tissue=temp_ctype)
+rownames(temp_md) <- ct14
+temp_col <- qualitative_hcl(length(unique(temp_ctype)),palette="dark3")
+names(temp_col) <- unique(temp_ctype)
+
+upset(fromList(temp_ct),
+      nsets=length(temp_ct),
+      nintersects=NA,
+      order.by="degree",
+      set.metadata=list(data=temp_md,
+                        plots=list(
+                          list(type="text",
+                               column="source.tissue",
+                               assign=20,
+                               colors=temp_col),
+                          list(type="matrix_rows",
+                               column="source.tissue",
+                               colors=temp_col,
+                               alpha=0.7))
+      ),
+      mb.ratio=c(0.6,0.4))
+
+rm(list=grep("^temp",ls(),value=T))
+```
+
+In the Connectivity Map data, there are 16 ligands assayed in all 14 cell lines, and 300 ligands assayed in 8 cell lines.
+
+
+```{r lvl3_data_dist, echo=F,message=F,warning=F,fig.show='hold'}
+temp <- cbind(sapply(lig16,function(X)
+  table(lvl3_data@cdesc$cell_id[lvl3_data@cdesc$pert_iname == X])),
+  ctrl=table(lvl3_data_ctl@cdesc$cell_id))
+temp <- as.data.frame(rbind(temp,Totals=colSums(temp)))
+temp <- temp[c(ct14,"Total"),]
+rownames(temp)[seq_along(ct14)] <- sapply(rownames(temp)[seq_along(ct14)],
+                                          function(X) names(ct14)[ct14 == X])
+temp$min.ctrl.ratio <- apply(temp[,colnames(temp) != "ctrl"],1,max) / temp$ctrl
+kable(temp,format="html")  %>%
+  kable_styling()
+
+rm(list=grep("^temp",ls(),value=T))
+```
+
+In a subset of cell lines, ligands were tested over a variety of doses and times (and EGF was especially rigorously assayed), while in most cell lines ligands were tested at a single concentration over two time points.  Note that the number of control samples per cell type is much greater than the number of treatments.

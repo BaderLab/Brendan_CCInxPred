@@ -21,7 +21,7 @@ navbar:
       href: LigPred_extrapolate.html
     - text: "Lig prob on new CT"
       href: LigProb_NovelLines.html
-  - text: "Figures For Paper"
+  - text: "Old figures"
     menu:
     - text: "Fig 1"
       href: Fig1.html
@@ -37,7 +37,7 @@ navbar:
       href: Fig3_allgenes.html
     - text: "Fig 4"
       href: Fig4.html
-  - text: "Paper Figs v2"
+  - text: "More old figures"
     menu:
     - text: "Z-score correlation"
       href: Zcorr.html
@@ -51,18 +51,20 @@ navbar:
       href: RecExpr_FDR.html
     - text: "NicheNet"
       href: NicheNet.html
-  - text: "Paper Figs v3"
-    menu:
-    - text: "Fig 1 & 2: DE overlap (FDR)"
-      href: DEoverlap_FDR_forPaper.html
-    - text: "Fig 3: GSEA (& Z-score) correlation"
-      href: Zcorr_forPaper.html
-    - text: "Fig 4: RF results"
-      href: RFresults_forPaper.html
-    - text: "Fig 5: NicheNet"
-      href: NicheNet_forPaper.html
     - text: "Final GSEA stuff"
       href: GSEAcorr2.html
+  - text: "Current figures for paper"
+    menu:
+    - text: "Fig 1, 2, S2 & S3: DE overlap (FDR)"
+      href: DEoverlap_FDR_forPaper.html
+    - text: "Fig 3: RF results"
+      href: RFresults_forPaper.html
+    - text: "Fig 4 & 5: NicheNet"
+      href: NicheNet_forPaper.html
+    - text: "Supp Fig 1: CMap summary"
+      href: SFig1.html
+    - text: "Supp Fig 4: Z-score correlation"
+      href: Zcorr_forPaper.html
 
 
 
