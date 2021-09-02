@@ -246,9 +246,9 @@ diff_rep_overall <- sapply(names(cor_lig),function(LIG)
 
 ```{r fig.height=6,fig.width=8.5}
 diff_ligct <- diff_ligct[order(sapply(diff_ligct,median))]
-any_p_ligct <- sapply(p_ligct[names(diff_ligct)],function(X) any(X <= 0.01))
+any_p_ligct <- sapply(p_ligct[names(diff_ligct)],function(X) any(X <= 0.05))
 diff_rep <- diff_rep[order(sapply(diff_rep,median))]
-any_p_rep <- sapply(p_rep[names(diff_rep)],function(X) any(X <= 0.01))
+any_p_rep <- sapply(p_rep[names(diff_rep)],function(X) any(X <= 0.05))
 
 layout(matrix(c(1,2,3,3),2),widths=c(7,2))
 par(mar=c(1.5,5.5,0.5,1),mgp=2:0)
@@ -304,8 +304,8 @@ if (wilcox.test(diff_rep_overall)$p.value < 2.2e-16) {
 mtext("D",font=2,cex=1.5,line=-0.5,side=3,at=line2user(0.8,2))
 ```
 
-Inter-experiment correlation was *significantly* improved when considering cell line context in *at least one cell line* for `r sum(any_p_ligct)` / 295 (`r round(100 * sum(any_p_ligct) / 295)`%) ligands (p <= 0.01 by Wilcoxon rank-sum test).  
-Inter-experiment correlation within replicates was *significantly* better than correlations between all samples treated with the same ligand in *at least one replicate* for `r sum(any_p_rep)` / 295 (`r round(100 * sum(any_p_rep) / 295)`%) ligands (p <= 0.01 by Wilcoxon rank-sum test).  
+Inter-experiment correlation was *significantly* improved when considering cell line context in *at least one cell line* for `r sum(any_p_ligct)` / 295 (`r round(100 * sum(any_p_ligct) / 295)`%) ligands (p <= 0.05 by Wilcoxon rank-sum test).  
+Inter-experiment correlation within replicates was *significantly* better than correlations between all samples treated with the same ligand in *at least one replicate* for `r sum(any_p_rep)` / 295 (`r round(100 * sum(any_p_rep) / 295)`%) ligands (p <= 0.05 by Wilcoxon rank-sum test).  
 
 "*" p < 2.2e-16 by Wilcoxon signed-rank test.  
 Mean improvement (LIGCT): `r mean(diff_ligct_overall)`  
